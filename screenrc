@@ -1,0 +1,5 @@
+escape ^T^T
+startup_message off
+vbell off
+defscrollback 10000
+hardstatus alwayslastline "[%m/%d/%Y %02c] %`%-w%{=b bw}%n %t%{-}%+w"
