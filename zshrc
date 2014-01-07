@@ -21,9 +21,17 @@ setopt share_history
 setopt magic_equal_subst
 
 alias vi="vim"
-alias ls="ls --color"
 
 export GREP_OPTIONS="--color=auto"
 export EDITOR=vim
 
 umask 0002
+
+case "${OSTYPE}" in
+    darwin*)
+        alias ls="ls -G"
+        ;;
+    linux*)
+        alias ls="ls --color"
+        ;;
+esac
