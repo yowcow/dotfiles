@@ -24,5 +24,6 @@ alias vi="vim"
 alias ls="ls --color"
 
 export GREP_OPTIONS="--color=auto"
+export EDITOR=vim
 
 umask 0002
