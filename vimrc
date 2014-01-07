@@ -8,6 +8,7 @@ set showmatch
 set hlsearch
 set ignorecase
 set smartcase
+set backspace=
 
 set list
 set listchars=tab:>-,trail:^
