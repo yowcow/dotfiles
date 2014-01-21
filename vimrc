@@ -9,6 +9,7 @@ set hlsearch
 set ignorecase
 set smartcase
 set backspace=
+set backspace=indent
 
 set list
 set listchars=tab:>-,trail:^
