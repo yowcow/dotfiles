@@ -22,8 +22,9 @@ setopt magic_equal_subst
 
 alias vi="vim"
 
-export GREP_OPTIONS="--color=auto"
 export EDITOR=vim
+export GREP_OPTIONS="--color=auto"
+export LANG="en_US.UTF-8"
 
 umask 0002
 
