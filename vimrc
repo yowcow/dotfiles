@@ -28,9 +28,13 @@ set wildmode=list:longest
 au BufNewFile,BufRead *.psgi set filetype=perl
 au BufNewFile,BufRead *.t set filetype=perl
 au BufNewFile,BufRead *.tx set filetype=html
+au BufNewFile,BufRead *.md set filetype=markdown
 
 autocmd FileType make setlocal noexpandtab
 autocmd FileType html setlocal softtabstop=2
 autocmd FileType html setlocal tabstop=2
 autocmd FileType ruby setlocal softtabstop=2
 autocmd FileType ruby setlocal tabstop=2
+autocmd FileType yaml setlocal softtabstop=2
+autocmd FileType yaml setlocal tabstop=2
+autocmd FileType markdown hi! def link markdownItalic LineNr
