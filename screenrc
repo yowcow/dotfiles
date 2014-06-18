@@ -4,4 +4,4 @@ vbell off
 defscrollback 10000
 hardstatus alwayslastline
 #hardstatus string "%{= gk} [%m/%d/%Y %02c] %`%-w%{=b yk}%n %t%{-}%+w"
-hardstatus string "%{= gk}%H [%m.%d.%Y %02c] %`%-w%{=b ry}%n %t%{-}%+w"
+hardstatus string "%{=b yr} %H %{= gk} [%m.%d.%Y %02c] %`%-w%{=b ry}%n %t%{-}%+w"
