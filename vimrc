@@ -31,6 +31,8 @@ au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 
 autocmd FileType make setlocal noexpandtab
+autocmd FileType xhtml setlocal softtabstop=2
+autocmd FileType xhtml setlocal tabstop=2
 autocmd FileType html setlocal softtabstop=2
 autocmd FileType html setlocal tabstop=2
 autocmd FileType ruby setlocal softtabstop=2
