@@ -39,4 +39,6 @@ autocmd FileType ruby setlocal softtabstop=2
 autocmd FileType ruby setlocal tabstop=2
 autocmd FileType yaml setlocal softtabstop=2
 autocmd FileType yaml setlocal tabstop=2
+autocmd FileType markdown setlocal softtabstop=4
+autocmd FileType markdown setlocal tabstop=4
 autocmd FileType markdown hi! def link markdownItalic LineNr
