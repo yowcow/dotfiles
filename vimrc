@@ -43,6 +43,10 @@ autocmd FileType markdown setlocal softtabstop=4
 autocmd FileType markdown setlocal tabstop=4
 autocmd FileType markdown hi! def link markdownItalic LineNr
 
+" perltidy
+map ,pt <Esc>:%! perltidy -se<CR>
+map ,ptv <Esc>:'<,'>! perltidy -se<CR>
+
 filetype plugin on
 
 set rtp+=~/.vim/vundle
