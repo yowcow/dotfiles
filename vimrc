@@ -44,8 +44,12 @@ autocmd FileType markdown setlocal tabstop=4
 autocmd FileType markdown hi! def link markdownItalic LineNr
 
 " perltidy
-map ,pt <Esc>:%! perltidy -se<CR>
-map ,ptv <Esc>:'<,'>! perltidy -se<CR>
+if filereadable(expand('~/.vimenv'))
+  source ~/.vimenv
+else
+  map ,pt <Esc>:%! perltidy -se<CR>
+  map ,ptv <Esc>:'<,'>! perltidy -se<CR>
+endif
 
 filetype plugin on
 
