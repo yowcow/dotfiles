@@ -9,4 +9,5 @@ create-symlinks:
 	cd ~/ && rm -f .vimrc && ln -s $(CURRENT_PATH)/vimrc .vimrc;
 	cd ~/ && rm -f .zshrc && ln -s $(CURRENT_PATH)/zshrc .zshrc;
 	cd ~/ && rm -f .screenrc && ln -s $(CURRENT_PATH)/screenrc .screenrc;
+	cd ~/ && rm -f .perltidyrc && ln -s $(CURRENT_PATH)/perltidyrc .perltidyrc;
 	mkdir -p ~/.vim && cd ~/.vim && rm -f vundle && ln -s $(CURRENT_PATH)/vundle;
