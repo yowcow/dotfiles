@@ -43,16 +43,18 @@ autocmd FileType markdown setlocal softtabstop=4
 autocmd FileType markdown setlocal tabstop=4
 autocmd FileType markdown hi! def link markdownItalic LineNr
 
-" perltidy
+"=== Server dependent vim profile
 if filereadable(expand('~/.vimenv'))
   source ~/.vimenv
-else
-  map ,pt <Esc>:%! perltidy -se<CR>
-  map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 endif
+
+"=== Perl::Tidy
+map ,pt <Esc>:%! perltidy -se<CR>
+map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 filetype plugin on
 
+"=== Vundle
 set rtp+=~/.vim/vundle
 call vundle#rc('~/.vim/bundle')
 
@@ -64,6 +66,7 @@ Bundle 'Shougo/neosnippet-snippets'
 Bundle 'thinca/vim-quickrun'
 
 
+"=== For neocomplcache
 " Disable AutoComplPop.
 let g:acp_enableAtStartup = 0
 " Use neocomplcache.
