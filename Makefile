@@ -1,4 +1,6 @@
-all: update-submodule create-symlinks
+all: update-submodule
+
+install: create-symlinks
 
 CURRENT_PATH := $(shell pwd)
 
