@@ -31,6 +31,7 @@ umask 0002
 case "${OSTYPE}" in
     darwin*)
         alias ls="ls -G"
+        alias zcat="gunzip -c"
         ;;
     linux*)
         alias ls="ls --color"
