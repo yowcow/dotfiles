@@ -3,4 +3,4 @@ startup_message off
 vbell off
 defscrollback 10000
 hardstatus alwayslastline
-hardstatus string "%{=b wk} %H%{= wk} %`%-w%{=b yr}%n %t%{-}%+w %=%l [%C %A %m.%d.%Y]"
+hardstatus string "%{=b kw} %H%{= kw} %`%-w%{=b yr}%n %t%{-}%+w %=%l [%C %A %m.%d.%Y]"
