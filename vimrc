@@ -1,5 +1,6 @@
 syntax on
 
+"set t_Co=256
 set nobackup
 set noswapfile
 set novisualbell
