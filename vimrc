@@ -1,4 +1,5 @@
 syntax on
+colorscheme zellner
 
 set t_Co=256
 set nobackup
