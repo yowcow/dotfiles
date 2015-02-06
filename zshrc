@@ -37,3 +37,5 @@ case "${OSTYPE}" in
         alias ls="ls --color"
         ;;
 esac
+
+echo -ne "\033]0;${USER}@${HOST}\007"
