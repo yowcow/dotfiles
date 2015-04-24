@@ -21,6 +21,8 @@ setopt share_history
 setopt magic_equal_subst
 
 alias vi="vim"
+alias be="bundle exec"
+alias ce="carton exec"
 
 export EDITOR=vim
 export GREP_OPTIONS="--color=auto"
@@ -38,4 +40,17 @@ case "${OSTYPE}" in
         ;;
 esac
 
-echo -ne "\033]0;${USER}@${HOST}\007"
+# functions
+pmdir () {
+    cd $(dirname $(perldoc -lm $1))
+}
+
+lpmdir () {
+    cd $(dirname $(carton exec -- perldoc -lm $1))
+}
+
+whereami () {
+    echo -ne "\033]0;${USER}@${HOST}\007"
+}
+
+whereami
