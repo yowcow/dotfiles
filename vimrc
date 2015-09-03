@@ -58,6 +58,10 @@ endif
 map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
+"=== JSON tidy
+map ,jt <Esc>:%! jq .<CR>
+map ,jtv <Esc>:'<,'>! jq .<CR>
+
 filetype plugin on
 
 "=== Vundle
