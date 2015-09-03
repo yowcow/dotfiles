@@ -58,9 +58,9 @@ endif
 map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
-"=== JSON tidy
+"=== JavaScript tidy
 map ,jt <Esc>:%call JsBeautify()<CR>
-map ,jtv <Esc>:'<,'>call JsBeautify()<CR>
+map ,jtv <Esc>:'<,'>call RangeJsBeautify()<CR>
 
 filetype plugin on
 
