@@ -59,8 +59,8 @@ map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 "=== JSON tidy
-map ,jt <Esc>:%! jq .<CR>
-map ,jtv <Esc>:'<,'>! jq .<CR>
+map ,jt <Esc>:%call JsBeautify()<CR>
+map ,jtv <Esc>:'<,'>call JsBeautify()<CR>
 
 filetype plugin on
 
@@ -75,6 +75,7 @@ Bundle 'Shougo/neosnippet'
 Bundle 'Shougo/neosnippet-snippets'
 Bundle 'thinca/vim-quickrun'
 Bundle 'kchmck/vim-coffee-script'
+Bundle 'maksimr/vim-jsbeautify'
 
 
 "=== For neocomplcache
