@@ -71,7 +71,7 @@ Bundle 'Shougo/neosnippet'
 Bundle 'Shougo/neosnippet-snippets'
 Bundle 'thinca/vim-quickrun'
 Bundle 'kchmck/vim-coffee-script'
-
+Bundle 'rhysd/vim-crystal'
 
 "=== For neocomplcache
 " Disable AutoComplPop.
