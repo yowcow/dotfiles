@@ -58,6 +58,10 @@ endif
 map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
+"=== JavaScript tidy
+map ,jt <Esc>:%call JsBeautify()<CR>
+map ,jtv <Esc>:'<,'>call RangeJsBeautify()<CR>
+
 filetype plugin on
 
 "=== Vundle
@@ -72,6 +76,7 @@ Bundle 'Shougo/neosnippet-snippets'
 Bundle 'thinca/vim-quickrun'
 Bundle 'kchmck/vim-coffee-script'
 Bundle 'rhysd/vim-crystal'
+Bundle 'maksimr/vim-jsbeautify'
 
 "=== For neocomplcache
 " Disable AutoComplPop.
