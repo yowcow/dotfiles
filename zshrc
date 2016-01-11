@@ -28,8 +28,6 @@ export EDITOR=vim
 export GREP_OPTIONS="--color=auto"
 export LANG="en_US.UTF-8"
 
-umask 0002
-
 case "${OSTYPE}" in
     darwin*)
         alias ls="ls -G"
@@ -37,6 +35,7 @@ case "${OSTYPE}" in
         ;;
     linux*)
         alias ls="ls --color"
+        umask 0002
         ;;
 esac
 
