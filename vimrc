@@ -59,8 +59,10 @@ map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 "=== JavaScript tidy
-map ,jt <Esc>:%call JsBeautify()<CR>
-map ,jtv <Esc>:'<,'>call RangeJsBeautify()<CR>
+"map ,jt <Esc>:%call JsBeautify()<CR>
+"map ,jtv <Esc>:'<,'>call RangeJsBeautify()<CR>
+map ,jt <Esc>:%! jq .<CR>
+map ,jtv <Esc>:'<,'>! jq .<CR>
 
 filetype plugin on
 
