@@ -35,6 +35,7 @@ au BufNewFile,BufRead *.t set filetype=perl
 au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 au BufNewFile,BufRead *.coffee set filetype=coffee
+au BufNewFile,BufRead *.es6 set filetype=javascript
 
 autocmd FileType make setlocal noexpandtab
 autocmd FileType xhtml setlocal softtabstop=2
@@ -77,6 +78,7 @@ Bundle 'Shougo/neosnippet'
 Bundle 'Shougo/neosnippet-snippets'
 Bundle 'thinca/vim-quickrun'
 Bundle 'kchmck/vim-coffee-script'
+Bundle 'othree/yajs.vim'
 Bundle 'rhysd/vim-crystal'
 Bundle 'maksimr/vim-jsbeautify'
 
