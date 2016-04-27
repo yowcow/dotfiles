@@ -1,7 +1,17 @@
-panda --notests install \
-    Task::Star \
+ITEMS=( \
+    App::Mi6 \
+    Compress::Zlib \
+    Digest::SHA \
     HTTP::UserAgent \
     IO::Socket::SSL \
-    Compress::Zlib \
+    p6doc \
+    Task::Star \
+    Test::META \
+    String::CamelCase \
     WebService::SOP \
-    String::CamelCase
+)
+
+for item in ${ITEMS[@]}; do
+    echo "Installing ${item}";
+    panda --notests install ${item};
+done;
