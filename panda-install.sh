@@ -4,6 +4,8 @@ ITEMS=( \
     Digest::SHA \
     HTTP::UserAgent \
     IO::Socket::SSL \
+    LibraryCheck \
+    LibraryMake \
     p6doc \
     Task::Star \
     Test::META \
