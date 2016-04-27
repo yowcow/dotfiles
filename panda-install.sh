@@ -6,6 +6,7 @@ ITEMS=( \
     IO::Socket::SSL \
     LibraryCheck \
     LibraryMake \
+    Linenoise \
     p6doc \
     Task::Star \
     Test::META \
