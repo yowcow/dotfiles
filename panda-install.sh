@@ -1,4 +1,5 @@
 ITEMS=( \
+    Algorithm::BloomFilter \
     App::Mi6 \
     Compress::Zlib \
     Digest::SHA \
