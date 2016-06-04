@@ -2,6 +2,7 @@ ITEMS=( \
     Algorithm::BloomFilter \
     App::Mi6 \
     Compress::Zlib \
+    Digest::MurmurHash3 \
     Digest::SHA \
     HTTP::UserAgent \
     IO::Socket::SSL \
