@@ -52,4 +52,11 @@ whereami () {
     echo -ne "\033]0;${USER}@${HOST}\007"
 }
 
+perldocvim () {
+    FILE=$(perldoc -lm $*);
+    if [[ -e $FILE ]]; then
+        vim $FILE;
+    fi
+}
+
 whereami
