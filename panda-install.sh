@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ITEMS=( \
     Algorithm::BloomFilter \
     App::Mi6 \
