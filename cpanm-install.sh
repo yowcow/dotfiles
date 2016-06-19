@@ -1,6 +1,8 @@
 #!/bin/bash
 
 cpanm -n \
+    EV
+    AnyEvent
     App::cpanoutdated \
     Carton \
     common::sense \
