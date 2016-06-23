@@ -11,6 +11,7 @@ cpanm -n \
     LWP::UserAgent \
     LWP::Protocol::https \
     Mojolicious \
+    Parallel::Prefork \
     Perl::Tidy \
     Plack \
     Starlet \

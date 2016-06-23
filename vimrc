@@ -65,6 +65,9 @@ map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 map ,jt <Esc>:%! jq .<CR>
 map ,jtv <Esc>:'<,'>! jq .<CR>
 
+"=== NERDTree
+map <C-n> :NERDTreeToggle<CR>
+
 filetype plugin on
 
 "=== Vundle
@@ -81,6 +84,7 @@ Bundle 'kchmck/vim-coffee-script'
 Bundle 'othree/yajs.vim'
 Bundle 'rhysd/vim-crystal'
 Bundle 'maksimr/vim-jsbeautify'
+Bundle 'scrooloose/nerdtree'
 
 "=== For neocomplcache
 " Disable AutoComplPop.
