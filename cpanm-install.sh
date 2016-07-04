@@ -8,6 +8,9 @@ cpanm -n \
     common::sense \
     ExtUtils::MakeMaker \
     JSON::XS \
+    Log::Dispatch::CronoDir \
+    Log::Dispatch::Pipe \
+    Log::Log4perl \
     LWP::UserAgent \
     LWP::Protocol::https \
     Mojolicious \
