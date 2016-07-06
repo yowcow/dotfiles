@@ -18,10 +18,12 @@ cpanm -n \
     MojoX::Log::Log4perl::Tiny \
     MojoX::Renderer::JSON::XS \
     MojoX::Session::Simple \
+    namespace::clean \
     Parallel::Prefork \
     Perl::Tidy \
     Plack \
     Starlet \
+    strictures \
     String::CamelCase \
     String::Random \
     Test::CPAN::Meta \
