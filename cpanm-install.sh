@@ -18,6 +18,7 @@ cpanm -n \
     MojoX::Log::Log4perl::Tiny \
     MojoX::Renderer::JSON::XS \
     MojoX::Session::Simple \
+    Moo \
     namespace::clean \
     Parallel::Prefork \
     Perl::Tidy \
@@ -26,6 +27,7 @@ cpanm -n \
     strictures \
     String::CamelCase \
     String::Random \
+    Term::ANSIColor \
     Test::CPAN::Meta \
     Test::Deep \
     Test::Exception \
@@ -34,6 +36,7 @@ cpanm -n \
     Test::More \
     Test::PAUSE::Permissions \
     Test::Pod \
+    Test::Simple \
     Test::Spellunker \
     Test::Stub \
     Time::Piece \
