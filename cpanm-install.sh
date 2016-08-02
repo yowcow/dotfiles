@@ -5,6 +5,9 @@ cpanm -n \
     App::cpanoutdated \
     Carton \
     common::sense \
+    DBD::mysql \
+    DBD::SQLite \
+    DBI \
     EV \
     ExtUtils::MakeMaker \
     JSON::XS \
