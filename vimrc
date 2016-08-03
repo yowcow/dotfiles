@@ -107,7 +107,7 @@ call dein#add('c9s/perlomni.vim')
 call dein#end()
 
 " Required:
-filetype plugin indent on
+filetype plugin on
 
 " If you want to install not installed plugins on startup.
 if dein#check_install()
