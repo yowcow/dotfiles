@@ -1,11 +1,12 @@
-all: update-submodule
+all: fetch-dein
 
 install: create-symlinks
 
 CURRENT_PATH := $(shell pwd)
 
-update-submodule:
-	git submodule update --init
+fetch-dein:
+	mkdir -p ~/.vim
+	cd ~/.vim && curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o dein-installer.sh
 
 create-symlinks:
 	cd ~/ && rm -f .vimrc && ln -s $(CURRENT_PATH)/vimrc .vimrc;
@@ -14,4 +15,4 @@ create-symlinks:
 	cd ~/ && rm -f .perltidyrc && ln -s $(CURRENT_PATH)/perltidyrc .perltidyrc;
 	cd ~/ && rm -f .tmux.conf && ln -s $(CURRENT_PATH)/tmux.conf .tmux.conf;
 	cd ~/ && rm -f .ocamlinit && ln -s $(CURRENT_PATH)/ocamlinit .ocamlinit;
-	mkdir -p ~/.vim && cd ~/.vim && rm -f vundle && ln -s $(CURRENT_PATH)/vundle;
+	cd ~/.vim && sh dein-installer.sh ~/.vim/dein
