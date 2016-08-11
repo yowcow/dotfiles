@@ -102,7 +102,9 @@ call dein#add('rhysd/vim-crystal')
 call dein#add('maksimr/vim-jsbeautify')
 call dein#add('scrooloose/nerdtree')
 call dein#add('c9s/perlomni.vim')
-call dein#add('ctrlpvim/ctrlp.vim')
+"call dein#add('ctrlpvim/ctrlp.vim')
+call dein#add('junegunn/fzf', { 'build': './install --all', 'merged': 0 })
+call dein#add('junegunn/fzf.vim', { 'depends': 'fzf' })
 
 " Required:
 call dein#end()

@@ -60,3 +60,5 @@ perldocvim () {
 }
 
 whereami
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
