@@ -1,18 +1,42 @@
-all: fetch-dein
+.PHONY: install clean
 
-install: create-symlinks
+CURRENT_PATH=$(shell pwd)
+DOTFILES=$(HOME)/.vimrc \
+	$(HOME)/.vim \
+	$(HOME)/.zshrc \
+	$(HOME)/.screenrc \
+	$(HOME)/.perltidyrc \
+	$(HOME)/.tmux.conf \
+	$(HOME)/.ocamlinit
 
-CURRENT_PATH := $(shell pwd)
+all: dein-installer.sh
 
-fetch-dein:
-	mkdir -p ~/.vim
-	cd ~/.vim && curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o dein-installer.sh
+install: $(DOTFILES)
 
-create-symlinks:
-	cd ~/ && rm -f .vimrc && ln -s $(CURRENT_PATH)/vimrc .vimrc;
-	cd ~/ && rm -f .zshrc && ln -s $(CURRENT_PATH)/zshrc .zshrc;
-	cd ~/ && rm -f .screenrc && ln -s $(CURRENT_PATH)/screenrc .screenrc;
-	cd ~/ && rm -f .perltidyrc && ln -s $(CURRENT_PATH)/perltidyrc .perltidyrc;
-	cd ~/ && rm -f .tmux.conf && ln -s $(CURRENT_PATH)/tmux.conf .tmux.conf;
-	cd ~/ && rm -f .ocamlinit && ln -s $(CURRENT_PATH)/ocamlinit .ocamlinit;
-	cd ~/.vim && sh dein-installer.sh ~/.vim/dein
+dein-installer.sh:
+	curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o $@
+
+$(HOME)/.zshrc:
+	ln -s $(CURRENT_PATH)/zshrc $@
+
+$(HOME)/.vimrc:
+	ln -s $(CURRENT_PATH)/vimrc $@
+
+$(HOME)/.vim: dein-installer.sh
+	-mkdir -p $@
+	sh dein-installer.sh $@/dein
+
+$(HOME)/.screenrc:
+	ln -s $(CURRENT_PATH)/screenrc $@
+
+$(HOME)/.perltidyrc:
+	ln -s $(CURRENT_PATH)/perltidyrc $@
+
+$(HOME)/.tmux.conf:
+	ln -s $(CURRENT_PATH)/tmux.conf $@
+
+$(HOME)/.ocamlinit:
+	ln -s $(CURRENT_PATH)/ocamlinit $@
+
+clean:
+	-rm -rf $(DOTFILES)
