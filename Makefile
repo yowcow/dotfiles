@@ -17,7 +17,7 @@ hoge:
 
 dein-installer.sh:
 	curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o $@
-	if ! [ $(which realpath) ]; then sed -i -e 's/realpath/readlink -e/' $@; fi
+	if ! [ $$(which realpath) ]; then sed -i -e 's/realpath/readlink -e/' $@; fi
 
 $(HOME)/.zshrc:
 	ln -s $(CURRENT_PATH)/zshrc $@
