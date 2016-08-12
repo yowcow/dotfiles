@@ -23,6 +23,7 @@ setopt magic_equal_subst
 alias vi="vim"
 alias be="bundle exec"
 alias ce="carton exec"
+alias realpath="readlink -e"
 
 export EDITOR=vim
 export GREP_OPTIONS="--color=auto"
