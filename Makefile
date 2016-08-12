@@ -23,7 +23,7 @@ $(HOME)/.vimrc:
 	ln -s $(CURRENT_PATH)/vimrc $@
 
 $(HOME)/.vim: dein-installer.sh
-	-mkdir -p $@
+	-mkdir -p $@/dein
 	sh dein-installer.sh $@/dein
 
 $(HOME)/.screenrc:
