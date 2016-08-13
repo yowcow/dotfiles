@@ -47,7 +47,7 @@ $(HOME)/.gitconfig:
 	ln -s $(CURRENT_PATH)/gitconfig $@
 
 $(HOME)/.gitconfig_global:
-	ln -s $(CURRENT_PATH)/gitconfig_global $@
+	ln -s $(CURRENT_PATH)/gitignore_global $@
 
 clean:
 	-rm -rf $(DOTFILES) dein-installer.sh
