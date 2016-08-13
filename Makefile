@@ -46,7 +46,7 @@ $(HOME)/.ocamlinit:
 $(HOME)/.gitconfig:
 	ln -s $(CURRENT_PATH)/gitconfig $@
 
-$(HOME)/.gitconfig_global:
+$(HOME)/.gitignore_global:
 	ln -s $(CURRENT_PATH)/gitignore_global $@
 
 clean:
