@@ -102,6 +102,7 @@ call dein#add('c9s/perlomni.vim')
 "call dein#add('ctrlpvim/ctrlp.vim')
 call dein#add('junegunn/fzf', { 'build': './install --all', 'merged': 0 })
 call dein#add('junegunn/fzf.vim', { 'depends': 'fzf' })
+call dein#add('szw/vim-tags')
 
 " Required:
 call dein#end()
