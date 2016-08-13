@@ -1,0 +1,7 @@
+[user]
+	name = yowcow
+	email = yowcow@cpan.org
+[color]
+	ui = auto
+[core]
+	excludesfile = ~/.gitignore_global

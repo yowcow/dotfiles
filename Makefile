@@ -7,6 +7,8 @@ DOTFILES=$(HOME)/.vimrc \
 	$(HOME)/.screenrc \
 	$(HOME)/.perltidyrc \
 	$(HOME)/.tmux.conf \
+	$(HOME)/.gitconfig \
+	$(HOME)/.gitignore_global \
 	$(HOME)/.ocamlinit
 
 all: dein-installer.sh
@@ -40,6 +42,12 @@ $(HOME)/.tmux.conf:
 
 $(HOME)/.ocamlinit:
 	ln -s $(CURRENT_PATH)/ocamlinit $@
+
+$(HOME)/.gitconfig:
+	ln -s $(CURRENT_PATH)/gitconfig $@
+
+$(HOME)/.gitconfig_global:
+	ln -s $(CURRENT_PATH)/gitconfig_global $@
 
 clean:
 	-rm -rf $(DOTFILES) dein-installer.sh
