@@ -116,6 +116,10 @@ if dein#check_install()
 endif
 
 
+"=== For ctags
+nnoremap <C-]> g<C-]>
+
+
 "=== For FZF
 map <C-p> :FZF<CR>
 
