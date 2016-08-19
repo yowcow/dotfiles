@@ -119,6 +119,7 @@ endif
 
 "=== For ctags
 nnoremap <C-]> g<C-]>
+let g:vim_tags_auto_generate = 0
 
 
 "=== For FZF
