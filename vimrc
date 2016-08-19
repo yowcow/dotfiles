@@ -87,6 +87,7 @@ call dein#add('Shougo/neosnippet-snippets')
 " You can specify revision/branch/tag.
 "call dein#add('Shougo/vimshell', { 'rev': '3787e5' })
 
+call dein#add('elixir-lang/vim-elixir')
 call dein#add('petdance/vim-perl')
 call dein#add('hotchpotch/perldoc-vim')
 call dein#add('Shougo/neocomplcache')
