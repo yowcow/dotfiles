@@ -28,6 +28,7 @@ alias realpath="readlink -e"
 export EDITOR=vim
 export GREP_OPTIONS="--color=auto"
 export LANG="en_US.UTF-8"
+export GOPATH="~/.go"
 
 case "${OSTYPE}" in
     darwin*)
