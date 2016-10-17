@@ -30,6 +30,10 @@ set expandtab
 
 set wildmode=list:longest
 
+filetype on
+filetype plugin on
+filetype indent on
+
 au BufNewFile,BufRead *.psgi set filetype=perl
 au BufNewFile,BufRead *.t set filetype=perl
 au BufNewFile,BufRead *.tx set filetype=html
@@ -100,7 +104,6 @@ call dein#add('Shougo/neosnippet')
 call dein#add('Shougo/neosnippet-snippets')
 call dein#add('thinca/vim-quickrun')
 call dein#add('scrooloose/nerdtree')
-"call dein#add('ctrlpvim/ctrlp.vim')
 call dein#add('junegunn/fzf', { 'build': './install --all', 'merged': 0 })
 call dein#add('junegunn/fzf.vim', { 'depends': 'fzf' })
 call dein#add('szw/vim-tags')
