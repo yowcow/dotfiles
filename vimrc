@@ -32,7 +32,7 @@ set wildmode=list:longest
 
 filetype on
 filetype plugin on
-filetype indent on
+"filetype indent on
 
 au BufNewFile,BufRead *.psgi set filetype=perl
 au BufNewFile,BufRead *.t set filetype=perl
