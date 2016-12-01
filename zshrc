@@ -26,7 +26,7 @@ alias ce="carton exec"
 alias realpath="readlink -e"
 
 export EDITOR=vim
-export GREP_OPTIONS="--color=auto"
+#export GREP_OPTIONS="--color=auto"
 export LANG="en_US.UTF-8"
 export GOPATH="${HOME}/go"
 

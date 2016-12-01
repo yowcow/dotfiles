@@ -7,7 +7,7 @@ colorscheme zellner
 set nobackup
 set noswapfile
 set novisualbell
-set spell
+"set spell
 
 set showmatch
 set hlsearch
