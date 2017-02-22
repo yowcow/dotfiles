@@ -133,6 +133,7 @@ endif
 "=== For ctags
 nnoremap <C-]> g<C-]>
 let g:vim_tags_auto_generate = 0
+command GenTags execute "! [ -d .git ] && ctags -R -o .git/tags || ctags -R -o tags"
 
 
 "=== For FZF
