@@ -108,6 +108,9 @@ call dein#add('hotchpotch/perldoc-vim')
 call dein#add('c9s/perlomni.vim')
 " Go
 call dein#add('fatih/vim-go')
+" Erlang
+call dein#add('vim-erlang/vim-erlang-omnicomplete')
+call dein#add('vim-erlang/vim-erlang-runtime')
 " Others
 call dein#add('Shougo/neocomplcache')
 call dein#add('Shougo/neosnippet')
