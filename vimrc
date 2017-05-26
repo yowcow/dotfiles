@@ -180,7 +180,7 @@ let g:fzf_history_dir = '~/.fzf-history'
 
 
 "=== For NERDTree
-map <C-n> :NERDTreeToggle<CR>
+map <C-n><C-n> :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
