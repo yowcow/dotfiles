@@ -100,6 +100,7 @@ call dein#add('rhysd/vim-crystal')
 call dein#add('pangloss/vim-javascript')
 call dein#add('mxw/vim-jsx')
 call dein#add('leafgarland/typescript-vim')
+call dein#add('kchmck/vim-coffee-script')
 " Elixer
 call dein#add('elixir-lang/vim-elixir')
 " Perl
