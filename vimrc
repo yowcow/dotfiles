@@ -65,14 +65,14 @@ endif
 
 
 "=== tab
-nnoremap wt :tabnew<CR>
+nnoremap wt :tabnew 
 nnoremap wl :tabnext<CR>
 nnoremap wh :tabprevious<CR>
 
 
 "=== Perl::Tidy
-map wpt <Esc>:%! perltidy -se<CR>
-map wptv <Esc>:'<,'>! perltidy -se<CR>
+nnoremap wpt <Esc>:%! perltidy -se<CR>
+nnoremap wptv <Esc>:'<,'>! perltidy -se<CR>
 
 
 "=== dein
