@@ -7,6 +7,7 @@ colorscheme zellner
 set nobackup
 set noswapfile
 set novisualbell
+set showtabline=2
 "set spell
 
 set showmatch
@@ -62,15 +63,17 @@ if filereadable(expand('~/.vimenv'))
   source ~/.vimenv
 endif
 
-"=== Perl::Tidy
-map ,pt <Esc>:%! perltidy -se<CR>
-map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
-"=== JavaScript tidy
-"map ,jt <Esc>:%call JsBeautify()<CR>
-"map ,jtv <Esc>:'<,'>call RangeJsBeautify()<CR>
-map ,jt <Esc>:%! jq .<CR>
-map ,jtv <Esc>:'<,'>! jq .<CR>
+"=== tab
+nnoremap wt :tabnew<CR>
+nnoremap wl :tabnext<CR>
+nnoremap wh :tabprevious<CR>
+
+
+"=== Perl::Tidy
+map wpt <Esc>:%! perltidy -se<CR>
+map wptv <Esc>:'<,'>! perltidy -se<CR>
+
 
 "=== dein
 if &compatible
@@ -141,7 +144,7 @@ command GenTags execute "! [ -d .git ] && cd .git && ctags -R tags ../ || ctags 
 
 
 "=== For FZF
-nnoremap ,t :FZF<CR>
+nnoremap wf :FZF<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
@@ -181,7 +184,7 @@ let g:fzf_history_dir = '~/.fzf-history'
 
 
 "=== For NERDTree
-map <C-n><C-n> :NERDTreeToggle<CR>
+nnoremap wn :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
