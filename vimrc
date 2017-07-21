@@ -65,14 +65,17 @@ endif
 
 
 "=== tab
-nnoremap wt :tabnew 
-nnoremap wl :tabnext<CR>
-nnoremap wh :tabprevious<CR>
+nnoremap tl :tabnext<CR>
+nnoremap th :tabprev<CR>
+nnoremap tn :tabnew<Space>
+nnoremap tt :tabedit<Space>
+nnoremap tm :tabm<Space>
+nnoremap td :tabclose<CR>
 
 
 "=== Perl::Tidy
-nnoremap wpt <Esc>:%! perltidy -se<CR>
-nnoremap wptv <Esc>:'<,'>! perltidy -se<CR>
+nnoremap ,pt <Esc>:%! perltidy -se<CR>
+nnoremap ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
 "=== dein
@@ -139,12 +142,13 @@ endif
 
 "=== For ctags
 nnoremap <C-]> g<C-]>
+nnoremap <C-w>] <C-w><C-]><C-w>T
 let g:vim_tags_auto_generate = 0
 command GenTags execute "! [ -d .git ] && cd .git && ctags -R tags ../ || ctags -R -o tags"
 
 
 "=== For FZF
-nnoremap wf :FZF<CR>
+nnoremap ff :FZF<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
@@ -184,7 +188,7 @@ let g:fzf_history_dir = '~/.fzf-history'
 
 
 "=== For NERDTree
-nnoremap wn :NERDTreeToggle<CR>
+nnoremap fn :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
