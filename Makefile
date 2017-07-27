@@ -1,6 +1,5 @@
 .PHONY: install clean
 
-CURRENT_PATH=$(shell pwd)
 DOTFILES=$(HOME)/.vimrc \
 	$(HOME)/.vim \
 	$(HOME)/.zshrc \
@@ -11,7 +10,8 @@ DOTFILES=$(HOME)/.vimrc \
 	$(HOME)/.gitignore_global \
 	$(HOME)/.ocamlinit
 
-all: dein-installer.sh
+all: dein-installer.sh tmux-colors-solarized
+	cd tmux-colors-solarized && git pull
 
 install: $(DOTFILES)
 
@@ -19,33 +19,36 @@ dein-installer.sh:
 	curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o $@
 	if ! [ $$(which realpath) ]; then sed -i -e 's/realpath/readlink -e/' $@; fi
 
+tmux-colors-solarized:
+	git clone git@github.com:seebi/$@.git
+
 $(HOME)/.zshrc:
-	ln -s $(CURRENT_PATH)/zshrc $@
+	ln -s zshrc $@
 
 $(HOME)/.vimrc:
-	ln -s $(CURRENT_PATH)/vimrc $@
+	ln -s vimrc $@
 
 $(HOME)/.vim: dein-installer.sh
 	-mkdir -p $@/dein
 	sh dein-installer.sh $@/dein
 
 $(HOME)/.screenrc:
-	ln -s $(CURRENT_PATH)/screenrc $@
+	ln -s screenrc $@
 
 $(HOME)/.perltidyrc:
-	ln -s $(CURRENT_PATH)/perltidyrc $@
+	ln -s perltidyrc $@
 
 $(HOME)/.tmux.conf:
-	ln -s $(CURRENT_PATH)/tmux.conf $@
+	cat ./tmux.conf ./tmux-colors-solarized/tmuxcolors-dark.conf > $@
 
 $(HOME)/.ocamlinit:
-	ln -s $(CURRENT_PATH)/ocamlinit $@
+	ln -s ocamlinit $@
 
 $(HOME)/.gitconfig:
-	ln -s $(CURRENT_PATH)/gitconfig $@
+	ln -s gitconfig $@
 
 $(HOME)/.gitignore_global:
-	ln -s $(CURRENT_PATH)/gitignore_global $@
+	ln -s gitignore_global $@
 
 clean:
 	-rm -rf $(DOTFILES) dein-installer.sh
