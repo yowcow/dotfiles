@@ -38,6 +38,7 @@ filetype plugin on
 
 au BufNewFile,BufRead *.psgi set filetype=perl
 au BufNewFile,BufRead *.t set filetype=perl
+au BufNewFile,BufRead *.twig set filetype=html
 au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 au BufNewFile,BufRead *.coffee set filetype=coffee
@@ -74,8 +75,8 @@ nnoremap td :tabclose<CR>
 
 
 "=== Perl::Tidy
-nnoremap ,pt <Esc>:%! perltidy -se<CR>
-nnoremap ,ptv <Esc>:'<,'>! perltidy -se<CR>
+map ,pt <Esc>:%! perltidy -se<CR>
+map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
 "=== dein
