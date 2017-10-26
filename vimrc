@@ -45,6 +45,8 @@ au BufNewFile,BufRead *.coffee set filetype=coffee
 au BufNewFile,BufRead *.es6 set filetype=javascript
 
 autocmd FileType make setlocal noexpandtab
+autocmd FileType xml setlocal softtabstop=2
+autocmd FileType xml setlocal tabstop=2
 autocmd FileType xhtml setlocal softtabstop=2
 autocmd FileType xhtml setlocal tabstop=2
 autocmd FileType html setlocal softtabstop=2
@@ -53,6 +55,8 @@ autocmd FileType ruby setlocal softtabstop=2
 autocmd FileType ruby setlocal tabstop=2
 autocmd FileType javascript setlocal softtabstop=2
 autocmd FileType javascript setlocal tabstop=2
+autocmd FileType json setlocal softtabstop=2
+autocmd FileType json setlocal tabstop=2
 autocmd FileType yaml setlocal softtabstop=2
 autocmd FileType yaml setlocal tabstop=2
 autocmd FileType markdown setlocal softtabstop=4
