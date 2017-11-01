@@ -1,54 +1,32 @@
-.PHONY: install clean
+.PHONY: all install clean realclean
 
-DOTFILES=$(HOME)/.vimrc \
-	$(HOME)/.vim \
-	$(HOME)/.zshrc \
-	$(HOME)/.screenrc \
-	$(HOME)/.perltidyrc \
-	$(HOME)/.tmux.conf \
-	$(HOME)/.gitconfig \
-	$(HOME)/.gitignore_global \
-	$(HOME)/.ocamlinit
+SRC = zshrc vimrc screenrc tmux.conf perltidyrc ocamlinit gitconfig gitignore_global fzf fzf.zsh vim
+TARGET = $(addprefix $(HOME)/.,$(SRC))
 
-all: dein-installer.sh tmux-colors-solarized
-	cd tmux-colors-solarized && git pull
-
-install: $(DOTFILES)
+all: dein-installer.sh fzf
+	git -C fzf pull
 
 dein-installer.sh:
 	curl -L https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -o $@
 	if ! [ $$(which realpath) ]; then sed -i -e 's/realpath/readlink -e/' $@; fi
 
-tmux-colors-solarized:
-	git clone git@github.com:seebi/$@.git
+fzf:
+	git clone git@github.com:junegunn/$@.git
 
-$(HOME)/.zshrc:
-	ln -s zshrc $@
+install: $(TARGET)
 
-$(HOME)/.vimrc:
-	ln -s vimrc $@
+$(HOME)/.%:
+	ln -s `pwd`/$* $@
+
+$(HOME)/.fzf.zsh: $(HOME)/.fzf
+	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 $(HOME)/.vim: dein-installer.sh
 	-mkdir -p $@/dein
-	sh dein-installer.sh $@/dein
-
-$(HOME)/.screenrc:
-	ln -s screenrc $@
-
-$(HOME)/.perltidyrc:
-	ln -s perltidyrc $@
-
-$(HOME)/.tmux.conf:
-	cat ./tmux.conf ./tmux-colors-solarized/tmuxcolors-dark.conf > $@
-
-$(HOME)/.ocamlinit:
-	ln -s ocamlinit $@
-
-$(HOME)/.gitconfig:
-	ln -s gitconfig $@
-
-$(HOME)/.gitignore_global:
-	ln -s gitignore_global $@
+	sh $< $@/dein
 
 clean:
-	-rm -rf $(DOTFILES) dein-installer.sh
+	rm -rf $(TARGET)
+
+realclean: clean
+	rm -rf dein-installer.sh fzf

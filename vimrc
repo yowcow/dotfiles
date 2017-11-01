@@ -129,8 +129,8 @@ call dein#add('Shougo/neosnippet.vim')
 call dein#add('Shougo/neosnippet-snippets')
 "call dein#add('thinca/vim-quickrun')
 call dein#add('scrooloose/nerdtree')
-call dein#add('junegunn/fzf', { 'build': './install --all', 'merged': 0 })
-call dein#add('junegunn/fzf.vim', { 'depends': 'fzf' })
+"call dein#add('junegunn/fzf', { 'build': './install --all', 'merged': 0 })
+"call dein#add('junegunn/fzf.vim')
 call dein#add('szw/vim-tags')
 
 " Required:
@@ -153,6 +153,7 @@ command GenTags execute "! [ -d .git ] && cd .git && ctags -R tags ../ || ctags 
 
 
 "=== For FZF
+set rtp+=~/.fzf
 nnoremap ff :FZF<CR>
 
 " This is the default extra key bindings

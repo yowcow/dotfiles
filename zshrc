@@ -30,7 +30,7 @@ export EDITOR=vim
 export LANG="en_US.UTF-8"
 
 export GOPATH=$HOME/go
-export PATH=$HOME/go/bin:$PATH
+export PATH=$HOME/.fzf/bin:$HOME/go/bin:$PATH
 
 case "${OSTYPE}" in
     darwin*)
