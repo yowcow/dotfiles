@@ -66,3 +66,4 @@ perldocvim () {
 whereami
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f ~/.travis/travis.sh ] && source ~/.travis/travis.sh
