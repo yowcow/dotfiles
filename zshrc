@@ -1,11 +1,12 @@
 bindkey -v
 
-autoload -U promptinit compinit
+autoload -U compinit
+#autoload -U promptinit compinit
 compinit
-promptinit
-prompt adam1
-#prompt walters
-#export PROMPT='%B%(?..[%?] )%b%n@%U%m%u%% '
+#promptinit
+
+PROMPT="(%B%F{yellow}%n@%U%m%u%f%b%)%B%(?.. [%?])%b [%*] %B%F{green}%~%f%b
+ %B%F{white}%#%f%b "
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
