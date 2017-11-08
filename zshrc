@@ -3,8 +3,9 @@ bindkey -v
 autoload -U promptinit compinit
 compinit
 promptinit
-prompt walters
-export PROMPT='%B%(?..[%?] )%b%n@%U%m%u> '
+prompt adam2
+#prompt walters
+#export PROMPT='%B%(?..[%?] )%b%n@%U%m%u%% '
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
