@@ -5,8 +5,8 @@ autoload -U compinit
 compinit
 #promptinit
 
-PROMPT="(%B%F{yellow}%n@%U%m%u%f%b%)%B%(?.. [%?])%b [%*] %B%F{green}%~%f%b
- %B%F{white}%#%f%b "
+PROMPT="[%F{blue}%n@%U%m%u%f] [%*] [%F{green}%~%f]
+%B%(?..[%?] )%b%B%F{white}%#%f%b "
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
