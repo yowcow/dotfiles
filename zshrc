@@ -3,7 +3,7 @@ bindkey -v
 autoload -U promptinit compinit
 compinit
 promptinit
-prompt adam2
+prompt adam1
 #prompt walters
 #export PROMPT='%B%(?..[%?] )%b%n@%U%m%u%% '
 
