@@ -5,7 +5,7 @@ autoload -U compinit
 compinit
 #promptinit
 
-PROMPT="%K{blue}%n@%U%m%u%k %B%F{green}%~%f%b [%*]
+PROMPT="%B%K{blue}%n@%U%m%u%k %F{green}%~%f%b [%*]
 %B%(?..[%?] )%b%B%F{white}%#%f%b "
 
 autoload history-search-end
