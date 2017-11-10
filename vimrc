@@ -123,6 +123,8 @@ call dein#add('fatih/vim-go')
 " Erlang
 call dein#add('vim-erlang/vim-erlang-omnicomplete')
 call dein#add('vim-erlang/vim-erlang-runtime')
+" DBGP
+call dein#add('joonty/vdebug')
 " Others
 call dein#add('Shougo/neocomplete.vim')
 call dein#add('Shougo/neosnippet.vim')
@@ -150,6 +152,12 @@ nnoremap <C-]> g<C-]>
 nnoremap <C-w>] <C-w><C-]><C-w>T
 let g:vim_tags_auto_generate = 0
 command GenTags execute "! [ -d .git ] && cd .git && ctags -R tags ../ || ctags -R -o tags"
+
+
+"=== For vdebug
+let g:vdebug_options = {}
+let g:vdebug_options["port"] = 9000
+let g:vdebug_options["path_maps"] = {}
 
 
 "=== For FZF
