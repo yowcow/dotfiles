@@ -34,7 +34,6 @@ set wildmode=list:longest
 
 filetype on
 filetype plugin on
-"filetype indent on
 
 au BufNewFile,BufRead *.psgi set filetype=perl
 au BufNewFile,BufRead *.t set filetype=perl
@@ -79,8 +78,8 @@ nnoremap td :tabclose<CR>
 
 
 "=== Perl::Tidy
-map ,pt <Esc>:%! perltidy -se<CR>
-map ,ptv <Esc>:'<,'>! perltidy -se<CR>
+map ;pt <Esc>:%! perltidy -se<CR>
+map ;ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
 "=== Plug
@@ -136,7 +135,12 @@ let g:vdebug_options["path_maps"] = {}
 
 
 "=== For FZF
-nnoremap ff :FZF<CR>
+let g:fzf_command_prefix = 'Fzf'
+nnoremap ;ff :FzfFiles<CR>
+nnoremap ;fg :FzfGFiles<CR>
+nnoremap ;ft :FzfTags<CR>
+nnoremap ;fh :FzfHistory<CR>
+nnoremap ;fc :FzfCommits<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
@@ -147,7 +151,7 @@ let g:fzf_action = {
 
 " Default fzf layout
 " - down / up / left / right
-let g:fzf_layout = { 'down': '~60%' }
+let g:fzf_layout = { 'down': '~50%' }
 
 " In Neovim, you can set up fzf window using a Vim command
 "let g:fzf_layout = { 'window': 'enew' }
@@ -176,7 +180,7 @@ let g:fzf_history_dir = '~/.fzf-history'
 
 
 "=== For NERDTree
-nnoremap fn :NERDTreeToggle<CR>
+nnoremap ;nn :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
