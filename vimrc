@@ -216,3 +216,6 @@ autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 "endif
 "let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
 "let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
+"=== Just to make sure
+filetype indent off
