@@ -83,68 +83,43 @@ map ,pt <Esc>:%! perltidy -se<CR>
 map ,ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
-"=== dein
+"=== Plug
 if &compatible
   set nocompatible               " Be iMproved
 endif
 
-" Required:
-set runtimepath^=~/.vim/dein/repos/github.com/Shougo/dein.vim
-
-" Required:
-call dein#begin(expand('~/.vim/dein'))
-
-" Let dein manage dein
-" Required:
-call dein#add('Shougo/dein.vim')
+call plug#begin()
 
 " Add or remove your plugins here:
-call dein#add('Shougo/neosnippet.vim')
-call dein#add('Shougo/neosnippet-snippets')
+Plug 'Shougo/neosnippet.vim'
+Plug 'Shougo/neosnippet-snippets'
 
-" You can specify revision/branch/tag.
-"call dein#add('Shougo/vimshell', { 'rev': '3787e5' })
-
-" Crystal
-call dein#add('rhysd/vim-crystal')
 " JavaScript
-call dein#add('pangloss/vim-javascript')
-call dein#add('mxw/vim-jsx')
-call dein#add('leafgarland/typescript-vim')
-call dein#add('kchmck/vim-coffee-script')
-" Elixer
-call dein#add('elixir-lang/vim-elixir')
+Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
+Plug 'leafgarland/typescript-vim'
+Plug 'kchmck/vim-coffee-script'
 " Perl
-call dein#add('petdance/vim-perl')
-call dein#add('hotchpotch/perldoc-vim')
-call dein#add('c9s/perlomni.vim')
+Plug 'petdance/vim-perl'
+Plug 'hotchpotch/perldoc-vim'
+Plug 'c9s/perlomni.vim'
 " Go
-call dein#add('fatih/vim-go')
+Plug 'fatih/vim-go'
 " Erlang
-call dein#add('vim-erlang/vim-erlang-omnicomplete')
-call dein#add('vim-erlang/vim-erlang-runtime')
+Plug 'vim-erlang/vim-erlang-omnicomplete'
+Plug 'vim-erlang/vim-erlang-runtime'
 " DBGP
-call dein#add('joonty/vdebug')
+Plug 'joonty/vdebug'
 " Others
-call dein#add('Shougo/neocomplete.vim')
-call dein#add('Shougo/neosnippet.vim')
-call dein#add('Shougo/neosnippet-snippets')
-"call dein#add('thinca/vim-quickrun')
-call dein#add('scrooloose/nerdtree')
-call dein#add('junegunn/fzf', { 'dir': '~/.fzf' })
-call dein#add('junegunn/fzf.vim')
-call dein#add('szw/vim-tags')
+Plug 'Shougo/neocomplete.vim'
+Plug 'Shougo/neosnippet.vim'
+Plug 'Shougo/neosnippet-snippets'
+Plug 'scrooloose/nerdtree'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
+Plug 'junegunn/fzf.vim'
+Plug 'szw/vim-tags'
 
-" Required:
-call dein#end()
-
-" Required:
-filetype plugin on
-
-" If you want to install not installed plugins on startup.
-if dein#check_install()
-  call dein#install()
-endif
+call plug#end()
 
 
 "=== For ctags
@@ -205,7 +180,7 @@ nnoremap fn :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
-let g:neosnippet#snippets_directory='~/.vim/dein/repos/github.com/Shougo/neosnippet-snippets/snippets/'
+let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/snippets/'
 
 
 "=== For omnicomplete
