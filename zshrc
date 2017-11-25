@@ -41,7 +41,6 @@ case "${OSTYPE}" in
         ;;
     linux*)
         alias ls="ls --color"
-        umask 0002
         ;;
 esac
 
