@@ -65,6 +65,7 @@ perldocvim () {
 }
 
 whereami
+umask 022
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f ~/.travis/travis.sh ] && source ~/.travis/travis.sh
