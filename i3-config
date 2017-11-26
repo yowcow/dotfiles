@@ -182,3 +182,5 @@ exec --no-startup-id nm-applet
 exec --no-startup-id blueman-applet
 # dropbox
 exec --no-startup-id dropbox start
+# screen lock
+exec --no-startup-id xautolock -time 5 -locker 'i3lock -f -c 666666' -corners 00+0 -cornerdelay 1
