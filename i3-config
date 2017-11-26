@@ -155,4 +155,26 @@ bar {
         status_command i3status
 }
 
+# unity settings daemon
+exec --no-startup-id unity-settings-daemon
+# xmodmap
 exec xmodmap ~/.Xmodmap
+# wifi
+exec --no-startup-id nm-applet
+# bluetooth
+exec --no-startup-id blueman-applet
+# sound
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5%
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle
+# backlight
+bindsym XF86MonBrightnessUp exec dbus-send --session \
+    --print-reply \
+    --dest="org.gnome.SettingsDaemon" \
+    /org/gnome/SettingsDaemon/Power \
+    org.gnome.SettingsDaemon.Power.Screen.StepUp
+bindsym XF86MonBrightnessDown exec dbus-send --session \
+    --print-reply \
+    --dest="org.gnome.SettingsDaemon" \
+    /org/gnome/SettingsDaemon/Power \
+    org.gnome.SettingsDaemon.Power.Screen.StepDown
