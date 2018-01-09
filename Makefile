@@ -14,7 +14,7 @@ SRC = \
 	vim \
 	vim/autoload/plug.vim \
 	Xmodmap
-TARGET = $(addprefix $(HOME)/.,$(SRC)) $(HOME)/.config/i3/config
+TARGET = $(addprefix $(HOME)/.,$(SRC))
 
 all: vim-plug fzf tmux-colors-solarized
 	git -C vim-plug pull
@@ -47,12 +47,6 @@ $(HOME)/.vim/autoload/plug.vim: vim-plug
 
 $(HOME)/.tmux.conf: tmux-colors-solarized
 	cat tmux.conf $</tmuxcolors-dark.conf > $@
-
-$(HOME)/.config/i3/config: $(HOME)/.config/i3
-	ln -s `pwd`/i3-config $@
-
-$(HOME)/.config/i3:
-	mkdir -p $@
 
 clean:
 	rm -rf $(TARGET)
