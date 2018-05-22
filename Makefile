@@ -12,8 +12,7 @@ SRC = \
 	fzf \
 	fzf.zsh \
 	vim \
-	vim/autoload/plug.vim \
-	Xmodmap
+	vim/autoload/plug.vim
 TARGET = $(addprefix $(HOME)/.,$(SRC))
 
 all: vim-plug fzf tmux-colors-solarized
