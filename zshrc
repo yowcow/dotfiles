@@ -1,12 +1,17 @@
 bindkey -v
 
-autoload -U compinit
-#autoload -U promptinit compinit
+autoload -Uz compinit vcs_info
 compinit
-#promptinit
+setopt PROMPT_SUBST
 
-PROMPT="%B%K{blue}%n@%U%m%u%k %F{green}%~%f%b [%*]
-%B%(?..[%?] )%b%B%F{white}%#%f%b "
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr '%F{yellow}!'
+zstyle ':vcs_info:git:*' unstagedstr '%F{red}+'
+zstyle ':vcs_info:*' formats '%F{green}%c%u{%b}%f'
+zstyle ':vcs_info:*' actionformats '[%b|%a]'
+
+PROMPT='%B%K{blue}%n@%U%m%u%k %F{green}%~%f%b ${vcs_info_msg_0_} [%*]
+%B%(?..[%?] )%b%B%F{white}%#%f%b '
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
@@ -45,6 +50,10 @@ case "${OSTYPE}" in
 esac
 
 # functions
+precmd() {
+    vcs_info
+}
+
 pmdir () {
     cd $(dirname $(perldoc -lm $1))
 }
