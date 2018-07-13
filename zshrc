@@ -7,7 +7,7 @@ setopt PROMPT_SUBST
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr '%F{yellow}!'
 zstyle ':vcs_info:git:*' unstagedstr '%F{magenta}+'
-zstyle ':vcs_info:*' formats '%%B%%F{blue}%c%u{%b}%%f%%b'
+zstyle ':vcs_info:*' formats '%%B%%F{cyan}%c%u{%b}%%f%%b'
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
 PROMPT='%B%K{blue}%n@%U%m%u%k %F{green}%~%f%b ${vcs_info_msg_0_} [%*]
