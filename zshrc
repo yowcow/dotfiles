@@ -6,7 +6,7 @@ setopt PROMPT_SUBST
 
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr '%F{yellow}!'
-zstyle ':vcs_info:git:*' unstagedstr '%F{red}+'
+zstyle ':vcs_info:git:*' unstagedstr '%F{magenta}+'
 zstyle ':vcs_info:*' formats '%%B%%F{blue}%c%u{%b}%%f%%b'
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
