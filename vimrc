@@ -9,6 +9,9 @@ set noswapfile
 set novisualbell
 set showtabline=2
 "set spell
+set foldmethod=manual
+"set foldmethod=syntax
+"set foldlevelstart=2
 
 set showmatch
 set hlsearch
