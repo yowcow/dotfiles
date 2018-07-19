@@ -61,7 +61,6 @@ aws_switch() {
         echo "Switch AWS config to '$1'!"
 }
 
-whereami
 umask 022
 
 # .ssh/config to have `HashKnownHosts no` will help
