@@ -54,11 +54,20 @@ precmd() {
     vcs_info
 }
 
-aws_switch() {
-    [ -d ~/.aws.$1 ] && \
-        rm -f ~/.aws && \
-        ln -s ~/.aws.$1 ~/.aws && \
-        echo "Switch AWS config to '$1'!"
+aws_link() {
+    case "$1" in
+        "-status")
+            realpath ~/.aws
+            ;;
+        "-update")
+            [ -d ~/.aws.$2 ] && \
+            rm -f ~/.aws && \
+            ln -s ~/.aws.$2 ~/.aws && \
+            echo "Linked AWS config to '~/.aws.$2'!"
+            ;;
+        *)
+            echo "Usage: $0 [-status] [-link <name>]"
+    esac
 }
 
 umask 022
