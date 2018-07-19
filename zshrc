@@ -54,23 +54,11 @@ precmd() {
     vcs_info
 }
 
-pmdir () {
-    cd $(dirname $(perldoc -lm $1))
-}
-
-lpmdir () {
-    cd $(dirname $(carton exec -- perldoc -lm $1))
-}
-
-whereami () {
-    echo -ne "\033]0;${USER}@${HOST}\007"
-}
-
-perldocvim () {
-    FILE=$(perldoc -lm $*);
-    if [[ -e $FILE ]]; then
-        vim $FILE;
-    fi
+aws_switch() {
+    [ -d ~/.aws.$1 ] && \
+        rm -f ~/.aws && \
+        ln -s ~/.aws.$1 ~/.aws && \
+        echo "Switch AWS config to '$1'!"
 }
 
 whereami
