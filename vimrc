@@ -113,7 +113,12 @@ Plug 'vim-erlang/vim-erlang-runtime'
 " DBGP
 Plug 'joonty/vdebug'
 " Others
-Plug 'Shougo/neocomplete.vim'
+if has('nvim')
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+    let g:deoplete#enable_at_startup = 1
+else
+    Plug 'Shougo/neocomplete.vim'
+endif
 Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 Plug 'scrooloose/nerdtree'
@@ -183,7 +188,7 @@ let g:fzf_history_dir = '~/.fzf-history'
 
 
 "=== For NERDTree
-nnoremap ;nn :NERDTreeToggle<CR>
+nnoremap ;nt :NERDTreeToggle<CR>
 
 
 "=== For neosnippet
@@ -213,12 +218,6 @@ autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
 autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
 autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-
-"if !exists('g:neocomplete#sources#omni#input_patterns')
-"  let g:neocomplete#sources#omni#input_patterns = {}
-"endif
-"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-"let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
 
 "=== Just to make sure
 filetype indent off
