@@ -12,7 +12,10 @@ SRC = \
 	fzf \
 	fzf.zsh \
 	vim \
-	vim/autoload/plug.vim
+	vim/autoload/plug.vim \
+	config/nvim/init.vim \
+	local/share/nvim/site/autoload/plug.vim
+
 TARGET = $(addprefix $(HOME)/.,$(SRC))
 
 all: vim-plug fzf tmux-colors-solarized
@@ -46,6 +49,14 @@ $(HOME)/.vim/autoload/plug.vim: vim-plug
 
 $(HOME)/.tmux.conf: tmux-colors-solarized tmux.conf
 	cat tmux.conf $</tmuxcolors-dark.conf > $@
+
+$(HOME)/.config/nvim/init.vim: vimrc
+	mkdir -p $(dir $@)
+	ln -s `pwd`/$< $@
+
+$(HOME)/.local/share/nvim/site/autoload/plug.vim: vim-plug
+	mkdir -p $(dir $@)
+	ln -s `pwd`/$</plug.vim $@
 
 clean:
 	rm -rf $(TARGET)
