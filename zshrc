@@ -27,12 +27,12 @@ setopt hist_ignore_dups
 setopt share_history
 setopt magic_equal_subst
 
-alias vi="vim"
+alias vi="nvim"
 alias be="bundle exec"
 alias ce="carton exec"
 alias realpath="readlink -e"
 
-export EDITOR=vim
+export EDITOR=nvim
 #export GREP_OPTIONS="--color=auto"
 export LANG="en_US.UTF-8"
 
