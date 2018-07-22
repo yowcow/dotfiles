@@ -116,6 +116,7 @@ Plug 'joonty/vdebug'
 if has('nvim')
     Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
     let g:deoplete#enable_at_startup = 1
+    Plug 'zchee/deoplete-go', { 'do': 'make' }
 else
     Plug 'Shougo/neocomplete.vim'
 endif
