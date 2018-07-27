@@ -32,7 +32,7 @@ src/%:
 pull-src/%:
 	cd src/$* && git pull
 
-install: $(TARGET)
+install: $(TARGET) $(HOME)/go/bin/dep
 
 $(HOME)/.%:
 	ln -s `pwd`/$* $@
@@ -58,8 +58,11 @@ $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -s `pwd`/$</plug.vim $@
 
+$(HOME)/go/bin/dep:
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
+
 clean:
-	rm -rf $(TARGET)
+	rm -rf $(TARGET) $(HOME)/go/bin/dep
 
 realclean: clean
 	rm -rf src
