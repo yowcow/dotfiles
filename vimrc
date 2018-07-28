@@ -102,9 +102,9 @@ Plug 'mxw/vim-jsx'
 Plug 'leafgarland/typescript-vim'
 Plug 'kchmck/vim-coffee-script'
 " Perl
-Plug 'petdance/vim-perl'
-Plug 'hotchpotch/perldoc-vim'
-Plug 'c9s/perlomni.vim'
+Plug 'vim-perl/vim-perl'
+"Plug 'hotchpotch/perldoc-vim'
+"Plug 'c9s/perlomni.vim'
 " Go
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " Erlang
