@@ -33,11 +33,13 @@ alias ce="carton exec"
 alias realpath="readlink -e"
 
 export EDITOR=nvim
-#export GREP_OPTIONS="--color=auto"
 export LANG="en_US.UTF-8"
 
 export GOPATH=$HOME/go
-export PATH=$HOME/.fzf/bin:$HOME/go/bin:$PATH
+export GOENV_ROOT=$HOME/.goenv
+export PATH=$HOME/.fzf/bin:$GOENV_ROOT/bin:$HOME/go/bin:$PATH
+
+eval "$(goenv init -)"
 
 case "${OSTYPE}" in
     darwin*)

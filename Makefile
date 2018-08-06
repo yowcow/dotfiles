@@ -8,18 +8,24 @@ SRC = \
 	perltidyrc \
 	ocamlinit \
 	gitconfig \
-	gitignore_global \
-	fzf \
-	fzf.zsh \
-	vim/autoload/plug.vim \
-	config/nvim/init.vim \
-	local/share/nvim/site/autoload/plug.vim
-TARGET = $(addprefix $(HOME)/.,$(SRC))
+	gitignore_global
+
+NOSRC = \
+	$(HOME)/.fzf \
+	$(HOME)/.fzf.zsh \
+	$(HOME)/.vim/autoload/plug.vim \
+	$(HOME)/.config/nvim/init.vim \
+	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
+	$(HOME)/.goenv
+
+TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 
 VIM_PLUG = src/github.com/junegunn/vim-plug
 FZF = src/github.com/junegunn/fzf
 TMUX_COLORS_SOLARIZED = src/github.com/seebi/tmux-colors-solarized
-GITMODULES = $(VIM_PLUG) $(FZF) $(TMUX_COLORS_SOLARIZED)
+GOENV = src/github.com/syndbg/goenv
+
+GITMODULES = $(VIM_PLUG) $(FZF) $(TMUX_COLORS_SOLARIZED) $(GOENV)
 
 all:
 	$(MAKE) -j4 $(GITMODULES)
@@ -57,6 +63,9 @@ $(HOME)/.config/nvim/init.vim: vimrc
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -s `pwd`/$</plug.vim $@
+
+$(HOME)/.goenv: $(GOENV)
+	ln -s `pwd`/$< $@
 
 $(HOME)/go/bin/dep:
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
