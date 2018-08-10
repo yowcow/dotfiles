@@ -56,19 +56,19 @@ precmd() {
     vcs_info
 }
 
-aws_link() {
+aws-link() {
     case "$1" in
-        "-status")
+        "status")
             realpath ~/.aws
             ;;
-        "-update")
+        "update")
             [ -d ~/.aws.$2 ] && \
             rm -f ~/.aws && \
             ln -s ~/.aws.$2 ~/.aws && \
             echo "Linked AWS config to '~/.aws.$2'!"
             ;;
         *)
-            echo "Usage: $0 [-status] [-link <name>]"
+            echo "Usage: $0 [status] [update <name>]"
     esac
 }
 
