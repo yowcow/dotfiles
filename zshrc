@@ -48,6 +48,15 @@ case "${OSTYPE}" in
         ;;
     linux*)
         alias ls="ls --color"
+        # ssh-agent
+        if [ "$(pgrep ssh-agent | wc -l)" = "0" ]; then
+            eval $(ssh-agent);
+            ln -fs $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
+            ssh-agent $HOME/.ssh/id_rsa;
+        else
+            export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1)
+        fi
+        export SSH_AUTH_SOCK=/tmp/ssh-auth.sock
         ;;
 esac
 
