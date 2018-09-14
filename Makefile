@@ -67,8 +67,11 @@ $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 $(HOME)/.goenv: $(GOENV)
 	ln -s `pwd`/$< $@
 
-$(HOME)/go/bin/dep:
+$(HOME)/go/bin/dep: $(HOME)/go/bin
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
+
+$(HOME)/go/bin:
+	mkdir -p $@
 
 clean:
 	rm -rf $(TARGET) $(HOME)/go/bin/dep
