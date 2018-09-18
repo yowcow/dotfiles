@@ -68,7 +68,7 @@ precmd() {
 aws-link() {
     case "$1" in
         "status")
-            realpath ~/.aws
+            readlink ~/.aws
             ;;
         "update")
             [ -d ~/.aws.$2 ] && \
