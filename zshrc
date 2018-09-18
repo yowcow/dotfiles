@@ -30,7 +30,7 @@ setopt magic_equal_subst
 alias vi="nvim"
 alias be="bundle exec"
 alias ce="carton exec"
-alias realpath="readlink -e"
+alias realpath="readlink"
 
 export EDITOR=nvim
 export LANG="en_US.UTF-8"
