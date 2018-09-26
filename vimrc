@@ -139,11 +139,11 @@ let g:vdebug_options["path_maps"] = {}
 
 "=== For FZF
 let g:fzf_command_prefix = 'Fzf'
-nnoremap ;ff :FzfFiles<CR>
-nnoremap ;fg :FzfGFiles<CR>
-nnoremap ;ft :FzfTags<CR>
-nnoremap ;fh :FzfHistory<CR>
-nnoremap ;fc :FzfCommits<CR>
+nnoremap ;t :FzfFiles<CR>
+nnoremap ;g :FzfGFiles<CR>
+nnoremap ;f :FzfTags<CR>
+nnoremap ;h :FzfHistory<CR>
+nnoremap ;c :FzfCommits<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
