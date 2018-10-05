@@ -98,7 +98,8 @@ Plug 'vim-perl/vim-perl'
 "Plug 'hotchpotch/perldoc-vim'
 "Plug 'c9s/perlomni.vim'
 " Go
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+"Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'stamblerre/vim-go', { 'do': ':GoUpdateBinaries' }
 " Erlang
 Plug 'vim-erlang/vim-erlang-omnicomplete'
 Plug 'vim-erlang/vim-erlang-runtime'
