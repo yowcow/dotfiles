@@ -129,6 +129,7 @@ call plug#end()
 nnoremap <C-]> g<C-]>
 nnoremap <C-w>] <C-w><C-]><C-w>T
 let g:vim_tags_auto_generate = 0
+let g:vim_tags_directories = []
 "command GenTags execute "! [ -d .git ] && cd .git && ctags -R tags ../ || ctags -R -o tags"
 
 
