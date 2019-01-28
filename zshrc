@@ -1,6 +1,6 @@
 bindkey -v
 
-autoload -Uz compinit vcs_info
+autoload -Uz compinit vcs_info add-zsh-hook
 compinit
 setopt PROMPT_SUBST
 
