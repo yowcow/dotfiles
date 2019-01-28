@@ -13,6 +13,8 @@ zstyle ':vcs_info:*' actionformats '[%b|%a]'
 PROMPT='%B%K{blue}%n@%U%m%u%k %F{green}%~%f%b ${vcs_info_msg_0_} [%*]
 %B%(?..[%?] )%b%B%F{white}%#%f%b '
 
+add-zsh-hook precmd vcs_info # hook vcs_info
+
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
 zle -N history-beginning-search-forward-end history-search-end
@@ -61,10 +63,6 @@ case "${OSTYPE}" in
 esac
 
 # functions
-precmd() {
-    vcs_info
-}
-
 aws-link() {
     case "$1" in
         "status")
