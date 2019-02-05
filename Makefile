@@ -8,7 +8,8 @@ SRC = \
 	perltidyrc \
 	ocamlinit \
 	gitconfig \
-	gitignore_global
+	gitignore_global \
+	ctags
 
 NOSRC = \
 	$(HOME)/.fzf \
@@ -51,27 +52,25 @@ $(HOME)/.fzf.zsh: $(HOME)/.fzf
 
 $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
-	ln -s `pwd`/$</plug.vim $@
+	ln -sf `pwd`/$</plug.vim $@
 
 $(HOME)/.tmux.conf: $(TMUX_COLORS_SOLARIZED) tmux.conf
 	cat tmux.conf $</tmuxcolors-dark.conf > $@
 
 $(HOME)/.config/nvim/init.vim: vimrc
 	mkdir -p $(dir $@)
-	ln -s `pwd`/$< $@
+	ln -sf `pwd`/$< $@
 
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
-	ln -s `pwd`/$</plug.vim $@
+	ln -sf `pwd`/$</plug.vim $@
 
 $(HOME)/.goenv: $(GOENV)
-	ln -s `pwd`/$< $@
+	ln -sf `pwd`/$< $@
 
-$(HOME)/go/bin/dep: $(HOME)/go/bin
+$(HOME)/go/bin/dep:
+	mkdir -p $(dir $@)
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
-
-$(HOME)/go/bin:
-	mkdir -p $@
 
 clean:
 	rm -rf $(TARGET) $(HOME)/go/bin/dep
