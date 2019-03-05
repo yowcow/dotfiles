@@ -35,6 +35,7 @@ alias ce="carton exec"
 alias realpath="readlink"
 
 export EDITOR=nvim
+export PAGER=less
 export LANG="en_US.UTF-8"
 
 export GOPATH=$HOME/go
