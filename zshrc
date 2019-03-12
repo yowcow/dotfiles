@@ -40,7 +40,7 @@ export LANG="en_US.UTF-8"
 
 export GOPATH=$HOME/go
 export GOENV_ROOT=$HOME/.goenv
-export PATH=$HOME/.fzf/bin:$GOENV_ROOT/bin:$HOME/go/bin:$PATH
+export PATH=$HOME/bin:$HOME/.fzf/bin:$GOENV_ROOT/bin:$HOME/go/bin:$PATH
 
 eval "$(goenv init -)"
 
