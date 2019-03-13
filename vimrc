@@ -63,7 +63,10 @@ if filereadable(expand('~/.vimenv'))
 endif
 
 
-"=== tab
+"=== tabs and buffers
+nnoremap tj :bnext<CR>
+nnoremap tk :bprev<CR>
+nnoremap tq :bd<CR>
 nnoremap tl :tabnext<CR>
 nnoremap th :tabprev<CR>
 nnoremap tn :tabnew<Space>
