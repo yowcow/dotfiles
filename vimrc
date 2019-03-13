@@ -144,6 +144,8 @@ let g:vdebug_options["path_maps"] = {}
 
 "=== For FZF
 let g:fzf_command_prefix = 'Fzf'
+nnoremap ;b :FzfBuffers<CR>
+nnoremap ;w :FzfWindows<CR>
 nnoremap ;t :FzfFiles<CR>
 nnoremap ;g :FzfGFiles<CR>
 nnoremap ;f :FzfTags<CR>
