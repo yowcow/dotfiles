@@ -12,7 +12,7 @@ set showtabline=2
 set foldmethod=manual
 "set foldmethod=syntax
 "set foldlevelstart=2
-set ambiwidth=double
+"set ambiwidth=double
 
 set showmatch
 set hlsearch
