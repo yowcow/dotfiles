@@ -201,6 +201,15 @@ inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 "=== For neosnippet
 let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/snippets/'
 
+imap <C-l> <Plug>(neosnippet_expand_or_jump)
+smap <C-l> <Plug>(neosnippet_expand_or_jump)
+xmap <C-l> <Plug>(neosnippet_expand_target)
+"smap <expr> <TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+if has('conceal')
+    set conceallevel=2 concealcursor=niv
+endif
+
 "=== For omnicomplete
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
