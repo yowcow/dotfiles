@@ -90,7 +90,8 @@ call plug#begin()
 
 " Add or remove your plugins here:
 Plug 'Shougo/neosnippet.vim'
-Plug 'Shougo/neosnippet-snippets'
+"Plug 'Shougo/neosnippet-snippets'
+Plug 'Honza/vim-snippets'
 
 " JavaScript
 Plug 'pangloss/vim-javascript'
@@ -199,7 +200,7 @@ inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : "\<C-k>"
 inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 
 "=== For neosnippet
-let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/snippets/'
+let g:neosnippet#snippets_directory='~/.config/nvim/plugged/vim-snippets/snippets/'
 
 imap <C-l> <Plug>(neosnippet_expand_or_jump)
 smap <C-l> <Plug>(neosnippet_expand_or_jump)
