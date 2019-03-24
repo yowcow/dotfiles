@@ -112,7 +112,6 @@ Plug 'joonty/vdebug'
 " Others
 if has('nvim')
     Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-    let g:deoplete#enable_at_startup = 1
     Plug 'zchee/deoplete-go', { 'do': 'make' }
 else
     Plug 'Shougo/neocomplete.vim'
@@ -193,28 +192,16 @@ let g:fzf_history_dir = '~/.fzf-history'
 "=== For NERDTree
 nnoremap ;nt :NERDTreeToggle<CR>
 
+"=== For deoplete
+let g:deoplete#enable_at_startup = 1
+inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-j>"
+inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : "\<C-k>"
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 
 "=== For neosnippet
 let g:neosnippet#snippets_directory='~/.vim/plugged/neosnippet-snippets/snippets/'
 
-
 "=== For omnicomplete
-
-
-"=== For neocomplete
-let g:acp_enableAtStartup = 0
-let g:neocomplete#enable_at_startup = 1
-let g:neocomplete#enable_smart_case = 1
-let g:neocomplete#sources#syntax#min_keyword_length = 3
-
-if !exists('g:neocomplete#keyword_patterns')
-    let g:neocomplete#keyword_patterns = {}
-endif
-let g:neocomplete#keyword_patterns['default'] = '\h\w*'
-
-inoremap <expr><C-g>     neocomplete#undo_completion()
-inoremap <expr><C-l>     neocomplete#complete_common_string()
-
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
 autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
