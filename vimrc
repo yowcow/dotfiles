@@ -90,7 +90,7 @@ call plug#begin()
 
 " Add or remove your plugins here:
 Plug 'Shougo/neosnippet.vim'
-"Plug 'Shougo/neosnippet-snippets'
+Plug 'Shougo/neosnippet-snippets'
 Plug 'Honza/vim-snippets'
 
 " JavaScript
@@ -206,10 +206,6 @@ imap <C-l> <Plug>(neosnippet_expand_or_jump)
 smap <C-l> <Plug>(neosnippet_expand_or_jump)
 xmap <C-l> <Plug>(neosnippet_expand_target)
 "smap <expr> <TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-
-if has('conceal')
-    set conceallevel=2 concealcursor=niv
-endif
 
 "=== For omnicomplete
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
