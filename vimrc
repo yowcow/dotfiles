@@ -152,6 +152,7 @@ nnoremap ;g :FzfGFiles<CR>
 nnoremap ;f :FzfTags<CR>
 nnoremap ;h :FzfHistory<CR>
 nnoremap ;c :FzfCommits<CR>
+nnoremap ;r :Rg<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
@@ -188,6 +189,14 @@ let g:fzf_layout = { 'down': '~50%' }
 " previous-history instead of down and up. If you don't like the change,
 " explicitly bind the keys to down and up in your $FZF_DEFAULT_OPTS.
 let g:fzf_history_dir = '~/.fzf-history'
+
+" :Rg or :Rg!
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
+  \   <bang>0 ? fzf#vim#with_preview('up:60%')
+  \           : fzf#vim#with_preview('right:50%:hidden', '?'),
+  \   <bang>0)
 
 
 "=== For NERDTree
