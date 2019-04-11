@@ -206,7 +206,7 @@ nnoremap ;nt :NERDTreeToggle<CR>
 let g:deoplete#enable_at_startup = 1
 inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-j>"
 inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : "\<C-k>"
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+"inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 
 "=== For neosnippet
 let g:neosnippet#snippets_directory='~/.config/nvim/plugged/vim-snippets/snippets/'
