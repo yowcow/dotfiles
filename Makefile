@@ -23,10 +23,10 @@ TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 
 VIM_PLUG = src/github.com/junegunn/vim-plug
 FZF = src/github.com/junegunn/fzf
-TMUX_COLORS_SOLARIZED = src/github.com/seebi/tmux-colors-solarized
+#TMUX_COLORS_SOLARIZED = src/github.com/seebi/tmux-colors-solarized
 GOENV = src/github.com/syndbg/goenv
 
-GITMODULES = $(VIM_PLUG) $(FZF) $(TMUX_COLORS_SOLARIZED) $(GOENV)
+GITMODULES = $(VIM_PLUG) $(FZF) $(GOENV)
 
 all:
 	$(MAKE) -j4 $(GITMODULES)
@@ -54,8 +54,8 @@ $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sf `pwd`/$</plug.vim $@
 
-$(HOME)/.tmux.conf: $(TMUX_COLORS_SOLARIZED) tmux.conf
-	cat tmux.conf $</tmuxcolors-dark.conf > $@
+#$(HOME)/.tmux.conf: $(TMUX_COLORS_SOLARIZED) tmux.conf
+#	cat tmux.conf $</tmuxcolors-dark.conf > $@
 
 $(HOME)/.config/nvim/init.vim: vimrc
 	mkdir -p $(dir $@)
