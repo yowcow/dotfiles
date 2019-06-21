@@ -23,7 +23,6 @@ TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 
 VIM_PLUG = src/github.com/junegunn/vim-plug
 FZF = src/github.com/junegunn/fzf
-#TMUX_COLORS_SOLARIZED = src/github.com/seebi/tmux-colors-solarized
 GOENV = src/github.com/syndbg/goenv
 
 GITMODULES = $(VIM_PLUG) $(FZF) $(GOENV)
@@ -54,9 +53,6 @@ $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sf `pwd`/$</plug.vim $@
 
-#$(HOME)/.tmux.conf: $(TMUX_COLORS_SOLARIZED) tmux.conf
-#	cat tmux.conf $</tmuxcolors-dark.conf > $@
-
 $(HOME)/.config/nvim/init.vim: vimrc
 	mkdir -p $(dir $@)
 	ln -sf `pwd`/$< $@
@@ -69,8 +65,9 @@ $(HOME)/.goenv: $(GOENV)
 	ln -sf `pwd`/$< $@
 
 $(HOME)/go/bin/dep:
-	mkdir -p $(dir $@)
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
+	#mkdir -p $(dir $@)
+	#curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
+	go get -u -v github.com/golang/dep/cmd/...
 
 clean:
 	rm -rf $(TARGET) $(HOME)/go/bin/dep
