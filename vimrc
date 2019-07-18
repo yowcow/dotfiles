@@ -76,6 +76,10 @@ nnoremap tm :tabm<Space>
 nnoremap td :tabclose<CR>
 
 
+"=== For term
+tnoremap <C-\><C-\> <C-\><C-n>
+
+
 "=== Perl::Tidy
 map ;pt <Esc>:%! perltidy -se<CR>
 map ;ptv <Esc>:'<,'>! perltidy -se<CR>
