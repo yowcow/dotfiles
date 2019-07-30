@@ -46,8 +46,10 @@ au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 au BufNewFile,BufRead *.coffee set filetype=coffee
 au BufNewFile,BufRead *.es6 set filetype=javascript
+au BufNewFile,BufRead *.go set filetype=go
 
 autocmd FileType make setlocal noexpandtab
+autocmd FileType go setlocal noexpandtab
 autocmd FileType xml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType xhtml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType html setlocal softtabstop=2 tabstop=2 shiftwidth=2
@@ -108,19 +110,39 @@ Plug 'vim-perl/vim-perl'
 "Plug 'c9s/perlomni.vim'
 " Go
 "Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'stamblerre/vim-go', { 'do': ':GoUpdateBinaries' }
+"Plug 'stamblerre/vim-go', { 'do': ':GoUpdateBinaries' }
 " Erlang
 Plug 'vim-erlang/vim-erlang-omnicomplete'
 Plug 'vim-erlang/vim-erlang-runtime'
+" Language Server Protocol (LSP)
+Plug 'prabirshrestha/async.vim'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/vim-lsp'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+" LSP for Go (go get -u golang.org/x/tools/gopls)
+if executable('gopls')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'gopls',
+        \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
+        \ 'whitelist': ['go'],
+        \ })
+    "autocmd BufWritePre *.go LspDocumentFormatSync
+    autocmd BufWritePre *.go LspDocumentFormat
+endif
+"" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
+"if executable('go-langserver')
+"    au User lsp_setup call lsp#register_server({
+"        \ 'name': 'go-langserver',
+"        \ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
+"        \ 'whitelist': ['go'],
+"        \ })
+"    autocmd BufWritePre *.go LspDocumentFormatSync
+"endif
 " DBGP
 Plug 'joonty/vdebug'
 " Others
-if has('nvim')
-    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-    Plug 'zchee/deoplete-go', { 'do': 'make' }
-else
-    Plug 'Shougo/neocomplete.vim'
-endif
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'zchee/deoplete-go', { 'do': 'make' }
 Plug 'editorconfig/editorconfig-vim'
 Plug 'scrooloose/nerdtree'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }

@@ -73,4 +73,4 @@ clean:
 	rm -rf $(TARGET) $(HOME)/go/bin/dep
 
 realclean: clean
-	rm -rf src
+	rm -rf src $(HOME)/.config/plugged
