@@ -27,6 +27,8 @@ GOENV = src/github.com/syndbg/goenv
 
 GITMODULES = $(VIM_PLUG) $(FZF) $(GOENV)
 
+GOBIN = $(HOME)/go/bin/dep $(HOME)/go/bin/gopls
+
 all:
 	$(MAKE) -j4 $(GITMODULES)
 	$(MAKE) -j4 $(foreach mod,$(GITMODULES),pull-$(mod))
@@ -38,7 +40,7 @@ src/%:
 pull-src/%:
 	cd src/$* && git pull
 
-install: $(TARGET) $(HOME)/go/bin/dep
+install: $(TARGET) $(GOBIN)
 
 $(HOME)/.%:
 	ln -s `pwd`/$* $@
@@ -69,8 +71,11 @@ $(HOME)/go/bin/dep:
 	#curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=$(dir $@) sh
 	go get -u -v github.com/golang/dep/cmd/...
 
+$(HOME)/go/bin/gopls:
+	go get -u golang.org/x/tools/gopls
+
 clean:
-	rm -rf $(TARGET) $(HOME)/go/bin/dep
+	rm -rf $(TARGET) $(GOBIN)
 
 realclean: clean
-	rm -rf src $(HOME)/.config/plugged
+	rm -rf src $(HOME)/.config/nvim/plugged
