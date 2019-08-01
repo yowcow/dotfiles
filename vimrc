@@ -126,7 +126,6 @@ if executable('gopls')
         \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
         \ 'whitelist': ['go'],
         \ })
-    "autocmd BufWritePre *.go LspDocumentFormatSync
     autocmd BufWritePre *.go LspDocumentFormat
 endif
 "" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
@@ -138,6 +137,16 @@ endif
 "        \ })
 "    autocmd BufWritePre *.go LspDocumentFormatSync
 "endif
+" LSP for PHP (npm -g i intelephense)
+if executable('intelephense')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'intelephense',
+        \ 'cmd': {server_info->['intelephense', '--stdio']},
+        \ 'initialization_options': {},
+        \ 'whitelist': ['php'],
+        \ })
+    autocmd BufWritePre *.php LspDocumentFormat
+endif
 " DBGP
 Plug 'joonty/vdebug'
 " Others
