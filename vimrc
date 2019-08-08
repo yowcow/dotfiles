@@ -170,7 +170,8 @@ Plug 'szw/vim-tags'
 Plug 'prettier/vim-prettier', {
   \ 'do': 'yarn install',
   \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
-"Plug 'dracula/vim', { 'as': 'dracula' }
+Plug 'dracula/vim', { 'as': 'dracula' }
+Plug 'jacoborus/tender.vim'
 
 call plug#end()
 
@@ -273,7 +274,7 @@ autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 "=== Just to make sure
 filetype indent off
 
+set termguicolors
 autocmd ColorScheme * highlight Normal ctermbg=none
 autocmd ColorScheme * highlight LineNr ctermbg=none
-set termguicolors
 colorscheme molokai
