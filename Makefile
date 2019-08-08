@@ -17,6 +17,8 @@ NOSRC := \
 	$(HOME)/.vim/autoload/plug.vim \
 	$(HOME)/.config/nvim/init.vim \
 	$(HOME)/.config/nvim/colors/molokai.vim \
+	$(HOME)/.config/nvim/colors/paper-color.vim \
+	$(HOME)/.config/nvim/colors/hybrid.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
 	$(HOME)/.goenv
 
@@ -25,6 +27,8 @@ TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 VIM_PLUG := src/github.com/junegunn/vim-plug
 FZF := src/github.com/junegunn/fzf
 MOLOKAI := src/github.com/tomasr/molokai
+PAPERCOLOR := src/github.com/NLKNguyen/papercolor-theme
+HYBRID := src/github.com/w0ng/vim-hybrid
 GOENV := src/github.com/syndbg/goenv
 
 GITMODULES := $(VIM_PLUG) $(FZF) $(GOENV)
@@ -65,6 +69,14 @@ $(HOME)/.config/nvim/init.vim: vimrc
 $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 	mkdir -p $(dir $@)
 	ln -sf `pwd`/$</colors/molokai.vim $@
+
+$(HOME)/.config/nvim/colors/paper-color.vim: $(PAPERCOLOR)
+	mkdir -p $(dir $@)
+	ln -sf `pwd`/$</colors/PaperColor.vim $@
+
+$(HOME)/.config/nvim/colors/hybrid.vim: $(HYBRID)
+	mkdir -p $(dir $@)
+	ln -sf `pwd`/$</colors/hybrid.vim $@
 
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
