@@ -2,7 +2,6 @@ set t_Co=256
 set background=dark
 
 syntax on
-colorscheme zellner
 
 set nobackup
 set noswapfile
@@ -46,6 +45,8 @@ au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 au BufNewFile,BufRead *.coffee set filetype=coffee
 au BufNewFile,BufRead *.es6 set filetype=javascript
+au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
+au BufNewFile,BufRead *.tsx set filetype=typescript.tsx
 au BufNewFile,BufRead *.go set filetype=go
 
 autocmd FileType make setlocal noexpandtab
@@ -147,6 +148,15 @@ if executable('intelephense')
         \ })
     autocmd BufWritePre *.php LspDocumentFormat
 endif
+" LSP for TypeScript (npm -g i typescript-language-server)
+if executable('typescript-language-server')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'typescript-language-server',
+        \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
+        \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
+        \ 'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx'],
+        \ })
+endif
 " DBGP
 Plug 'joonty/vdebug'
 " Others
@@ -160,6 +170,7 @@ Plug 'szw/vim-tags'
 Plug 'prettier/vim-prettier', {
   \ 'do': 'yarn install',
   \ 'for': ['javascript', 'typescript', 'css', 'less', 'scss', 'json', 'graphql', 'markdown', 'vue'] }
+"Plug 'dracula/vim', { 'as': 'dracula' }
 
 call plug#end()
 
@@ -261,3 +272,8 @@ autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 
 "=== Just to make sure
 filetype indent off
+
+autocmd ColorScheme * highlight Normal ctermbg=none
+autocmd ColorScheme * highlight LineNr ctermbg=none
+set termguicolors
+colorscheme molokai
