@@ -44,6 +44,7 @@ au BufNewFile,BufRead *.twig set filetype=html
 au BufNewFile,BufRead *.tx set filetype=html
 au BufNewFile,BufRead *.md set filetype=markdown
 au BufNewFile,BufRead *.coffee set filetype=coffee
+"au BufNewFile,BufRead *.json set filetype=javascript
 au BufNewFile,BufRead *.es6 set filetype=javascript
 au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
 au BufNewFile,BufRead *.tsx set filetype=typescript.tsx
@@ -56,6 +57,9 @@ autocmd FileType xhtml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType html setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType javascript setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType javascript.jsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType typescript setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType typescript.jsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType json setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2
