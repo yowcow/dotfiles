@@ -279,6 +279,5 @@ autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 filetype indent off
 
 set termguicolors
-autocmd ColorScheme * highlight Normal ctermbg=none
-autocmd ColorScheme * highlight LineNr ctermbg=none
 colorscheme molokai
+hi Normal guibg=NONE ctermbg=NONE
