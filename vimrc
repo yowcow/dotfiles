@@ -131,7 +131,7 @@ if executable('gopls')
         \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
         \ 'whitelist': ['go'],
         \ })
-    autocmd BufWritePre *.go LspDocumentFormat
+    "autocmd BufWritePre *.go LspDocumentFormat
 endif
 "" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
 "if executable('go-langserver')
