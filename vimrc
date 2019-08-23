@@ -38,25 +38,31 @@ set wildmode=list:longest
 filetype on
 filetype plugin on
 
-au BufNewFile,BufRead *.psgi set filetype=perl
-au BufNewFile,BufRead *.t set filetype=perl
-au BufNewFile,BufRead *.twig set filetype=html
-au BufNewFile,BufRead *.tx set filetype=html
-au BufNewFile,BufRead *.md set filetype=markdown
-au BufNewFile,BufRead *.coffee set filetype=coffee
-au BufNewFile,BufRead *.json set filetype=javascript.json
-au BufNewFile,BufRead *.es6 set filetype=javascript
-au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
-au BufNewFile,BufRead *.tsx set filetype=typescript.tsx
-au BufNewFile,BufRead *.go set filetype=go
+augroup FileTyping
+    autocmd!
+    autocmd BufNewFile,BufRead *.psgi set filetype=perl
+    autocmd BufNewFile,BufRead *.t set filetype=perl
+    autocmd BufNewFile,BufRead *.twig set filetype=html
+    autocmd BufNewFile,BufRead *.tx set filetype=html
+    autocmd BufNewFile,BufRead *.md set filetype=markdown
+    autocmd BufNewFile,BufRead *.coffee set filetype=coffee
+    autocmd BufNewFile,BufRead *.json set filetype=javascript.json
+    autocmd BufNewFile,BufRead *.es6 set filetype=javascript
+    autocmd BufNewFile,BufRead *.jsx set filetype=javascript.jsx
+    autocmd BufNewFile,BufRead *.tsx set filetype=typescript.tsx
+    autocmd BufNewFile,BufRead *.go set filetype=go
+augroup END
 
-autocmd FileType make,go setlocal noexpandtab
-autocmd FileType xml,xhtml,html,smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType javascript,javascript.jsx,javascript.json,typescript,typescript.tsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2
-autocmd FileType markdown hi! def link markdownItalic LineNr
+augroup TabStop
+    autocmd!
+    autocmd FileType make,go setlocal noexpandtab
+    autocmd FileType xml,xhtml,html,smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType javascript,javascript.jsx,javascript.json,typescript,typescript.tsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2
+    autocmd FileType markdown hi! def link markdownItalic LineNr
+augroup END
 
 "=== Server dependent vim profile
 if filereadable(expand('~/.vimenv'))
@@ -120,19 +126,18 @@ Plug 'prabirshrestha/asyncomplete-lsp.vim'
 " LSP for Go (go get -u golang.org/x/tools/gopls)
 if executable('gopls')
     augroup LspGo
-        au!
+        autocmd!
         autocmd User lsp_setup call lsp#register_server({
             \ 'name': 'gopls',
             \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
             \ 'whitelist': ['go'],
             \ })
-        "autocmd BufWritePre *.go LspDocumentFormat
         autocmd FileType go setlocal omnifunc=lsp#complete
     augroup END
 endif
 "" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
 "if executable('go-langserver')
-"    au User lsp_setup call lsp#register_server({
+"    autocmd User lsp_setup call lsp#register_server({
 "        \ 'name': 'go-langserver',
 "        \ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
 "        \ 'whitelist': ['go'],
@@ -142,7 +147,7 @@ endif
 " LSP for PHP (npm -g i intelephense)
 if executable('intelephense')
     augroup LspPHP
-        au!
+        autocmd!
         autocmd User lsp_setup call lsp#register_server({
             \ 'name': 'intelephense',
             \ 'cmd': {server_info->['intelephense', '--stdio']},
@@ -153,24 +158,37 @@ if executable('intelephense')
         autocmd FileType php setlocal omnifunc=lsp#complete
     augroup END
 endif
+" LSP for JavaScript (npm -g t javascript-typescript-langserver)
+if executable('javascript-typescript-stdio')
+    augroup LspJavaScript
+        autocmd!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'javascript-typescript-langserver',
+            \ 'cmd': {server_info->['javascript-typescript-stdio']},
+            \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
+            \ 'whitelist': ['javascript', 'javascript.jsx'],
+            \ })
+        autocmd FileType javascript,javascript.jsx setlocal omnifunc=lsp#complete
+    augroup END
+endif
 " LSP for TypeScript (npm -g i typescript-language-server)
 if executable('typescript-language-server')
-    augroup LspJavaScript
-        au!
+    augroup LspTypeScript
+        autocmd!
         autocmd User lsp_setup call lsp#register_server({
             \ 'name': 'typescript-language-server',
             \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
             \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
-            \ 'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascript.jsx'],
+            \ 'whitelist': ['typescript', 'typescript.tsx'],
             \ })
-        autocmd FileType typescript,typescript.tsx,javascript,javascript.jsx setlocal omnifunc=lsp#complete
+        autocmd FileType typescript,typescript.tsx setlocal omnifunc=lsp#complete
     augroup END
 endif
 " DBGP
 Plug 'joonty/vdebug'
 " Others
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-Plug 'zchee/deoplete-go', { 'do': 'make' }
+"Plug 'zchee/deoplete-go', { 'do': 'make' }
 Plug 'editorconfig/editorconfig-vim'
 Plug 'scrooloose/nerdtree'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
@@ -272,13 +290,13 @@ smap <C-l> <Plug>(neosnippet_expand_or_jump)
 xmap <C-l> <Plug>(neosnippet_expand_target)
 "smap <expr> <TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
 
-"=== For omnicomplete
-autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
-autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+""=== For omnicomplete
+"autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+"autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+"autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+"autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
+"autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+"autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 
 "=== For vim-lsp
 
