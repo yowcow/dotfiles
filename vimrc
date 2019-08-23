@@ -55,6 +55,7 @@ autocmd FileType go setlocal noexpandtab
 autocmd FileType xml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType xhtml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType html setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType javascript setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType javascript.jsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
@@ -274,6 +275,8 @@ autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
 autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
 autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+"=== For vim-lsp
 
 "=== Just to make sure
 filetype indent off
