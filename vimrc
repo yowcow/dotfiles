@@ -50,18 +50,10 @@ au BufNewFile,BufRead *.jsx set filetype=javascript.jsx
 au BufNewFile,BufRead *.tsx set filetype=typescript.tsx
 au BufNewFile,BufRead *.go set filetype=go
 
-autocmd FileType make setlocal noexpandtab
-autocmd FileType go setlocal noexpandtab
-autocmd FileType xml setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType xhtml setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType html setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType make,go setlocal noexpandtab
+autocmd FileType xml,xhtml,html,smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType javascript setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType javascript.jsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType javascript.json setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType typescript setlocal softtabstop=2 tabstop=2 shiftwidth=2
-autocmd FileType typescript.jsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
+autocmd FileType javascript,javascript.jsx,javascript.json,typescript,typescript.tsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
 autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2
 autocmd FileType markdown hi! def link markdownItalic LineNr
@@ -127,12 +119,16 @@ Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 " LSP for Go (go get -u golang.org/x/tools/gopls)
 if executable('gopls')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'gopls',
-        \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
-        \ 'whitelist': ['go'],
-        \ })
-    "autocmd BufWritePre *.go LspDocumentFormat
+    augroup LspGo
+        au!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'gopls',
+            \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
+            \ 'whitelist': ['go'],
+            \ })
+        "autocmd BufWritePre *.go LspDocumentFormat
+        autocmd FileType go setlocal omnifunc=lsp#complete
+    augroup END
 endif
 "" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
 "if executable('go-langserver')
@@ -145,22 +141,30 @@ endif
 "endif
 " LSP for PHP (npm -g i intelephense)
 if executable('intelephense')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'intelephense',
-        \ 'cmd': {server_info->['intelephense', '--stdio']},
-        \ 'initialization_options': {},
-        \ 'whitelist': ['php'],
-        \ })
-    autocmd BufWritePre *.php LspDocumentFormat
+    augroup LspPHP
+        au!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'intelephense',
+            \ 'cmd': {server_info->['intelephense', '--stdio']},
+            \ 'initialization_options': {},
+            \ 'whitelist': ['php'],
+            \ })
+        autocmd BufWritePre *.php LspDocumentFormat
+        autocmd FileType php setlocal omnifunc=lsp#complete
+    augroup END
 endif
 " LSP for TypeScript (npm -g i typescript-language-server)
 if executable('typescript-language-server')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'typescript-language-server',
-        \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
-        \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
-        \ 'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx'],
-        \ })
+    augroup LspJavaScript
+        au!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'typescript-language-server',
+            \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
+            \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
+            \ 'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascript.jsx'],
+            \ })
+        autocmd FileType typescript,typescript.tsx,javascript,javascript.jsx setlocal omnifunc=lsp#complete
+    augroup END
 endif
 " DBGP
 Plug 'joonty/vdebug'
