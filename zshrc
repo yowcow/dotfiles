@@ -39,10 +39,7 @@ export PAGER=less
 export LANG="en_US.UTF-8"
 
 export GOPATH=$HOME/go
-export GOENV_ROOT=$HOME/.goenv
-export PATH=$HOME/bin:$HOME/.fzf/bin:$GOENV_ROOT/bin:$HOME/go/bin:$PATH
-
-eval "$(goenv init -)"
+export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/go/bin:$PATH
 
 case "${OSTYPE}" in
     darwin*)
@@ -85,6 +82,10 @@ umask 022
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-[ -f ~/.travis/travis.sh ] && source ~/.travis/travis.sh
-[ -f ~/.zshlocal ] && source ~/.zshlocal
+[ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
+[ -f $HOME/.zshlocal ] && source ~/.zshlocal
+
+# general ***env
+[ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
+[ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh

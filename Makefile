@@ -2,6 +2,8 @@
 
 SRC := \
 	zshrc \
+	nodenv.zsh \
+	goenv.zsh \
 	vimrc \
 	screenrc \
 	tmux.conf \
