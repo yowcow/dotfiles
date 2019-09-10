@@ -32,8 +32,9 @@ MOLOKAI := src/github.com/tomasr/molokai
 PAPERCOLOR := src/github.com/NLKNguyen/papercolor-theme
 HYBRID := src/github.com/w0ng/vim-hybrid
 GOENV := src/github.com/syndbg/goenv
+NODENV := src/github.com/nodenv/nodenv
 
-GITMODULES := $(VIM_PLUG) $(FZF) $(GOENV)
+GITMODULES := $(VIM_PLUG) $(FZF) $(GOENV) $(NODENV)
 
 all:
 	$(MAKE) -j4 $(GITMODULES)
@@ -85,6 +86,9 @@ $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	ln -sf `pwd`/$</plug.vim $@
 
 $(HOME)/.goenv: $(GOENV)
+	ln -sf `pwd`/$< $@
+
+$(HOME)/.nodenv: $(NODENV)
 	ln -sf `pwd`/$< $@
 
 clean:
