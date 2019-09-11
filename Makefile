@@ -22,7 +22,8 @@ NOSRC := \
 	$(HOME)/.config/nvim/colors/paper-color.vim \
 	$(HOME)/.config/nvim/colors/hybrid.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
-	$(HOME)/.goenv
+	$(HOME)/.goenv \
+	$(HOME)/.nodenv
 
 TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 
