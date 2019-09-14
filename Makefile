@@ -23,7 +23,8 @@ NOSRC := \
 	$(HOME)/.config/nvim/colors/hybrid.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
 	$(HOME)/.goenv \
-	$(HOME)/.nodenv
+	$(HOME)/.nodenv \
+	$(HOME)/.nodenv/plugins/node-build
 
 TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
 
@@ -34,8 +35,9 @@ PAPERCOLOR := src/github.com/NLKNguyen/papercolor-theme
 HYBRID := src/github.com/w0ng/vim-hybrid
 GOENV := src/github.com/syndbg/goenv
 NODENV := src/github.com/nodenv/nodenv
+NODE_BUILD := src/github.com/nodenv/node-build
 
-GITMODULES := $(VIM_PLUG) $(FZF) $(GOENV) $(NODENV)
+GITMODULES := $(VIM_PLUG) $(FZF) $(GOENV) $(NODENV) $(NODE_BUILD)
 
 all:
 	$(MAKE) -j4 $(GITMODULES)
@@ -90,6 +92,10 @@ $(HOME)/.goenv: $(GOENV)
 	ln -sf `pwd`/$< $@
 
 $(HOME)/.nodenv: $(NODENV)
+	ln -sf `pwd`/$< $@
+
+$(HOME)/.nodenv/plugins/node-build: $(NODE_BUILD) $(HOME)/.nodenv
+	mkdir -p $(dir $@)
 	ln -sf `pwd`/$< $@
 
 clean:
