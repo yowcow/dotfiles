@@ -10,7 +10,7 @@ zstyle ':vcs_info:git:*' unstagedstr '%F{magenta}+'
 zstyle ':vcs_info:*' formats '%%B%%F{cyan}%c%u{%b}%%f%%b'
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
-PROMPT='%F{blue}%n@%U%m%u%f %F{green}%~%f ${vcs_info_msg_0_} [%*]
+PROMPT='%F{blue}%n@%U%m%u%f %B%F{green}%~%f%b ${vcs_info_msg_0_} [%*]
 %B%(?..[%?] )%b%B%F{white}%#%f%b '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
