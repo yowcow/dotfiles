@@ -111,7 +111,7 @@ Plug 'kchmck/vim-coffee-script'
 " Perl
 Plug 'vim-perl/vim-perl'
 "Plug 'hotchpotch/perldoc-vim'
-"Plug 'c9s/perlomni.vim'
+Plug 'c9s/perlomni.vim'
 " Go
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 let g:go_info_mode = 'gopls'
