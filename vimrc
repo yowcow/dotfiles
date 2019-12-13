@@ -35,8 +35,7 @@ set expandtab
 
 set wildmode=list:longest
 
-filetype on
-filetype plugin on
+filetype plugin indent on
 
 augroup FileTyping
     autocmd!
