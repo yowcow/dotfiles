@@ -1,19 +1,17 @@
-.PHONY: all pull-src/% install clean realclean
-
-SRC := \
-	zshrc \
-	nodenv.zsh \
-	goenv.zsh \
-	vimrc \
-	screenrc \
-	tmux.conf \
-	perltidyrc \
-	ocamlinit \
+MINE := \
+	ctags \
 	gitconfig \
 	gitignore_global \
-	ctags
+	goenv.zsh \
+	nodenv.zsh \
+	ocamlinit \
+	perltidyrc \
+	screenrc \
+	tmux.conf \
+	vimrc \
+	zshrc
 
-NOSRC := \
+THEIRS := \
 	$(HOME)/.fzf \
 	$(HOME)/.fzf.zsh \
 	$(HOME)/.vim/autoload/plug.vim \
@@ -24,20 +22,29 @@ NOSRC := \
 	$(HOME)/.nodenv \
 	$(HOME)/.nodenv/plugins/node-build
 
-TARGET = $(addprefix $(HOME)/.,$(SRC)) $(NOSRC)
+ALL_TARGETS = $(addprefix $(HOME)/.,$(MINE)) $(THEIRS)
 
-VIM_PLUG := src/github.com/junegunn/vim-plug
-FZF := src/github.com/junegunn/fzf
-MOLOKAI := src/github.com/tomasr/molokai
-GOENV := src/github.com/syndbg/goenv
-NODENV := src/github.com/nodenv/nodenv
-NODE_BUILD := src/github.com/nodenv/node-build
+FZF          := src/github.com/junegunn/fzf
+GOENV        := src/github.com/syndbg/goenv
+MOLOKAI      := src/github.com/tomasr/molokai
+NODENV       := src/github.com/nodenv/nodenv
+NODENV_BUILD := src/github.com/nodenv/node-build
+VIM_PLUG     := src/github.com/junegunn/vim-plug
 
-GITMODULES := $(VIM_PLUG) $(FZF) $(MOLOKAI) $(GOENV) $(NODENV) $(NODE_BUILD)
+GIT_MODULES := \
+	$(FZF) \
+	$(GOENV) \
+	$(MOLOKAI) \
+	$(NODENV) \
+	$(NODENV_BUILD) \
+	$(VIM_PLUG)
 
-all:
-	$(MAKE) -j4 $(GITMODULES)
-	$(MAKE) -j4 $(foreach mod,$(GITMODULES),pull-$(mod))
+all: update
+
+update:
+	make -j4 $(GIT_MODULES)
+	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
+	make go-commands
 
 src/%:
 	mkdir -p $(dir $@)
@@ -46,48 +53,62 @@ src/%:
 pull-src/%:
 	cd src/$* && git pull
 
-install: $(TARGET)
+go-commands:
+ifneq ($(shell which go),)
 	go get -u -v github.com/golang/dep/cmd/...
 	go get -u -v golang.org/x/tools/gopls
 	go get -u -v github.com/sourcegraph/go-langserver
+else
+	@echo "No go found in your PATH!!"
+endif
 
+install: $(ALL_TARGETS)
+
+## Create symlink by default
 $(HOME)/.%:
-	ln -s `pwd`/$* $@
+	ln -sfn `pwd`/$* $@
 
+## For fzf
 $(HOME)/.fzf: $(FZF)
-	ln -s `pwd`/$< $@
+	ln -sfn `pwd`/$< $@
 
 $(HOME)/.fzf.zsh: $(HOME)/.fzf
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
+## For vim
 $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
-	ln -sf `pwd`/$</plug.vim $@
+	ln -sfn `pwd`/$</plug.vim $@
 
 $(HOME)/.config/nvim/init.vim: vimrc
 	mkdir -p $(dir $@)
-	ln -sf `pwd`/$< $@
+	ln -sfn `pwd`/$< $@
 
+## For neovim
 $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 	mkdir -p $(dir $@)
-	ln -sf `pwd`/$</colors/molokai.vim $@
+	ln -sfn `pwd`/$</colors/molokai.vim $@
 
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
-	ln -sf `pwd`/$</plug.vim $@
+	ln -sfn `pwd`/$</plug.vim $@
 
+## For goenv
 $(HOME)/.goenv: $(GOENV)
-	ln -sf `pwd`/$< $@
+	ln -sfn `pwd`/$< $@
 
+## For nodenv
 $(HOME)/.nodenv: $(NODENV)
-	ln -sf `pwd`/$< $@
+	ln -sfn `pwd`/$< $@
 
-$(HOME)/.nodenv/plugins/node-build: $(NODE_BUILD) $(HOME)/.nodenv
+$(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	mkdir -p $(dir $@)
-	ln -sf `pwd`/$< $@
+	ln -sfn `pwd`/$< $@
 
 clean:
-	rm -rf $(TARGET)
+	rm -rf $(ALL_TARGETS)
 
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
+
+.PHONY: all update pull-src/% go-commands install clean realclean
