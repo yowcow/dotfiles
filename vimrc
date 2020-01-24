@@ -122,67 +122,6 @@ Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
-" LSP for Go (go get -u golang.org/x/tools/gopls)
-if executable('gopls')
-    augroup LspGo
-        autocmd!
-        autocmd User lsp_setup call lsp#register_server({
-            \ 'name': 'gopls',
-            \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
-            \ 'whitelist': ['go'],
-            \ })
-        autocmd FileType go setlocal omnifunc=lsp#complete
-    augroup END
-endif
-"" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
-"if executable('go-langserver')
-"    autocmd User lsp_setup call lsp#register_server({
-"        \ 'name': 'go-langserver',
-"        \ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
-"        \ 'whitelist': ['go'],
-"        \ })
-"    autocmd BufWritePre *.go LspDocumentFormatSync
-"endif
-" LSP for PHP (npm -g i intelephense)
-if executable('intelephense')
-    augroup LspPHP
-        autocmd!
-        autocmd User lsp_setup call lsp#register_server({
-            \ 'name': 'intelephense',
-            \ 'cmd': {server_info->['intelephense', '--stdio']},
-            \ 'initialization_options': {},
-            \ 'whitelist': ['php'],
-            \ })
-        autocmd BufWritePre *.php LspDocumentFormat
-        autocmd FileType php setlocal omnifunc=lsp#complete
-    augroup END
-endif
-" LSP for JavaScript (npm -g t javascript-typescript-langserver)
-if executable('javascript-typescript-stdio')
-    augroup LspJavaScript
-        autocmd!
-        autocmd User lsp_setup call lsp#register_server({
-            \ 'name': 'javascript-typescript-langserver',
-            \ 'cmd': {server_info->['javascript-typescript-stdio']},
-            \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
-            \ 'whitelist': ['javascript', 'javascript.jsx'],
-            \ })
-        autocmd FileType javascript,javascript.jsx setlocal omnifunc=lsp#complete
-    augroup END
-endif
-" LSP for TypeScript (npm -g i typescript-language-server)
-if executable('typescript-language-server')
-    augroup LspTypeScript
-        autocmd!
-        autocmd User lsp_setup call lsp#register_server({
-            \ 'name': 'typescript-language-server',
-            \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
-            \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
-            \ 'whitelist': ['typescript', 'typescript.tsx'],
-            \ })
-        autocmd FileType typescript,typescript.tsx setlocal omnifunc=lsp#complete
-    augroup END
-endif
 " DBGP
 Plug 'joonty/vdebug'
 " Others
@@ -275,11 +214,13 @@ command! -bang -nargs=* Rg
 "=== For NERDTree
 nnoremap ;nt :NERDTreeToggle<CR>
 
+
 "=== For deoplete
 let g:deoplete#enable_at_startup = 1
 inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-j>"
 inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : "\<C-k>"
 "inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+
 
 "=== For neosnippet
 let g:neosnippet#snippets_directory='~/.config/nvim/plugged/vim-snippets/snippets/'
@@ -289,6 +230,7 @@ smap <C-l> <Plug>(neosnippet_expand_or_jump)
 xmap <C-l> <Plug>(neosnippet_expand_target)
 "smap <expr> <TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
 
+
 ""=== For omnicomplete
 "autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 "autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
@@ -297,7 +239,118 @@ xmap <C-l> <Plug>(neosnippet_expand_target)
 "autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 "autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 
+
 "=== For vim-lsp
+" LSP for Go (go get -u golang.org/x/tools/gopls)
+if executable('gopls')
+    function! ToggleLspGo()
+        if !exists('#LspGo#User')
+            augroup LspGo
+                autocmd!
+                autocmd User lsp_setup call lsp#register_server({
+                    \ 'name': 'gopls',
+                    \ 'cmd': {server_info->['gopls', '-mode', 'stdio']},
+                    \ 'whitelist': ['go'],
+                    \ })
+                autocmd FileType go setlocal omnifunc=lsp#complete
+            augroup END
+            echo 'Enabled LspGo!!'
+        else
+            augroup LspGo
+                autocmd!
+            augroup
+            echo 'Disabled LspGo!!'
+        endif
+    endfunction
+    command! ToggleGo call ToggleLspGo()
+    ToggleGo
+endif
+"" LSP for Go (go get -u github.com/sourcegraph/go-langserver)
+"if executable('go-langserver')
+"    autocmd User lsp_setup call lsp#register_server({
+"        \ 'name': 'go-langserver',
+"        \ 'cmd': {server_info->['go-langserver', '-gocodecompletion']},
+"        \ 'whitelist': ['go'],
+"        \ })
+"    autocmd BufWritePre *.go LspDocumentFormatSync
+"endif
+" LSP for PHP (npm -g i intelephense)
+if executable('intelephense')
+    function! ToggleLspPHP()
+        if !exists('#LspPHP#User')
+            augroup LspPHP
+                autocmd!
+                autocmd User lsp_setup call lsp#register_server({
+                    \ 'name': 'intelephense',
+                    \ 'cmd': {server_info->['intelephense', '--stdio']},
+                    \ 'initialization_options': {},
+                    \ 'whitelist': ['php'],
+                    \ })
+                autocmd BufWritePre *.php LspDocumentFormat
+                autocmd FileType php setlocal omnifunc=lsp#complete
+            augroup END
+            echo 'Enabled LspPHP!!'
+        else
+            augroup LspPHP
+                autocmd!
+            augroup END
+            echo 'Disabled LspPHP!!'
+        endif
+    endfunction
+    command! TogglePHP call ToggleLspPHP()
+    TogglePHP
+endif
+" LSP for JavaScript (npm -g t javascript-typescript-langserver)
+if executable('javascript-typescript-stdio')
+    function! ToggleLspJavaScript()
+        if !exists('#LspJavaScript#user')
+            augroup LspJavaScript
+                autocmd!
+                autocmd User lsp_setup call lsp#register_server({
+                    \ 'name': 'javascript-typescript-langserver',
+                    \ 'cmd': {server_info->['javascript-typescript-stdio']},
+                    \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
+                    \ 'whitelist': ['javascript', 'javascript.jsx'],
+                    \ })
+                autocmd FileType javascript,javascript.jsx setlocal omnifunc=lsp#complete
+            augroup END
+            echo 'Enabled LspJavaScript!!'
+        else
+            augroup LspJavaScript
+                autocmd!
+            augroup
+            echo 'Disabled LspJavaScript!!'
+        endif
+    endfunction
+    command! ToggleJavaScript call ToggleLspJavaScript()
+    ToggleJavaScript
+endif
+" LSP for TypeScript (npm -g i typescript-language-server)
+if executable('typescript-language-server')
+    function! ToggleLspTypeScript()
+        if !exists('#LspTypeScript#User')
+            augroup LspTypeScript
+                autocmd!
+                autocmd User lsp_setup call lsp#register_server({
+                    \ 'name': 'typescript-language-server',
+                    \ 'cmd': {server_info->[&shell, &shellcmdflag, 'typescript-language-server --stdio']},
+                    \ 'root_uri':{server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'package.json'))},
+                    \ 'whitelist': ['typescript', 'typescript.tsx'],
+                    \ })
+                autocmd FileType typescript,typescript.tsx setlocal omnifunc=lsp#complete
+            augroup END
+            echo 'Enabled LspTypeScript!!'
+        else
+            augroup LspTypeScript
+                autocmd!
+            augroup
+            echo 'Disabled LspTypeScript!!'
+        endif
+    endfunction
+    command! ToggleTypeScript call ToggleLspTypeScript()
+    ToggleTypeScript
+endif
+
 
 "=== Just to make sure
 filetype indent off
