@@ -352,9 +352,6 @@ if executable('typescript-language-server')
 endif
 
 
-"=== Just to make sure
-filetype indent off
-
 set termguicolors
 colorscheme molokai
 hi Normal guibg=NONE ctermbg=NONE
