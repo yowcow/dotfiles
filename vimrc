@@ -276,7 +276,7 @@ endif
 "endif
 " LSP for PHP (npm -g i intelephense)
 if executable('intelephense')
-    function! ToggleLspPHP()
+    function! s:toggle_lsp_php()
         if !exists('#LspPHP#User')
             augroup LspPHP
                 autocmd!
@@ -297,12 +297,12 @@ if executable('intelephense')
             echo 'Disabled LspPHP!!'
         endif
     endfunction
-    command! TogglePHP call ToggleLspPHP()
+    command! TogglePHP call s:toggle_lsp_php()
     TogglePHP
 endif
 " LSP for JavaScript (npm -g t javascript-typescript-langserver)
 if executable('javascript-typescript-stdio')
-    function! ToggleLspJavaScript()
+    function! s:toggle_lsp_javascript()
         if !exists('#LspJavaScript#user')
             augroup LspJavaScript
                 autocmd!
@@ -322,12 +322,12 @@ if executable('javascript-typescript-stdio')
             echo 'Disabled LspJavaScript!!'
         endif
     endfunction
-    command! ToggleJavaScript call ToggleLspJavaScript()
+    command! ToggleJavaScript call s:toggle_lsp_javascript()
     ToggleJavaScript
 endif
 " LSP for TypeScript (npm -g i typescript-language-server)
 if executable('typescript-language-server')
-    function! ToggleLspTypeScript()
+    function! s:toggle_lsp_typescript()
         if !exists('#LspTypeScript#User')
             augroup LspTypeScript
                 autocmd!
@@ -347,7 +347,7 @@ if executable('typescript-language-server')
             echo 'Disabled LspTypeScript!!'
         endif
     endfunction
-    command! ToggleTypeScript call ToggleLspTypeScript()
+    command! ToggleTypeScript call s:toggle_lsp_typescript()
     ToggleTypeScript
 endif
 
