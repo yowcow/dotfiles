@@ -163,7 +163,7 @@ let g:vdebug_options["path_maps"] = {}
 
 
 "=== For vim-ripgrep
-nnoremap ;r :Rg 
+nnoremap ;/ :Rg 
 
 
 "=== For FZF
@@ -172,9 +172,10 @@ nnoremap ;b :FzfBuffers<CR>
 nnoremap ;w :FzfWindows<CR>
 nnoremap ;t :FzfFiles<CR>
 nnoremap ;g :FzfGFiles<CR>
-nnoremap ;f :FzfTags<CR>
+"nnoremap ;f :FzfTags<CR>
 nnoremap ;h :FzfHistory<CR>
 nnoremap ;c :FzfCommits<CR>
+nnoremap ;f :FzfRg<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
