@@ -101,29 +101,36 @@ call plug#begin()
 Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 Plug 'Honza/vim-snippets'
+Plug 'jremmen/vim-ripgrep'
 
 " JavaScript
 Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
 Plug 'leafgarland/typescript-vim'
 Plug 'kchmck/vim-coffee-script'
+
 " Perl
 Plug 'vim-perl/vim-perl'
 "Plug 'hotchpotch/perldoc-vim'
 Plug 'c9s/perlomni.vim'
+
 " Go
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 let g:go_info_mode = 'gopls'
+
 " Erlang
 Plug 'vim-erlang/vim-erlang-omnicomplete'
 Plug 'vim-erlang/vim-erlang-runtime'
-" Language Server Protocol (LSP)
+
+" LSP
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
+
 " DBGP
 Plug 'joonty/vdebug'
+
 " Others
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 "Plug 'zchee/deoplete-go', { 'do': 'make' }
