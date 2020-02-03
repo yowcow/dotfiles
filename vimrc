@@ -86,8 +86,8 @@ tnoremap <C-\><C-\> <C-\><C-n>
 
 
 "=== Perl::Tidy
-map ;pt <Esc>:%! perltidy -se<CR>
-map ;ptv <Esc>:'<,'>! perltidy -se<CR>
+nnoremap ;ptt <Esc>:%! perltidy -se<CR>
+nnoremap ;ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
 "=== Plug
@@ -162,6 +162,10 @@ let g:vdebug_options["port"] = 9000
 let g:vdebug_options["path_maps"] = {}
 
 
+"=== For vim-ripgrep
+nnoremap ;r :Rg 
+
+
 "=== For FZF
 let g:fzf_command_prefix = 'Fzf'
 nnoremap ;b :FzfBuffers<CR>
@@ -171,7 +175,6 @@ nnoremap ;g :FzfGFiles<CR>
 nnoremap ;f :FzfTags<CR>
 nnoremap ;h :FzfHistory<CR>
 nnoremap ;c :FzfCommits<CR>
-nnoremap ;r :Rg<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
