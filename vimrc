@@ -223,7 +223,7 @@ command! -bang -nargs=* Rg
 
 
 "=== For NERDTree
-nnoremap ;nt :NERDTreeToggle<CR>
+nnoremap ;n :NERDTreeToggle<CR>
 
 
 "=== For deoplete
