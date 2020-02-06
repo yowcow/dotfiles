@@ -24,7 +24,8 @@ set list
 set listchars=tab:>-,trail:^
 
 set laststatus=2
-set statusline=%f\ [%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
+set noshowmode
+"set statusline=%f\ [%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
 
 set ai
 set shiftwidth=4
@@ -102,6 +103,7 @@ Plug 'Shougo/neosnippet.vim'
 Plug 'Shougo/neosnippet-snippets'
 Plug 'Honza/vim-snippets'
 Plug 'jremmen/vim-ripgrep'
+Plug 'itchyny/lightline.vim'
 
 " JavaScript
 Plug 'pangloss/vim-javascript'
