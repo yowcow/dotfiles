@@ -23,10 +23,6 @@ set backspace=indent
 set list
 set listchars=tab:>-,trail:^
 
-set laststatus=2
-set noshowmode
-"set statusline=%f\ [%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
-
 set ai
 set shiftwidth=4
 set softtabstop=4
@@ -365,6 +361,35 @@ if executable('typescript-language-server')
 endif
 
 
+"=== For lightline
+set laststatus=2
+set noshowmode
+"set statusline=%f\ [%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
+let g:lightline = {
+    \ 'component': {
+    \     'filename': '%f',
+    \ },
+    \ }
+let g:lightline.tab = {
+    \ 'active': [ 'tabnum', 'filename', 'modified' ],
+    \ 'inactive': [ 'tabnum', 'filename', 'modified' ]
+    \ }
+let g:lightline.tab_component_function = {
+    \ 'filename': 'LightlineTabFilename',
+    \ 'modified': 'lightline#tab#modified',
+    \ 'readonly': 'lightline#tab#readonly',
+    \ 'tabnum': 'lightline#tab#tabnum'
+    \ }
+
+function! LightlineTabFilename(n) abort
+  let buflist = tabpagebuflist(a:n)
+  let winnr = tabpagewinnr(a:n)
+  let _ = pathshorten(expand('#'.buflist[winnr - 1].':f'))
+  return _ !=# '' ? _ : '[No Name]'
+endfunction
+
+
+"=== For colorscheme
 set termguicolors
 colorscheme molokai
 hi Normal guibg=NONE ctermbg=NONE
