@@ -78,8 +78,14 @@ nnoremap tm :tabm<Space>
 nnoremap td :tabclose<CR>
 
 
-"=== For term
+"=== For term/window
 tnoremap <C-\><C-\> <C-\><C-n>
+nnoremap <C-w>- :sp<CR>
+nnoremap <C-w>\| :vsp<CR>
+nnoremap <C-w>J <C-w>20+
+nnoremap <C-w>K <C-w>20-
+nnoremap <C-w>H <C-w>20<
+nnoremap <C-w>L <C-w>20>
 
 
 "=== Perl::Tidy
