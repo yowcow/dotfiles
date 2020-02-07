@@ -313,7 +313,7 @@ if executable('intelephense')
         endif
     endfunction
     command! TogglePHP call s:toggle_lsp_php()
-    TogglePHP
+    silent TogglePHP
 endif
 " LSP for JavaScript (npm -g t javascript-typescript-langserver)
 if executable('javascript-typescript-stdio')
@@ -338,7 +338,7 @@ if executable('javascript-typescript-stdio')
         endif
     endfunction
     command! ToggleJavaScript call s:toggle_lsp_javascript()
-    ToggleJavaScript
+    silent ToggleJavaScript
 endif
 " LSP for TypeScript (npm -g i typescript-language-server)
 if executable('typescript-language-server')
@@ -363,7 +363,7 @@ if executable('typescript-language-server')
         endif
     endfunction
     command! ToggleTypeScript call s:toggle_lsp_typescript()
-    ToggleTypeScript
+    silent ToggleTypeScript
 endif
 
 
