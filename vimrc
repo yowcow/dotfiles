@@ -179,7 +179,7 @@ nnoremap ;g :FzfGFiles<CR>
 "nnoremap ;f :FzfTags<CR>
 nnoremap ;h :FzfHistory<CR>
 nnoremap ;c :FzfCommits<CR>
-nnoremap ;/ :FzfRg<CR>
+nnoremap ;r :FzfRg<CR>
 
 " This is the default extra key bindings
 let g:fzf_action = {
