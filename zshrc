@@ -10,7 +10,7 @@ zstyle ':vcs_info:git:*' unstagedstr '%F{203}+'
 zstyle ':vcs_info:*' formats '%%F{081}%c%u[%b]%%f'
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
-PROMPT='%F{237}%K{039}> %n@%U%m%u %k%f%F{117}%K{031} %* %k%f%F{117}%K{023} %~ %k%f%K{237} ${vcs_info_msg_0_} %k
+PROMPT='%F{237}%K{039}> %n@%U%m%u %k%f%F{231}%K{031} %* %k%f%F{231}%K{023} %~ %k%f%K{237} ${vcs_info_msg_0_} %k
 %B%(?..[%?] )%b%B%F{white}%#%f%b '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
