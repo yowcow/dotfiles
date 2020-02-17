@@ -8,7 +8,7 @@ zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr '%F{228}!'
 zstyle ':vcs_info:git:*' unstagedstr '%F{203}+'
 zstyle ':vcs_info:*' formats '%%F{081}%c%u[%b]%%f'
-zstyle ':vcs_info:*' actionformats '[%b|%a]'
+zstyle ':vcs_info:*' actionformats '%%F{170}%%B[%b|%a]%%b%%f'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
 PROMPT='%F{018}%K{039}> %n@%U%m%u %k%f%F{117}%K{031} %* %k%f%F{231}%K{023} %~ %k%f%K{237} ${vcs_info_msg_0_} %k
