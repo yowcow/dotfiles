@@ -20,7 +20,8 @@ THEIRS := \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
 	$(HOME)/.goenv \
 	$(HOME)/.nodenv \
-	$(HOME)/.nodenv/plugins/node-build
+	$(HOME)/.nodenv/plugins/node-build \
+	$(HOME)/.ctags.d/default.ctags
 
 ALL_TARGETS = $(addprefix $(HOME)/.,$(MINE)) $(THEIRS)
 
@@ -103,6 +104,13 @@ $(HOME)/.nodenv: $(NODENV)
 
 $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+## For universal-ctags
+$(HOME)/.ctags.d:
+	mkdir -p $@
+
+$(HOME)/.ctags.d/default.ctags: ctags $(HOME)/.ctags.d
 	ln -sfn `pwd`/$< $@
 
 clean:
