@@ -39,8 +39,10 @@ export EDITOR=nvim
 export PAGER=less
 export LANG="en_US.UTF-8"
 
-export GOPATH=$HOME/go
 export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/go/bin:$PATH
+
+export GOPATH=$HOME/go
+export GOPRIVATE=github.com/voyagegroup
 
 case "${OSTYPE}" in
     darwin*)
