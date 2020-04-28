@@ -9,6 +9,7 @@ MINE := \
 	screenrc \
 	tmux.conf \
 	vimrc \
+	Xresources \
 	xmodmap \
 	xsession \
 	zshrc
