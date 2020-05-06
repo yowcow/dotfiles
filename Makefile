@@ -9,8 +9,9 @@ MINE := \
 	screenrc \
 	tmux.conf \
 	vimrc \
-	Xresources \
 	Xmodmap \
+	Xresources \
+	xprofile \
 	zshrc
 
 THEIRS := \
