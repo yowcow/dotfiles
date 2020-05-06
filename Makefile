@@ -10,8 +10,7 @@ MINE := \
 	tmux.conf \
 	vimrc \
 	Xresources \
-	xmodmap \
-	xsession \
+	Xmodmap \
 	zshrc
 
 THEIRS := \
