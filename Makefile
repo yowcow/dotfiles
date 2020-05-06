@@ -4,6 +4,8 @@ MINE := \
 	gitignore_global \
 	goenv.zsh \
 	nodenv.zsh \
+	npm \
+	npmrc \
 	ocamlinit \
 	perltidyrc \
 	screenrc \
@@ -48,7 +50,6 @@ all: update
 update:
 	make -j4 $(GIT_MODULES)
 	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
-	make go-commands
 
 src/%:
 	mkdir -p $(dir $@)
@@ -56,15 +57,6 @@ src/%:
 
 pull-src/%:
 	cd src/$* && git pull
-
-go-commands:
-ifneq ($(shell which go),)
-	go get -u -v github.com/golang/dep/cmd/...
-	go get -u -v golang.org/x/tools/gopls
-	go get -u -v github.com/sourcegraph/go-langserver
-else
-	@echo "No go found in your PATH!!"
-endif
 
 install: $(ALL_TARGETS)
 
@@ -109,6 +101,10 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
+## For npm
+$(HOME)/.npm:
+	mkdir -p $@
+
 ## For universal-ctags
 $(HOME)/.ctags.d:
 	mkdir -p $@
@@ -122,4 +118,4 @@ clean:
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
 
-.PHONY: all update pull-src/% go-commands install clean realclean
+.PHONY: all update pull-src/% install clean realclean
