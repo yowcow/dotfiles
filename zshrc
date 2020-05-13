@@ -85,10 +85,9 @@ umask 022
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
-[ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
-[ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
-[ -f $HOME/.zshlocal ] && source ~/.zshlocal
-
 # general ***env
 [ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
 [ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
+[ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
+[ -f $HOME/.zshlocal ] && source ~/.zshlocal
