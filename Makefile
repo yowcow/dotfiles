@@ -20,6 +20,7 @@ THEIRS := \
 	$(HOME)/.fzf \
 	$(HOME)/.fzf.zsh \
 	$(HOME)/.vim/autoload/plug.vim \
+	$(HOME)/.config/i3/config \
 	$(HOME)/.config/nvim/init.vim \
 	$(HOME)/.config/nvim/colors/molokai.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
@@ -76,6 +77,12 @@ $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
 
+## For i3wm
+$(HOME)/.config/i3/config: i3-config
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+## For neovim
 $(HOME)/.config/nvim/init.vim: vimrc
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
