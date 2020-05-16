@@ -1,3 +1,5 @@
-#Xft.dpi: 276
+!! DPI configuration (See dpi.lv for screen info)
+
+!Xft.dpi: 276
 Xft.dpi: 207
-#Xft.dpi: 138
+!Xft.dpi: 138
