@@ -396,10 +396,11 @@ endfunction
 
 
 "=== For colorscheme
-set termguicolors
+"Disable termguicolors for TERM=urxvt-256color
+"set termguicolors
 colorscheme molokai
 hi Normal guibg=NONE ctermbg=NONE
 "hi NonText gui=NONE guifg=#ff6060
 hi NonText gui=NONE guifg=#888888
 "hi SpecialKey gui=NONE guifg=#ff3399
-hi Visual guibg=#4e4e4e
+hi Visual ctermbg=238 guibg=#444444 ctermfg=255 guifg=#eeeeee
