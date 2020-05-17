@@ -33,8 +33,10 @@ URxvt.keysym.Control-Meta-v: builtin-string:
 *.color3:       #f4bf75
 *.color11:      #f4bf75
 ! blue
-*.color4:       #66d9ef
-*.color12:      #66d9ef
+!*.color4:       #66d9ef
+!*.color12:      #66d9ef
+*.color4:       #1dc1e0
+*.color12:      #1dc1e0
 ! magenta
 *.color5:       #ae81ff
 *.color13:      #ae81ff
