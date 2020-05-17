@@ -7,3 +7,9 @@ HOW TO SETUP
 ------------
 
     make all install clean realclean
+
+COLORS
+------
+
+* https://terminal.sexy/
+* https://commons.wikimedia.org/wiki/File:Xterm_256color_chart.svg

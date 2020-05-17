@@ -404,3 +404,6 @@ hi Normal guibg=NONE ctermbg=NONE
 hi NonText gui=NONE guifg=#888888
 "hi SpecialKey gui=NONE guifg=#ff3399
 hi Visual ctermbg=238 guibg=#444444 ctermfg=255 guifg=#eeeeee
+hi Comment ctermfg=244
+hi Delimiter ctermfg=244
+hi String ctermfg=222
