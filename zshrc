@@ -5,8 +5,8 @@ compinit
 setopt PROMPT_SUBST
 
 zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' stagedstr '!'
-zstyle ':vcs_info:git:*' unstagedstr '?'
+zstyle ':vcs_info:git:*' stagedstr '!!'
+zstyle ':vcs_info:git:*' unstagedstr '??'
 zstyle ':vcs_info:*' formats 'on %%F{002}%b%u%c%%f'
 zstyle ':vcs_info:*' actionformats 'on %%F{001}%a%%f %%F{210}%b%u%c%%f'
 
