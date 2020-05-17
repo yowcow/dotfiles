@@ -18,7 +18,8 @@ URxvt.keysym.Control-Meta-v: builtin-string:
 ! special
 *.foreground:   #f8f8f2
 *.background:   #272822
-*.cursorColor:  #f8f8f2
+*.cursorColor:  #00ff00
+*.cursorBlink:  1
 ! black
 *.color0:       #272822
 *.color8:       #75715e
