@@ -13,6 +13,8 @@ URxvt.keysym.Control-Meta-c: builtin-string:
 URxvt.keysym.Control-Meta-v: builtin-string:
 
 ! https://terminal.sexy/#Jygi-PjyJygi-SZypuIu9L91ZtnvroH_oe_k-PjydXFe-SZypuIu9L91ZtnvroH_oe_k-fj1
+! Do `xrdb -merge ~/.Xresources && xrdb -query` to load
+
 ! special
 *.foreground:   #f8f8f2
 *.background:   #272822
