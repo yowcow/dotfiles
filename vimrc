@@ -372,6 +372,7 @@ set laststatus=2
 set noshowmode
 "set statusline=%f\ [%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
 let g:lightline = {
+    \ 'colorscheme': 'molokai',
     \ 'component': {
     \     'filename': '%f',
     \ },
