@@ -5,14 +5,14 @@ compinit
 setopt PROMPT_SUBST
 
 zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' stagedstr '!!'
-zstyle ':vcs_info:git:*' unstagedstr '??'
-zstyle ':vcs_info:*' formats 'on %%B%%F{002}%b%u%c%%f%%b'
-zstyle ':vcs_info:*' actionformats 'on %%B%%F{001}%a%%f %%F{210}%b%u%c%%f%%b'
+zstyle ':vcs_info:git:*' stagedstr '%F{002}!!%f'
+zstyle ':vcs_info:git:*' unstagedstr '%F{203}??%f'
+zstyle ':vcs_info:*' formats 'on %%B%%F{003}%b%u%c%%f%%b'
+zstyle ':vcs_info:*' actionformats 'on %%B%%F{001}%a%%f %%F{203}%b%u%c%%f%%b'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
-# orange: 210
-PROMPT='%B%F{001}%n%f%b at %B%F{004}%m%f%b in %B%F{003}%~%f%b ${vcs_info_msg_0_}%b
+# orange: 203, 210
+PROMPT='%B%F{004}%n%f%b at %B%F{203}%m%f%b in %B%F{006}%~%f%b ${vcs_info_msg_0_}%b
 %B~>%b> '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
