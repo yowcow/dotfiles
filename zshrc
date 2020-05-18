@@ -12,7 +12,7 @@ zstyle ':vcs_info:*' actionformats 'on %%B%%F{001}%a%%f %%F{203}%b%u%c%%f%%b'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
 # orange: 203, 210
-PROMPT='%B%F{004}%n%f at %F{203}%m%f in %F{006}%~%f ${vcs_info_msg_0_}%b
+PROMPT='%B%F{002}%n%f at %F{203}%m%f in %F{006}%~%f ${vcs_info_msg_0_}%b
 %B~>%b> '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
