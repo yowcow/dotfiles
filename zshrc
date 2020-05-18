@@ -6,13 +6,13 @@ setopt PROMPT_SUBST
 
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr '%F{118}!!%f'
-zstyle ':vcs_info:git:*' unstagedstr '%F{166}??%f'
+zstyle ':vcs_info:git:*' unstagedstr '%F{210}??%f'
 zstyle ':vcs_info:*' formats ':: %%B%%F{229}%b%u%c%%f%%b'
 zstyle ':vcs_info:*' actionformats ':: %%B%%F{234}%%K{161} %a %%k%f %%F{229}%b%u%c%%f%%b'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
 # orange: 203, 210
-PROMPT='%K{233}%F{118}%B%n@%U%m%u%b%f :: %F{81}%B%~%b%f ${vcs_info_msg_0_}%k
+PROMPT='%F{118}%B%n@%U%m%u%b%f :: %F{81}%B%~%b%f ${vcs_info_msg_0_}
 %B~>%b> '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
