@@ -400,7 +400,7 @@ endfunction
 "Disable termguicolors for TERM=urxvt-256color
 "set termguicolors
 colorscheme molokai
-hi Normal ctermfg=252 guibg=NONE ctermbg=NONE
+hi Normal ctermfg=253 guibg=NONE ctermbg=NONE
 "hi NonText gui=NONE guifg=#ff6060
 hi NonText gui=NONE guifg=#888888
 "hi SpecialKey gui=NONE guifg=#ff3399
