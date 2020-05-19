@@ -11,10 +11,12 @@ zstyle ':vcs_info:*' formats ':: %%B%%F{229}%b%u%c%%f%%b'
 zstyle ':vcs_info:*' actionformats ':: %%B%%F{229}%%K{161} %a %%k%f %%F{229}%b%u%c%%f%%b'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
-# orange: 203, 210
+# orange: 208
 # magenta: 135
 # pistachio: 193
-PROMPT='%F{135}%B%n@%U%m%u%b%f :: %F{81}%B%~%b%f ${vcs_info_msg_0_}
+# cyan: 81
+# blue: 75
+PROMPT='%F{208}%B%n@%U%m%u%b%f :: %F{81}%B%~%b%f ${vcs_info_msg_0_}
 %B>%b> '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
