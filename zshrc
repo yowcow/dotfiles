@@ -7,11 +7,15 @@ setopt PROMPT_SUBST
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr '%F{118}!!%f'
 zstyle ':vcs_info:git:*' unstagedstr '%F{210}??%f'
-zstyle ':vcs_info:*' formats ':: %%B%%F{229}%b%u%c%%f%%b'
+zstyle ':vcs_info:*' formats ':: %%B%%F{193}%b%u%c%%f%%b'
 zstyle ':vcs_info:*' actionformats ':: %%B%%F{229}%%K{161} %a %%k%f %%F{229}%b%u%c%%f%%b'
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
+# red: 166
+# pink: 161
+# yellow: 229
 # orange: 208
+# bright orange: 222
 # magenta: 135
 # pistachio: 193
 # cyan: 81
