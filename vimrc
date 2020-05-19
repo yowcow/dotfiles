@@ -374,18 +374,18 @@ set noshowmode
 let g:lightline = {
     \ 'colorscheme': 'molokai',
     \ 'component': {
-    \     'filename': '%f',
+    \   'filename': '%f',
     \ },
-    \ }
-let g:lightline.tab = {
-    \ 'active': [ 'tabnum', 'filename', 'modified' ],
-    \ 'inactive': [ 'tabnum', 'filename', 'modified' ]
-    \ }
-let g:lightline.tab_component_function = {
-    \ 'filename': 'LightlineTabFilename',
-    \ 'modified': 'lightline#tab#modified',
-    \ 'readonly': 'lightline#tab#readonly',
-    \ 'tabnum': 'lightline#tab#tabnum'
+    \ 'tab': {
+    \   'active': [ 'tabnum', 'filename', 'modified' ],
+    \   'inactive': [ 'tabnum', 'filename', 'modified' ],
+    \ },
+    \ 'tab_component_function': {
+    \   'filename': 'LightlineTabFilename',
+    \   'modified': 'lightline#tab#modified',
+    \   'readonly': 'lightline#tab#readonly',
+    \   'tabnum':   'lightline#tab#tabnum',
+    \ },
     \ }
 
 function! LightlineTabFilename(n) abort
