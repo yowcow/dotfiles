@@ -12,6 +12,8 @@ zstyle ':vcs_info:*' actionformats ':: %%B%%F{229}%%K{161} %a %%k%f %%F{229}%b%u
 
 # https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
 # orange: 203, 210
+# magenta: 135
+# pistachio: 193
 PROMPT='%F{135}%B%n@%U%m%u%b%f :: %F{81}%B%~%b%f ${vcs_info_msg_0_}
 %B>%b> '
 
