@@ -408,3 +408,4 @@ hi Visual ctermbg=238 guibg=#444444 ctermfg=255 guifg=#eeeeee
 hi Comment ctermfg=246
 hi Delimiter ctermfg=246
 hi String ctermfg=222
+hi Underlined ctermfg=75
