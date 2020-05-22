@@ -125,6 +125,7 @@ let g:go_info_mode = 'gopls'
 " Erlang
 Plug 'vim-erlang/vim-erlang-omnicomplete'
 Plug 'vim-erlang/vim-erlang-runtime'
+"autocmd BufWritePre *.erl,*.hrl :normal gg=G
 
 " LSP
 Plug 'prabirshrestha/async.vim'
