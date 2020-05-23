@@ -28,7 +28,7 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -e -f -c 
 
 # Lock
 bindsym $mod+Control+l exec --no-startup-id loginctl lock-session
-exec --no-startup-id xautolock -time 2 -locker 'loginctl lock-session'
+exec --no-startup-id xautolock -time 5 -locker 'loginctl lock-session'
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
