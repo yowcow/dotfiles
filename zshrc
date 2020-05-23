@@ -48,7 +48,7 @@ export EDITOR=nvim
 export PAGER=less
 export LANG="en_US.UTF-8"
 
-export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/.npm/bin:$HOME/go/bin:/usr/local/sbin:/usr/sbin:$PATH
+export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/.npm/bin:$HOME/.local/bin:$HOME/go/bin:/usr/local/sbin:/usr/sbin:$PATH
 
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
