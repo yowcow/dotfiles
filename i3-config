@@ -25,7 +25,7 @@ font pango:Fira Code 20px
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -e -f -c 1d3557
-#
+
 # Lock
 bindsym $mod+Control+l exec --no-startup-id loginctl lock-session
 exec --no-startup-id xautolock -time 2 -locker 'loginctl lock-session'
@@ -45,6 +45,9 @@ exec --no-startup-id nitrogen --restore
 
 # Alternating Layout
 exec --no-startup-id /opt/i3-alternating-layout/alternating_layouts.py
+
+# Keyrepeat: xset r rate <delay> [<rate>]
+exec --no-startup-id xset r rate 200 40
 
 # Use pactl to adjust volume in PulseAudio.
 set $refresh_i3status killall -SIGUSR1 i3status
