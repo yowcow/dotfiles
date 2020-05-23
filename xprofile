@@ -6,4 +6,7 @@ export DefaultIMModule=fcitx
 #export TERMINAL=urxvt
 export TERMINAL=st
 
+# xset r rate <delay> [<rate>]
+xset r rate 200 40
+
 xmodmap ~/.Xmodmap
