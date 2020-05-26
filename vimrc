@@ -124,8 +124,7 @@ let g:go_info_mode = 'gopls'
 
 " Erlang
 Plug 'vim-erlang/vim-erlang-omnicomplete'
-"Plug 'vim-erlang/vim-erlang-runtime'
-Plug 'yowcow/vim-erlang-runtime', { 'branch': 'map-indent' }
+Plug 'vim-erlang/vim-erlang-runtime'
 "autocmd BufWritePre *.erl,*.hrl :normal gg=G
 
 " LSP
