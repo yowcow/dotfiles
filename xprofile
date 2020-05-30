@@ -4,6 +4,7 @@ export XMODIFIERS=@im=fcitx
 export DefaultIMModule=fcitx
 
 #export TERMINAL=urxvt
-export TERMINAL=st
+#export TERMINAL=st
+export TERMINAL=alacritty
 
 xmodmap ~/.Xmodmap
