@@ -20,6 +20,7 @@ THEIRS := \
 	$(HOME)/.fzf \
 	$(HOME)/.fzf.zsh \
 	$(HOME)/.vim/autoload/plug.vim \
+	$(HOME)/.config/alacritty/alacritty.yml \
 	$(HOME)/.config/i3/config \
 	$(HOME)/.config/nvim/init.vim \
 	$(HOME)/.config/nvim/colors/molokai.vim \
@@ -76,6 +77,11 @@ $(HOME)/.fzf.zsh: $(HOME)/.fzf
 $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
+
+## For Alacritty
+$(HOME)/.config/alacritty/alacritty.yml: alacritty.yml
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
 
 ## For i3wm
 $(HOME)/.config/i3/config: i3-config
