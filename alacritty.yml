@@ -201,6 +201,10 @@ colors:
     cyan:    '0xa1efe4'
     white:   '0xf9f8f5'
 
+  cursor:
+    text: '#000000'
+    cursor: '#00ff00'
+
 # Colors (Tomorrow Night Bright)
 #colors:
   # Default colors
