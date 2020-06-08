@@ -95,6 +95,7 @@ umask 022
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
 # general ***env
+[ -f $HOME/.plenv.zsh ] && source ~/.plenv.zsh
 [ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
 [ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
 [ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh

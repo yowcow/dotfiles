@@ -8,6 +8,7 @@ MINE := \
 	npmrc \
 	ocamlinit \
 	perltidyrc \
+	plenv.zsh \
 	screenrc \
 	tmux.conf \
 	vimrc \
@@ -28,6 +29,8 @@ THEIRS := \
 	$(HOME)/.goenv \
 	$(HOME)/.nodenv \
 	$(HOME)/.nodenv/plugins/node-build \
+	$(HOME)/.plenv \
+	$(HOME)/.plenv/plugins/perl-build \
 	$(HOME)/.ctags.d/default.ctags
 
 ALL_TARGETS = $(addprefix $(HOME)/.,$(MINE)) $(THEIRS)
@@ -37,6 +40,8 @@ GOENV        := src/github.com/syndbg/goenv
 MOLOKAI      := src/github.com/tomasr/molokai
 NODENV       := src/github.com/nodenv/nodenv
 NODENV_BUILD := src/github.com/nodenv/node-build
+PLENV        := src/github.com/tokuhirom/plenv
+PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
 VIM_PLUG     := src/github.com/junegunn/vim-plug
 
 GIT_MODULES := \
@@ -45,6 +50,8 @@ GIT_MODULES := \
 	$(MOLOKAI) \
 	$(NODENV) \
 	$(NODENV_BUILD) \
+	$(PLENV) \
+	$(PLENV_BUILD) \
 	$(VIM_PLUG)
 
 all: update
@@ -117,6 +124,14 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 ## For npm
 $(HOME)/.npm:
 	mkdir -p $@
+
+# For plenv
+$(HOME)/.plenv: $(PLENV)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
 
 ## For universal-ctags
 $(HOME)/.ctags.d:
