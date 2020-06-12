@@ -176,36 +176,34 @@ font:
 colors:
   # Default colors
   primary:
-    background: '0x272822'
-    foreground: '0xf8f8f2'
+    background: '0x161616'
+    foreground: '0xe0e0e0'
 
   # Normal colors
   normal:
-    black:   '0x272822'
-    red:     '0xf92672'
-    green:   '0xa6e22e'
-    yellow:  '0xf4bf75'
-    #blue:    '0x66d9ef'
-    blue:    '0x1dc1e0'
-    magenta: '0xae81ff'
-    cyan:    '0xa1efe4'
-    white:   '0xf8f8f2'
+    black:   '0x161616'
+    red:     '0xfd4285'
+    green:   '0xa6e22d'
+    yellow:  '0xe5da72'
+    blue:    '0x0094d8'
+    magenta: '0x9a37ff'
+    cyan:    '0x50b6d8'
+    white:   '0xc7c7c7'
 
   # Bright colors
   bright:
-    black:   '0x75715e'
-    red:     '0xf92672'
-    green:   '0xa6e22e'
-    yellow:  '0xf4bf75'
-    #blue:    '0x66d9ef'
-    blue:    '0x1dc1e0'
-    magenta: '0xae81ff'
-    cyan:    '0xa1efe4'
-    white:   '0xf9f8f5'
+    black:   '0x676767'
+    red:     '0xfa7fac'
+    green:   '0xbde271'
+    yellow:  '0xfff27f'
+    blue:    '0x00bdff'
+    magenta: '0xbd9eff'
+    cyan:    '0x5ed6fe'
+    white:   '0xfeffff'
 
   cursor:
     text: '#000000'
-    cursor: '#00ff00'
+    cursor: '#a6e22d'
 
 # Colors (Tomorrow Night Bright)
 #colors:
