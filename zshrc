@@ -53,25 +53,6 @@ export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/.npm/bin:$HOME/.local/bin:$HOME/go/bi
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
 
-case "${OSTYPE}" in
-    darwin*)
-        alias ls="ls -G"
-        alias zcat="gunzip -c"
-        ;;
-    linux*)
-        alias ls="ls --color"
-        # ssh-agent
-        if [ "$(pgrep ssh-agent | wc -l)" = "0" ]; then
-            eval $(ssh-agent);
-            ln -fs $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
-            ssh-agent $HOME/.ssh/id_rsa;
-        else
-            export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1)
-        fi
-        export SSH_AUTH_SOCK=/tmp/ssh-auth.sock
-        ;;
-esac
-
 # functions
 aws-link() {
     case "$1" in
@@ -88,6 +69,28 @@ aws-link() {
             echo "Usage: $0 [status] [update <name>]"
     esac
 }
+
+ssh-setup() {
+    if [ "$(pgrep ssh-agent | wc -l)" = "0" ]; then
+        eval `ssh-agent` \
+            && ssh-add ~/.ssh/id_rsa \
+            && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
+    else
+        export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1)
+    fi
+    export SSH_AUTH_SOCK=/tmp/ssh-auth.sock
+}
+
+case "${OSTYPE}" in
+    darwin*)
+        alias ls="ls -G"
+        alias zcat="gunzip -c"
+        ;;
+    linux*)
+        alias ls="ls --color"
+        ssh-setup
+        ;;
+esac
 
 umask 022
 
