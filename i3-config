@@ -203,16 +203,16 @@ bar {
     status_command i3status
 
     colors {
-        separator #515151
-        background #2d2d2d
-        statusline #cccccc
-        focused_workspace #99cc99 #99cc99 #000000 #1d1f21
-        active_workspace #333333 #333333 #ffffff #ffffff
-        inactive_workspace #2d2d2d #2d2d2d #999999 #969896
-        urgent_workspace #f2777a #f2777a #ffffff #ffffff
+        separator #65737E
+        background #1B2B34
+        statusline #D8DEE9
+        focused_workspace #6699CC #6699CC #1B2B34 #000000
+        active_workspace #5FB3B3 #5FB3B3 #1B2B34 #ffffff
+        inactive_workspace #343D46 #343D46 #D8DEE9 #999999
+        urgent_workspace #EC5f67 #EC5f67 #1B2B34 #ffffff
     }
 }
-client.focused #99cc99 #99cc99 #000000 #2d2d2d
-client.focused_inactive #393939 #393939 #888888 #292d2e
-client.unfocused #2d2d2d #2d2d2d #999999 #292d2e
-client.urgent #2f343a #900000 #ffffff #900000
+client.focused #6699CC #6699CC #1B2B34 #6699CC
+client.focused_inactive #5FB3B3 #5FB3B3 #D8DEE9 #A7ADBA
+client.unfocused #343D46 #343D46 #D8DEE9 #343D46
+client.urgent #EC5f67 #EC5f67 #1B2B34 #EC5f67
