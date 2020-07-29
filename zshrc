@@ -53,6 +53,8 @@ export PATH=$HOME/bin:$HOME/.fzf/bin:$HOME/.npm/bin:$HOME/.local/bin:$HOME/go/bi
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
 
+umask 022
+
 # functions
 aws-link() {
     case "$1" in
@@ -70,16 +72,24 @@ aws-link() {
     esac
 }
 
-ssh-setup() {
-    if [ "$(pgrep ssh-agent | wc -l)" = "0" ]; then
+ssh-agent-setup() {
+    if [ -z $(pgrep -U $(whoami) ssh-agent | wc -l) ]; then
         eval `ssh-agent` \
-            && ssh-add ~/.ssh/id_rsa \
-            && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
+            && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
+        export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
     else
-        export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1)
+        # some environment ssh-agent starts automatically
+        if [ -z $SSH_AGENT_PID ]; then
+            export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+            export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+        fi
     fi
-    export SSH_AUTH_SOCK=/tmp/ssh-auth.sock
+    KEY=$HOME/.ssh/id_rsa \
+        && [ -f $KEY ] \
+        && [ "$(ssh-add -l | grep "${KEY}\b" | head -n1)" = "0" ] \
+        && ssh-add $KEY;
 }
+
 
 case "${OSTYPE}" in
     darwin*)
@@ -88,11 +98,10 @@ case "${OSTYPE}" in
         ;;
     linux*)
         alias ls="ls --color"
-        ssh-setup
         ;;
 esac
 
-umask 022
+ssh-agent-setup
 
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
