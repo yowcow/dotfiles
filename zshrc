@@ -73,8 +73,8 @@ aws-link() {
 }
 
 ssh-agent-setup() {
-    if [ -z $(pgrep -U $(whoami) ssh-agent | wc -l) ]; then
-        eval `ssh-agent` \
+    if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+        eval $(ssh-agent) \
             && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
         export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
     else
@@ -86,7 +86,7 @@ ssh-agent-setup() {
     fi
     KEY=$HOME/.ssh/id_rsa \
         && [ -f $KEY ] \
-        && [ "$(ssh-add -l | grep "${KEY}\b" | head -n1)" = "0" ] \
+        && [ -z "$(ssh-add -l | grep "${KEY}\b")" ] \
         && ssh-add $KEY;
 }
 
