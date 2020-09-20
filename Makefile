@@ -34,6 +34,7 @@ FULLPATHS := \
 
 ALLTARGETS = $(addprefix $(HOME)/.,$(AUTO)) $(FULLPATHS)
 
+ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
 MOLOKAI      := src/github.com/tomasr/molokai
@@ -62,7 +63,7 @@ update-gitmodules:
 	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
 
 update-lsp:
-	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang
+	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
 
 update-lsp-golang:
 	go get -u -v golang.org/x/tools/gopls
@@ -72,7 +73,12 @@ update-lsp-nodejs:
 
 update-lsp-ziglang: $(ZLS)
 	cd $< && \
-		zig build
+		zig build --prefix=$(HOME)/.local
+
+update-lsp-erlang: $(ERLANG_LS)
+	cd $< && \
+		make && \
+		cp _build/default/bin/erlang_ls $(HOME)/.local/bin/
 
 src/%:
 	mkdir -p $(dir $@)
