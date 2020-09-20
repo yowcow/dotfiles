@@ -66,19 +66,24 @@ update-lsp:
 	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
 
 update-lsp-golang:
-	go get -u -v golang.org/x/tools/gopls
+	if which go; then \
+		go get -u -v golang.org/x/tools/gopls; \
+	fi
 
 update-lsp-nodejs:
-	npm -g install intelephense
+	if which npm; then \
+		npm -g install intelephense; \
+	fi
 
 update-lsp-ziglang: $(ZLS)
-	cd $< && \
-		zig build --prefix=$(HOME)/.local
+	if which zig; then \
+		cd $< && zig build --prefix=$(HOME)/.local; \
+	fi
 
 update-lsp-erlang: $(ERLANG_LS)
-	cd $< && \
-		make && \
-		cp _build/default/bin/erlang_ls $(HOME)/.local/bin/
+	if which rebar3; then \
+		cd $< && make && cp _build/default/bin/erlang_ls $(HOME)/.local/bin/; \
+	fi
 
 src/%:
 	mkdir -p $(dir $@)
