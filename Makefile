@@ -77,7 +77,7 @@ update-lsp-nodejs:
 
 update-lsp-ziglang: $(ZLS)
 	if which zig; then \
-		cd $< && zig build --prefix=$(HOME)/.local; \
+		cd $< && zig build --prefix $(HOME)/.local; \
 	fi
 
 update-lsp-erlang: $(ERLANG_LS)
