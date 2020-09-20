@@ -1,4 +1,4 @@
-MINE := \
+AUTO := \
 	ctags \
 	gitconfig \
 	gitignore_global \
@@ -11,19 +11,18 @@ MINE := \
 	plenv.zsh \
 	screenrc \
 	tmux.conf \
-	vimrc \
 	Xmodmap \
 	Xresources \
 	xprofile \
 	zshrc
 
-THEIRS := \
+FULLPATHS := \
 	$(HOME)/.fzf \
 	$(HOME)/.fzf.zsh \
-	$(HOME)/.vim/autoload/plug.vim \
 	$(HOME)/.config/alacritty/alacritty.yml \
 	$(HOME)/.config/i3/config \
 	$(HOME)/.config/nvim/init.vim \
+	$(HOME)/.config/nvim/coc-settings.json \
 	$(HOME)/.config/nvim/colors/molokai.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
 	$(HOME)/.goenv \
@@ -33,8 +32,9 @@ THEIRS := \
 	$(HOME)/.plenv/plugins/perl-build \
 	$(HOME)/.ctags.d/default.ctags
 
-ALL_TARGETS = $(addprefix $(HOME)/.,$(MINE)) $(THEIRS)
+ALLTARGETS = $(addprefix $(HOME)/.,$(AUTO)) $(FULLPATHS)
 
+ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
 MOLOKAI      := src/github.com/tomasr/molokai
@@ -43,6 +43,7 @@ NODENV_BUILD := src/github.com/nodenv/node-build
 PLENV        := src/github.com/tokuhirom/plenv
 PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
 VIM_PLUG     := src/github.com/junegunn/vim-plug
+ZLS          := src/github.com/zigtools/zls
 
 GIT_MODULES := \
 	$(FZF) \
@@ -54,20 +55,39 @@ GIT_MODULES := \
 	$(PLENV_BUILD) \
 	$(VIM_PLUG)
 
-all: update
+all:
+	$(MAKE) -j4 update-gitmodules update-lsp
 
-update:
+update-gitmodules:
 	make -j4 $(GIT_MODULES)
 	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
 
+update-lsp:
+	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
+
+update-lsp-golang:
+	go get -u -v golang.org/x/tools/gopls
+
+update-lsp-nodejs:
+	npm -g install intelephense
+
+update-lsp-ziglang: $(ZLS)
+	cd $< && \
+		zig build --prefix=$(HOME)/.local
+
+update-lsp-erlang: $(ERLANG_LS)
+	cd $< && \
+		make && \
+		cp _build/default/bin/erlang_ls $(HOME)/.local/bin/
+
 src/%:
 	mkdir -p $(dir $@)
-	echo $* | sed -e 's|/|:|' | xargs -I{} git clone git@{} $@
+	echo $* | sed -e 's|/|:|' | xargs -I{} git clone --recurse-submodules git@{} $@
 
 pull-src/%:
 	cd src/$* && git pull
 
-install: $(ALL_TARGETS)
+install: $(ALLTARGETS)
 
 ## Create symlink by default
 $(HOME)/.%:
@@ -96,7 +116,12 @@ $(HOME)/.config/i3/config: i3-config
 	ln -sfn `pwd`/$< $@
 
 ## For neovim
-$(HOME)/.config/nvim/init.vim: vimrc
+$(HOME)/.config/nvim/init.vim: init.vim
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+## For neovim
+$(HOME)/.config/nvim/coc-settings.json: coc-settings.json
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
@@ -134,16 +159,14 @@ $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
 	ln -sfn `pwd`/$< $@
 
 ## For universal-ctags
-$(HOME)/.ctags.d:
-	mkdir -p $@
-
-$(HOME)/.ctags.d/default.ctags: ctags $(HOME)/.ctags.d
+$(HOME)/.ctags.d/default.ctags: ctags
+	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
 clean:
-	rm -rf $(ALL_TARGETS)
+	rm -rf $(ALLTARGETS)
 
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
 
-.PHONY: all update pull-src/% install clean realclean
+.PHONY: all update-* pull-src/% install clean realclean
