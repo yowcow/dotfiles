@@ -1,4 +1,4 @@
-MINE := \
+AUTO := \
 	ctags \
 	gitconfig \
 	gitignore_global \
@@ -11,19 +11,18 @@ MINE := \
 	plenv.zsh \
 	screenrc \
 	tmux.conf \
-	vimrc \
 	Xmodmap \
 	Xresources \
 	xprofile \
 	zshrc
 
-THEIRS := \
+FULLPATHS := \
 	$(HOME)/.fzf \
 	$(HOME)/.fzf.zsh \
-	$(HOME)/.vim/autoload/plug.vim \
 	$(HOME)/.config/alacritty/alacritty.yml \
 	$(HOME)/.config/i3/config \
 	$(HOME)/.config/nvim/init.vim \
+	$(HOME)/.config/nvim/coc-settings.json \
 	$(HOME)/.config/nvim/colors/molokai.vim \
 	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
 	$(HOME)/.goenv \
@@ -33,7 +32,7 @@ THEIRS := \
 	$(HOME)/.plenv/plugins/perl-build \
 	$(HOME)/.ctags.d/default.ctags
 
-ALL_TARGETS = $(addprefix $(HOME)/.,$(MINE)) $(THEIRS)
+ALLTARGETS = $(addprefix $(HOME)/.,$(AUTO)) $(FULLPATHS)
 
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
@@ -67,7 +66,7 @@ src/%:
 pull-src/%:
 	cd src/$* && git pull
 
-install: $(ALL_TARGETS)
+install: $(ALLTARGETS)
 
 ## Create symlink by default
 $(HOME)/.%:
@@ -96,7 +95,12 @@ $(HOME)/.config/i3/config: i3-config
 	ln -sfn `pwd`/$< $@
 
 ## For neovim
-$(HOME)/.config/nvim/init.vim: vimrc
+$(HOME)/.config/nvim/init.vim: init.vim
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+## For neovim
+$(HOME)/.config/nvim/coc-settings.json: coc-settings.json
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
@@ -134,14 +138,12 @@ $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
 	ln -sfn `pwd`/$< $@
 
 ## For universal-ctags
-$(HOME)/.ctags.d:
-	mkdir -p $@
-
-$(HOME)/.ctags.d/default.ctags: ctags $(HOME)/.ctags.d
+$(HOME)/.ctags.d/default.ctags: ctags
+	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
 clean:
-	rm -rf $(ALL_TARGETS)
+	rm -rf $(ALLTARGETS)
 
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
