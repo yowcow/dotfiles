@@ -56,18 +56,18 @@ GIT_MODULES := \
 	$(VIM_PLUG)
 
 all:
-	$(MAKE) -j4 update-gitmodules update-lsp
+	+$(MAKE) -O -j4 update-gitmodules update-lsp
 
 update-gitmodules:
-	make -j4 $(GIT_MODULES)
-	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
+	+$(MAKE) -O -j4 $(GIT_MODULES)
+	+$(MAKE) -O -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
 
 update-lsp:
-	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
+	+$(MAKE) -O -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
 
 update-lsp-golang:
 	if which go; then \
-		go get -u -v golang.org/x/tools/gopls; \
+		go get -u golang.org/x/tools/gopls; \
 	fi
 
 update-lsp-nodejs:
@@ -82,7 +82,7 @@ update-lsp-ziglang: $(ZLS)
 
 update-lsp-erlang: $(ERLANG_LS)
 	if which rebar3; then \
-		cd $< && make && cp _build/default/bin/erlang_ls $(HOME)/.local/bin/; \
+		cd $< && $(MAKE) && cp _build/default/bin/erlang_ls $(HOME)/.local/bin/; \
 	fi
 
 src/%:
