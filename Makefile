@@ -42,6 +42,7 @@ NODENV_BUILD := src/github.com/nodenv/node-build
 PLENV        := src/github.com/tokuhirom/plenv
 PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
 VIM_PLUG     := src/github.com/junegunn/vim-plug
+ZLS          := src/github.com/zigtools/zls
 
 GIT_MODULES := \
 	$(FZF) \
@@ -53,15 +54,29 @@ GIT_MODULES := \
 	$(PLENV_BUILD) \
 	$(VIM_PLUG)
 
-all: update
+all:
+	$(MAKE) -j4 update-gitmodules update-lsp
 
-update:
+update-gitmodules:
 	make -j4 $(GIT_MODULES)
 	make -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
 
+update-lsp:
+	$(MAKE) -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang
+
+update-lsp-golang:
+	go get -u -v golang.org/x/tools/gopls
+
+update-lsp-nodejs:
+	npm -g install intelephense
+
+update-lsp-ziglang: $(ZLS)
+	cd $< && \
+		zig build
+
 src/%:
 	mkdir -p $(dir $@)
-	echo $* | sed -e 's|/|:|' | xargs -I{} git clone git@{} $@
+	echo $* | sed -e 's|/|:|' | xargs -I{} git clone --recurse-submodules git@{} $@
 
 pull-src/%:
 	cd src/$* && git pull
@@ -148,4 +163,4 @@ clean:
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
 
-.PHONY: all update pull-src/% install clean realclean
+.PHONY: all update-* pull-src/% install clean realclean
