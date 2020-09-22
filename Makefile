@@ -77,12 +77,16 @@ update-lsp-nodejs:
 
 update-lsp-ziglang: $(ZLS)
 	if which zig; then \
-		cd $< && zig build --prefix $(HOME)/.local; \
+		mkdir -p $(HOME)/.local/bin && \
+		cd $< && \
+		zig build --prefix $(HOME)/.local; \
 	fi
 
 update-lsp-erlang: $(ERLANG_LS)
 	if which rebar3; then \
-		cd $< && $(MAKE) && cp _build/default/bin/erlang_ls $(HOME)/.local/bin/; \
+		mkdir -p $(HOME)/.local/bin && \
+		$(MAKE) -C $< && \
+		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
 	fi
 
 src/%:
