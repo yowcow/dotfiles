@@ -11,3 +11,5 @@
 	insteadOf = https://bitbucket.org/
 [pull]
 	ff = only
+[mergetool]
+    keepBackup = false
