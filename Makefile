@@ -55,15 +55,21 @@ GIT_MODULES := \
 	$(PLENV_BUILD) \
 	$(VIM_PLUG)
 
+ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
+MAKE := make -j4
+else
+MAKE := make -O -j4
+endif
+
 all:
-	+$(MAKE) -O -j4 update-gitmodules update-lsp
+	+$(MAKE) update-gitmodules update-lsp
 
 update-gitmodules:
-	+$(MAKE) -O -j4 $(GIT_MODULES)
-	+$(MAKE) -O -j4 $(foreach mod,$(GIT_MODULES),pull-$(mod))
+	+$(MAKE) $(GIT_MODULES)
+	+$(MAKE) $(foreach mod,$(GIT_MODULES),pull-$(mod))
 
 update-lsp:
-	+$(MAKE) -O -j4 update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
+	+$(MAKE) update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
 
 update-lsp-golang:
 	if which go; then \
