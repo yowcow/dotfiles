@@ -101,6 +101,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'szw/vim-tags'
+Plug 'vim-erlang/vim-erlang-runtime'
 Plug 'ziglang/zig.vim'
 call plug#end()
 
@@ -228,7 +229,7 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 " Add (Neo)Vim's native statusline support.
 " NOTE: Please see `:h coc-status` for integrations with external plugins that
 " provide custom statusline: lightline.vim, vim-airline.
-set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+"set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " Mappings for CoCList
 " Show all diagnostics.
@@ -335,6 +336,12 @@ let g:lightline = {
     \   'modified': 'lightline#tab#modified',
     \   'readonly': 'lightline#tab#readonly',
     \   'tabnum':   'lightline#tab#tabnum',
+    \ },
+    \ 'active': {
+    \   'right': [ ['coc'] ]
+    \ },
+    \ 'component_function': {
+    \   'coc': 'coc#status'
     \ },
     \ }
 
