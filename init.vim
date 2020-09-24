@@ -338,7 +338,11 @@ let g:lightline = {
     \   'tabnum':   'lightline#tab#tabnum',
     \ },
     \ 'active': {
-    \   'right': [ ['coc'] ]
+    \   'right': [
+    \       ['lineinfo'],
+    \       ['percent'],
+    \       ['coc', 'fileformat', 'fileencoding', 'filetype', 'charvaluehex']
+    \   ]
     \ },
     \ 'component_function': {
     \   'coc': 'coc#status'
