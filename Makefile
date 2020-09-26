@@ -45,7 +45,8 @@ PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
 VIM_PLUG     := src/github.com/junegunn/vim-plug
 ZLS          := src/github.com/zigtools/zls
 
-GIT_MODULES := \
+GITMODULES := \
+	$(ERLANG_LS) \
 	$(FZF) \
 	$(GOENV) \
 	$(MOLOKAI) \
@@ -53,42 +54,45 @@ GIT_MODULES := \
 	$(NODENV_BUILD) \
 	$(PLENV) \
 	$(PLENV_BUILD) \
-	$(VIM_PLUG)
+	$(VIM_PLUG) \
+	$(ZLS)
 
 ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
-MAKE := make -j4
+MAKE := make
 else
-MAKE := make -O -j4
+MAKE := make -O
 endif
 
-all:
-	+$(MAKE) update-gitmodules update-lsp
+all: update
 
-update-gitmodules:
-	+$(MAKE) $(GIT_MODULES)
-	+$(MAKE) $(foreach mod,$(GIT_MODULES),pull-$(mod))
+update:
+	+$(MAKE) update/gitmodules
+	+$(MAKE) update/lsp
 
-update-lsp:
-	+$(MAKE) update-lsp-golang update-lsp-nodejs update-lsp-ziglang update-lsp-erlang
+update/gitmodules:
+	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
-update-lsp-golang:
+update/lsp:
+	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs ziglang)
+
+update/lsp/golang:
 	if which go; then \
 		go get -u golang.org/x/tools/gopls; \
 	fi
 
-update-lsp-nodejs:
+update/lsp/nodejs:
 	if which npm; then \
 		npm -g install intelephense; \
 	fi
 
-update-lsp-ziglang: $(ZLS)
+update/lsp/ziglang: $(ZLS)
 	if which zig; then \
 		mkdir -p $(HOME)/.local/bin && \
 		cd $< && \
 		zig build --prefix $(HOME)/.local; \
 	fi
 
-update-lsp-erlang: $(ERLANG_LS)
+update/lsp/erlang: $(ERLANG_LS)
 	if which rebar3; then \
 		mkdir -p $(HOME)/.local/bin && \
 		$(MAKE) -C $< && \
@@ -99,14 +103,24 @@ src/%:
 	mkdir -p $(dir $@)
 	echo $* | sed -e 's|/|:|' | xargs -I{} git clone --recurse-submodules git@{} $@
 
-pull-src/%:
+update/src/%: src/%
 	cd src/$* && git pull
 
 install: $(ALLTARGETS)
 
+clean:
+	rm -rf $(ALLTARGETS)
+
+realclean: clean
+	rm -rf src $(HOME)/.config/nvim/plugged
+
+.PHONY: all update update/* clean realclean
+
+
 ## Create symlink by default
 $(HOME)/.%:
 	ln -sfn `pwd`/$* $@
+
 
 ## For fzf
 $(HOME)/.fzf: $(FZF)
@@ -115,32 +129,22 @@ $(HOME)/.fzf: $(FZF)
 $(HOME)/.fzf.zsh: $(HOME)/.fzf
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
+
 ## For vim
 $(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
 
-## For Alacritty
-$(HOME)/.config/alacritty/alacritty.yml: alacritty.yml
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-## For i3wm
-$(HOME)/.config/i3/config: i3-config
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
 
 ## For neovim
 $(HOME)/.config/nvim/init.vim: init.vim
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
-## For neovim
 $(HOME)/.config/nvim/coc-settings.json: coc-settings.json
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
-## For neovim
 $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</colors/molokai.vim $@
@@ -149,9 +153,23 @@ $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
 
+
+## For Alacritty
+$(HOME)/.config/alacritty/alacritty.yml: alacritty.yml
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+
+## For i3wm
+$(HOME)/.config/i3/config: i3-config
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+
 ## For goenv
 $(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
+
 
 ## For nodenv
 $(HOME)/.nodenv: $(NODENV)
@@ -161,11 +179,13 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
+
 ## For npm
 $(HOME)/.npm:
 	mkdir -p $@
 
-# For plenv
+
+## For plenv
 $(HOME)/.plenv: $(PLENV)
 	ln -sfn `pwd`/$< $@
 
@@ -173,15 +193,8 @@ $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
 
+
 ## For universal-ctags
 $(HOME)/.ctags.d/default.ctags: ctags
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
-
-clean:
-	rm -rf $(ALLTARGETS)
-
-realclean: clean
-	rm -rf src $(HOME)/.config/nvim/plugged
-
-.PHONY: all update-* pull-src/% install clean realclean
