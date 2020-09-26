@@ -73,14 +73,14 @@ update/gitmodules:
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
 update/lsp:
-	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs ziglang)
+	+$(MAKE) -j4 $(addprefix $@/,erlang golang node ziglang)
 
 update/lsp/golang:
 	if which go; then \
 		go get -u golang.org/x/tools/gopls; \
 	fi
 
-update/lsp/nodejs:
+update/lsp/node:
 	if which npm; then \
 		npm -g install intelephense; \
 	fi
