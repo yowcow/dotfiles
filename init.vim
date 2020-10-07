@@ -7,6 +7,7 @@ set nobackup
 set nowritebackup
 set noswapfile
 set novisualbell
+set nrformats=
 set showtabline=2
 set foldmethod=manual
 "set foldmethod=syntax
