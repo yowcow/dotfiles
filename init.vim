@@ -3,6 +3,7 @@ set background=dark
 
 syntax on
 
+set history=200
 set nobackup
 set nowritebackup
 set noswapfile
