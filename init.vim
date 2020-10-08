@@ -31,7 +31,9 @@ set tabstop=4
 set expandtab
 "set tw=80
 
-set wildmode=list:longest
+set wildmenu
+set wildmode=full
+"set wildmode=list:longest
 
 filetype plugin indent on
 
