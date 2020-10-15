@@ -8,3 +8,4 @@ export DefaultIMModule=fcitx
 export TERMINAL=alacritty
 
 xmodmap ~/.Xmodmap
+xrdb -merge ~/.Xresources
