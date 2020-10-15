@@ -47,7 +47,9 @@ exec --no-startup-id pasystray
 exec --no-startup-id nitrogen --restore
 
 # Alternating Layout
-exec --no-startup-id /opt/i3-alternating-layout/alternating_layouts.py
+exec --no-startup-id python3 /opt/i3-alternating-layout/alternating_layouts.py
+# Disable lock-screen while fullscreen
+exec_always --no-startup-id python3 /opt/i3ipc-python/examples/disable-standby-fs.py
 
 # xinput
 exec --no-startup-id fcitx
