@@ -9,3 +9,4 @@ export TERMINAL=alacritty
 
 xmodmap ~/.Xmodmap
 xrdb -merge ~/.Xresources
+xset r rate 280 50

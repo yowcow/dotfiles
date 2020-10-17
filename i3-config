@@ -30,9 +30,6 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- sh -c 'i3lock --nofork -e
 bindsym $mod+Control+l exec --no-startup-id loginctl lock-session
 exec --no-startup-id xautolock -time 10 -locker 'loginctl lock-session'
 
-# Keyrepeat: xset r rate <delay> [<rate>]
-exec --no-startup-id xset r rate 280 50
-
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
@@ -46,6 +43,8 @@ exec --no-startup-id pasystray
 # Wallpaper
 exec --no-startup-id nitrogen --restore
 
+# Keyrepeat: xset r rate <delay> [<rate>]
+exec_always --no-startup-id xset r rate 280 50
 # Alternating Layout
 exec_always --no-startup-id python3 /opt/i3-alternating-layout/alternating_layouts.py
 # Disable lock-screen while fullscreen
