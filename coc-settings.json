@@ -1,23 +1,38 @@
 {
-  "coc.preferences.formatOnSaveFiletypes": ["*"],
+  "coc.preferences.formatOnSaveFiletypes": [
+    "go",
+    "json",
+    "php",
+    "zig"
+  ],
   "languageserver": {
     "golang": {
       "command": "gopls",
-      "rootPatterns": ["go.mod"],
+      "rootPatterns": [
+        "go.mod"
+      ],
       "disableWorkspaceFolders": true,
-      "filetypes": ["go"]
+      "filetypes": [
+        "go"
+      ]
     },
     "intelephense": {
       "command": "intelephense",
-      "args": ["--stdio"],
-      "filetypes": ["php"],
+      "args": [
+        "--stdio"
+      ],
+      "filetypes": [
+        "php"
+      ],
       "initializationOptions": {
         "storagePath": "/tmp/intelephense"
       }
     },
     "zig": {
       "command": "zls",
-      "filetypes": ["zig"]
+      "filetypes": [
+        "zig"
+      ]
     }
   }
 }

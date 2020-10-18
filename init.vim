@@ -46,8 +46,6 @@ augroup FileTyping
     autocmd BufNewFile,BufRead *.tx set filetype=html
     autocmd BufNewFile,BufRead *.md set filetype=markdown
     autocmd BufNewFile,BufRead *.coffee set filetype=coffee
-    autocmd BufNewFile,BufRead *.json set filetype=javascript.json
-    autocmd BufNewFile,BufRead *.es6 set filetype=javascript
     autocmd BufNewFile,BufRead *.jsx set filetype=javascript.jsx
     autocmd BufNewFile,BufRead *.tsx set filetype=typescript.tsx
     autocmd BufNewFile,BufRead *.go set filetype=go
@@ -58,8 +56,8 @@ augroup TabStop
     autocmd FileType make,go setlocal noexpandtab
     autocmd FileType xml,xhtml,html,smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2
     autocmd FileType ruby setlocal softtabstop=2 tabstop=2 shiftwidth=2
-    autocmd FileType javascript,javascript.jsx,javascript.json,typescript,typescript.tsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
-    autocmd FileType yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType javascript,javascript.jsx,typescript,typescript.tsx setlocal softtabstop=2 tabstop=2 shiftwidth=2
+    autocmd FileType json,yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2
     autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2
     autocmd FileType markdown hi! def link markdownItalic LineNr
 augroup END
@@ -186,7 +184,8 @@ nmap <leader>rn <Plug>(coc-rename)
 
 " Formatting selected code.
 xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
+" Formatting a whole buffer.
+nmap <leader>f  <Plug>(coc-format)
 
 augroup mygroup
   autocmd!
