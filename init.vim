@@ -33,7 +33,7 @@ set expandtab
 "set tw=80
 
 set wildmenu
-set wildmode=full
+set wildmode=longest:full
 "set wildmode=list:longest
 
 filetype plugin indent on
