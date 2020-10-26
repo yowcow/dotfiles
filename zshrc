@@ -72,24 +72,35 @@ aws-link() {
     esac
 }
 
-ssh-agent-setup() {
-    if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-        eval $(ssh-agent) \
-            && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
-        export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
-    else
-        # some environment ssh-agent starts automatically
-        if [ -z $SSH_AGENT_PID ]; then
-            export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+ssh-agent-start() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            eval $(ssh-agent) \
+                && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
             export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+        else
+            # some environment ssh-agent starts automatically
+            if [ -z $SSH_AGENT_PID ]; then
+                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+                export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+            fi
         fi
+        KEY=$HOME/.ssh/id_rsa \
+            && [ -f $KEY ] \
+            && [ -z "$(ssh-add -l | grep "${KEY}\b")" ] \
+            && ssh-add $KEY;
     fi
-    KEY=$HOME/.ssh/id_rsa \
-        && [ -f $KEY ] \
-        && [ -z "$(ssh-add -l | grep "${KEY}\b")" ] \
-        && ssh-add $KEY;
 }
 
+ssh-agent-stop() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
+            unset SSH_AGENT_PID;
+            unset SSH_AUTH_SOCK;
+        fi
+    fi
+}
 
 case "${OSTYPE}" in
     darwin*)
@@ -101,7 +112,7 @@ case "${OSTYPE}" in
         ;;
 esac
 
-ssh-agent-setup
+ssh-agent-start
 
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
