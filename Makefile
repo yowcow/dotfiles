@@ -69,7 +69,7 @@ update:
 	+$(MAKE) update/gitmodules
 	+$(MAKE) update/lsp
 
-update/gitmodules:
+update/gitmodules: $(HOME)/.gitconfig $(HOME)/.gitconfig_global
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
 update/lsp:
