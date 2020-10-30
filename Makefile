@@ -104,7 +104,7 @@ src/%:
 	echo $* | sed -e 's|/|:|' | xargs -I{} git clone --recurse-submodules git@{} $@
 
 update/src/%: src/%
-	cd src/$* && git pull
+	cd src/$* && git pull && git submodule update --init
 
 install: $(ALLTARGETS)
 
