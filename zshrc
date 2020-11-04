@@ -102,6 +102,8 @@ ssh-agent-stop() {
     fi
 }
 
+ssh-agent-start
+
 case "${OSTYPE}" in
     darwin*)
         alias ls="ls -G"
@@ -111,8 +113,6 @@ case "${OSTYPE}" in
         alias ls="ls --color"
         ;;
 esac
-
-ssh-agent-start
 
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
