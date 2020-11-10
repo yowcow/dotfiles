@@ -78,11 +78,12 @@ update/lsp:
 update/lsp/golang:
 	if which go; then \
 		go get -u golang.org/x/tools/gopls; \
+		go get -u golang.org/x/lint/golint; \
 	fi
 
 update/lsp/node:
 	if which npm; then \
-		npm -g install intelephense; \
+		npm -g install intelephense yarn; \
 	fi
 
 update/lsp/ziglang: $(ZLS)
