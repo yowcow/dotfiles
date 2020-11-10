@@ -6,7 +6,7 @@
     "zig"
   ],
   "languageserver": {
-    "golang": {
+    "go": {
       "command": "gopls",
       "rootPatterns": [
         "go.mod"

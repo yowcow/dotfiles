@@ -111,7 +111,6 @@ call plug#end()
 
 "=== For coc.nvim
 let g:coc_global_extensions = [
-            \'coc-diagnostic',
             \'coc-erlang_ls',
             \'coc-go',
             \'coc-json',
