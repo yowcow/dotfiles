@@ -96,7 +96,7 @@ if &compatible
 endif
 
 call plug#begin()
-Plug 'hyhugh/coc-erlang_ls', {'do': 'yarn install --frozen-lockfile'}
+"Plug 'hyhugh/coc-erlang_ls', {'do': 'yarn install --frozen-lockfile'}
 Plug 'itchyny/lightline.vim'
 Plug 'jremmen/vim-ripgrep'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
@@ -110,6 +110,15 @@ call plug#end()
 
 
 "=== For coc.nvim
+let g:coc_global_extensions = [
+            \'coc-diagnostic',
+            \'coc-erlang_ls',
+            \'coc-go',
+            \'coc-json',
+            \'coc-snippets',
+            \'coc-tsserver'
+            \]
+
 set cmdheight=2
 set updatetime=300
 set shortmess+=c
