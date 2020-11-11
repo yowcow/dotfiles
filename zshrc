@@ -75,15 +75,15 @@ aws-link() {
 ssh-agent-start() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-            eval $(ssh-agent) \
-                && ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock;
-            export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+            eval $(ssh-agent) && \
+                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock && \
+                export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
         else
             # some environment ssh-agent starts automatically
-            if [ -z $SSH_AGENT_PID ]; then
+            [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+            [ -f /tmp/ssh-auth.sock ] && \
                 export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
-            fi
         fi
         KEY=$HOME/.ssh/id_rsa \
             && [ -f $KEY ] \
