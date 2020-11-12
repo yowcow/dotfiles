@@ -82,7 +82,7 @@ ssh-agent-start() {
             # some environment ssh-agent starts automatically
             [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
-            [ -f /tmp/ssh-auth.sock ] && \
+            [ -L /tmp/ssh-auth.sock ] && \
                 export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
         fi
         KEY=$HOME/.ssh/id_rsa \
