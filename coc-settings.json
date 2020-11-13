@@ -34,5 +34,10 @@
         "zig"
       ]
     }
+  },
+  "snippets.extends": {
+    "typescript": [
+      "javascript"
+    ]
   }
 }

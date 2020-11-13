@@ -83,7 +83,11 @@ update/lsp/golang:
 
 update/lsp/node:
 	if which npm; then \
-		npm -g install intelephense typescript yarn; \
+		npm -g install \
+			diagnostic-languageserver \
+			intelephense \
+			typescript \
+			yarn; \
 	fi
 
 update/lsp/ziglang: $(ZLS)
