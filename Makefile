@@ -114,7 +114,7 @@ update/neovim/pip3:
 
 update/neovim/pip:
 	if which pip; then \
-		pip install --upgrade pynvim msgpack; \
+		pip install --upgrade neovim pynvim msgpack; \
 	fi
 
 update/neovim/gem:
