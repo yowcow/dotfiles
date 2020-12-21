@@ -68,6 +68,7 @@ all: update
 update:
 	+$(MAKE) update/gitmodules
 	+$(MAKE) update/lsp
+	+$(MAKE) update/neovim
 
 update/gitmodules: $(HOME)/.gitconfig $(HOME)/.gitconfig_global
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
@@ -102,6 +103,28 @@ update/lsp/erlang: $(ERLANG_LS)
 		mkdir -p $(HOME)/.local/bin && \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
+	fi
+
+update/neovim: update/neovim/pip3 update/neovim/pip update/neovim/gem update/neovim/npm
+
+update/neovim/pip3:
+	if which pip3; then \
+		pip3 install --upgrade pynvim msgpack; \
+	fi
+
+update/neovim/pip:
+	if which pip; then \
+		pip install --upgrade pynvim msgpack; \
+	fi
+
+update/neovim/gem:
+	if which gem; then \
+		gem install --user-install neovim; \
+	fi
+
+update/neovim/npm:
+	if which npm; then \
+		npm i -g neovim; \
 	fi
 
 src/%:
