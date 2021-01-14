@@ -72,6 +72,12 @@ aws-link() {
     esac
 }
 
+cert-check() {
+    echo \
+        | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
+        | openssl x509 -inform pem -noout -text
+}
+
 ssh-agent-start() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
