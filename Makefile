@@ -1,10 +1,8 @@
 AUTO := \
-	ctags \
 	gitconfig \
 	gitignore_global \
 	goenv.zsh \
 	nodenv.zsh \
-	npm \
 	npmrc \
 	ocamlinit \
 	perltidyrc \
@@ -63,14 +61,14 @@ else
 MAKE := make -O
 endif
 
-all: update
+all:
 
 update:
 	+$(MAKE) update/gitmodules
 	+$(MAKE) update/lsp
 	+$(MAKE) update/neovim
 
-update/gitmodules: $(HOME)/.gitconfig $(HOME)/.gitconfig_global
+update/gitmodules: $(HOME)/.gitconfig
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
 update/lsp:
@@ -146,7 +144,8 @@ realclean: clean
 
 
 ## Create symlink by default
-$(HOME)/.%:
+$(HOME)/.%: %
+	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$* $@
 
 
@@ -158,21 +157,7 @@ $(HOME)/.fzf.zsh: $(HOME)/.fzf
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 
-## For vim
-$(HOME)/.vim/autoload/plug.vim: $(VIM_PLUG)
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$</plug.vim $@
-
-
-## For neovim
-$(HOME)/.config/nvim/init.vim: init.vim
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.config/nvim/coc-settings.json: coc-settings.json
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
+### For neovim
 $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</colors/molokai.vim $@
@@ -180,18 +165,6 @@ $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
-
-
-## For Alacritty
-$(HOME)/.config/alacritty/alacritty.yml: alacritty.yml
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-
-## For i3wm
-$(HOME)/.config/i3/config: i3-config
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
 
 
 ## For goenv
@@ -208,21 +181,10 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	ln -sfn `pwd`/$< $@
 
 
-## For npm
-$(HOME)/.npm:
-	mkdir -p $@
-
-
 ## For plenv
 $(HOME)/.plenv: $(PLENV)
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-
-## For universal-ctags
-$(HOME)/.ctags.d/default.ctags: ctags
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
