@@ -1,3 +1,5 @@
+Xft.dpi: 138
+
 gnome.terminal.font: JetBrains Mono Medium 9
 
 !i3-wm.font: pango:JetBrains Mono Medium 8
