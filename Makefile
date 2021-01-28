@@ -1,36 +1,35 @@
-AUTO := \
+TARGETS := \
+	config/alacritty/alacritty.yml \
+	config/i3/config \
+	config/nvim/init.vim \
+	config/nvim/coc-settings.json \
+	config/nvim/colors/molokai.vim \
+	config/regolith/Xresources \
+	ctags.d/default.ctags \
+	fzf \
+	fzf.zsh \
 	gitconfig \
 	gitignore_global \
 	goenv.zsh \
+	goenv \
+	local/share/nvim/site/autoload/plug.vim \
+	nodenv \
+	nodenv/plugins/node-build \
 	nodenv.zsh \
 	npmrc \
 	ocamlinit \
 	perltidyrc \
+	plenv \
+	plenv/plugins/perl-build \
 	plenv.zsh \
 	screenrc \
 	tmux.conf \
 	Xmodmap \
-	Xresources \
-	xprofile \
 	zshrc
+	#Xresources \
+	#xprofile \
 
-FULLPATHS := \
-	$(HOME)/.fzf \
-	$(HOME)/.fzf.zsh \
-	$(HOME)/.config/alacritty/alacritty.yml \
-	$(HOME)/.config/i3/config \
-	$(HOME)/.config/nvim/init.vim \
-	$(HOME)/.config/nvim/coc-settings.json \
-	$(HOME)/.config/nvim/colors/molokai.vim \
-	$(HOME)/.local/share/nvim/site/autoload/plug.vim \
-	$(HOME)/.goenv \
-	$(HOME)/.nodenv \
-	$(HOME)/.nodenv/plugins/node-build \
-	$(HOME)/.plenv \
-	$(HOME)/.plenv/plugins/perl-build \
-	$(HOME)/.ctags.d/default.ctags
-
-ALLTARGETS = $(addprefix $(HOME)/.,$(AUTO)) $(FULLPATHS)
+FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
 
 ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
 FZF          := src/github.com/junegunn/fzf
@@ -132,10 +131,10 @@ src/%:
 update/src/%: src/%
 	cd src/$* && git pull && git submodule update --init
 
-install: $(ALLTARGETS)
+install: $(FULLTARGETS)
 
 clean:
-	rm -rf $(ALLTARGETS)
+	rm -rf $(FULLTARGETS)
 
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
