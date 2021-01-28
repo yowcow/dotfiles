@@ -1,7 +1,7 @@
 gnome.terminal.font: JetBrains Mono Medium 9
 
 !i3-wm.font: pango:JetBrains Mono Medium 8
-
 !i3-wm.bar.font: pango:JetBrains Mono Medium 12, Material Design Icon 12
-
 !i3xrocks.value.font: JetBrains Mono Medium 12
+
+i3-wm.program.1: /usr/libexec/ibus-ui-gtk3
