@@ -1,4 +1,5 @@
 TARGETS := \
+	zshrc \
 	config/alacritty/alacritty.yml \
 	config/i3/config \
 	config/nvim/init.vim \
@@ -24,8 +25,7 @@ TARGETS := \
 	plenv.zsh \
 	screenrc \
 	tmux.conf \
-	Xmodmap \
-	zshrc
+	Xmodmap
 	#Xresources \
 	#xprofile \
 
