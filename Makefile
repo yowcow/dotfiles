@@ -139,7 +139,7 @@ clean:
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
 
-.PHONY: all update update/* clean realclean
+.PHONY: all install update update/* clean realclean
 
 
 ## Create symlink by default
