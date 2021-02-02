@@ -1,6 +1,7 @@
 [user]
 	name = Yoko OYAMA
 	email = yowcow@x19.dev
+	signingkey = 4A9531E3
 [color]
 	ui = auto
 [core]
@@ -12,4 +13,8 @@
 [pull]
 	ff = only
 [mergetool]
-    keepBackup = false
+	keepBackup = false
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg2
