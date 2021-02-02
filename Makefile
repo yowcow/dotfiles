@@ -61,7 +61,7 @@ else
 MAKE := make -O
 endif
 
-all:
+all: update
 
 update:
 	+$(MAKE) update/gitmodules
