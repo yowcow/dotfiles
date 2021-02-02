@@ -53,24 +53,11 @@ export PATH=$HOME/.fzf/bin:$HOME/.npm/bin:$HOME/.local/bin:$HOME/go/bin:/usr/loc
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
 
-umask 022
+export AWS_VAULT_BACKEND=pass
+export AWS_VAULT_PASS_PREFIX=aws-vault
+export AWS_SESSION_TOKEN_TTL=1h
 
-# functions
-aws-link() {
-    case "$1" in
-        "status")
-            readlink ~/.aws
-            ;;
-        "update")
-            [ -d ~/.aws.$2 ] && \
-            rm -f ~/.aws && \
-            ln -s ~/.aws.$2 ~/.aws && \
-            echo "Linked AWS config to '~/.aws.$2'!"
-            ;;
-        *)
-            echo "Usage: $0 [status] [update <name>]"
-    esac
-}
+umask 022
 
 cert-check() {
     echo \
