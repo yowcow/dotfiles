@@ -76,8 +76,9 @@ update/lsp:
 
 update/lsp/golang:
 	if which go; then \
-		go get -u golang.org/x/tools/gopls; \
 		go get -u golang.org/x/lint/golint; \
+		go get -u golang.org/x/tools/cmd/goimports; \
+		go get -u golang.org/x/tools/gopls; \
 	fi
 
 update/lsp/node:
