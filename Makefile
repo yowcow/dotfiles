@@ -65,65 +65,67 @@ all: update
 
 update:
 	+$(MAKE) update/gitmodules
-	+$(MAKE) update/lsp
-	+$(MAKE) update/neovim
+	+$(MAKE) update/langs
 
 update/gitmodules: $(HOME)/.gitconfig
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
-update/lsp:
-	+$(MAKE) -j4 $(addprefix $@/,erlang golang node ziglang)
+update/langs:
+	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby ziglang)
 
-update/lsp/golang:
-	if which go; then \
-		go get -u golang.org/x/lint/golint; \
-		go get -u golang.org/x/tools/cmd/goimports; \
-		go get -u golang.org/x/tools/gopls; \
-	fi
-
-update/lsp/node:
-	if which npm; then \
-		npm -g install \
-			diagnostic-languageserver \
-			intelephense \
-			typescript \
-			yarn; \
-	fi
-
-update/lsp/ziglang: $(ZLS)
-	if which zig; then \
-		mkdir -p $(HOME)/.local/bin && \
-		cd $< && \
-		zig build --prefix $(HOME)/.local; \
-	fi
-
-update/lsp/erlang: $(ERLANG_LS)
+update/langs/erlang: $(ERLANG_LS)
 	if which rebar3; then \
 		mkdir -p $(HOME)/.local/bin && \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
 	fi
 
-update/neovim: update/neovim/pip3 update/neovim/pip update/neovim/gem update/neovim/npm
+update/langs/golang:
+	if which go; then \
+		go get -u golang.org/x/lint/golint; \
+		go get -u golang.org/x/tools/cmd/goimports; \
+		go get -u golang.org/x/tools/gopls; \
+		go get -u github.com/mikefarah/yq; \
+	fi
 
-update/neovim/pip3:
+update/langs/nodejs:
+	if which npm; then \
+		npm -g install \
+			diagnostic-languageserver \
+			intelephense \
+			neovim \
+			typescript \
+			yarn \
+			; \
+	fi
+
+update/langs/python3:
 	if which pip3; then \
-		pip3 install --upgrade pynvim msgpack; \
+		pip3 install --upgrade \
+			pynvim \
+			msgpack \
+			; \
 	fi
 
-update/neovim/pip:
+update/langs/python:
 	if which pip; then \
-		pip install --upgrade neovim pynvim msgpack; \
+		pip install --upgrade \
+			neovim \
+			pynvim \
+			msgpack \
+			; \
 	fi
 
-update/neovim/gem:
+update/langs/ruby:
 	if which gem; then \
 		gem install --user-install neovim; \
 	fi
 
-update/neovim/npm:
-	if which npm; then \
-		npm i -g neovim; \
+update/langs/ziglang: $(ZLS)
+	if which zig; then \
+		mkdir -p $(HOME)/.local/bin && \
+		cd $< && \
+		zig build --prefix $(HOME)/.local; \
 	fi
 
 src/%:
