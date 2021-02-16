@@ -104,6 +104,7 @@ update/langs/python3:
 		pip3 install --upgrade \
 			pynvim \
 			msgpack \
+			sqlparse \
 			; \
 	fi
 
