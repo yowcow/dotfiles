@@ -63,33 +63,6 @@ augroup TabStop
 augroup END
 
 
-"=== tabs and buffers
-nnoremap tj :bnext<CR>
-nnoremap tk :bprev<CR>
-nnoremap tq :bd<CR>
-nnoremap tl :tabnext<CR>
-nnoremap th :tabprev<CR>
-nnoremap tn :tabnew<Space>
-nnoremap tt :tabedit<Space>
-nnoremap tm :tabm<Space>
-nnoremap td :tabclose<CR>
-
-
-"=== For term/window
-tnoremap <C-\><C-\> <C-\><C-n>
-nnoremap <C-w>- :sp<CR>
-nnoremap <C-w>\| :vsp<CR>
-nnoremap <C-w>J <C-w>20+
-nnoremap <C-w>K <C-w>20-
-nnoremap <C-w>H <C-w>20<
-nnoremap <C-w>L <C-w>20>
-
-
-"=== Perl::Tidy
-nnoremap ;ptt <Esc>:%! perltidy -se<CR>
-nnoremap ;ptv <Esc>:'<,'>! perltidy -se<CR>
-
-
 "=== Plug
 if &compatible
   set nocompatible " Be iMproved
@@ -103,8 +76,6 @@ Plug 'jremmen/vim-ripgrep'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'mattn/vim-goimports'
-"Plug 'mattn/vim-sqlfmt'
-Plug 'yowcow/vim-sqlfmt'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'szw/vim-tags'
@@ -414,3 +385,53 @@ hi Comment ctermfg=246
 hi Delimiter ctermfg=246
 hi String ctermfg=222
 hi Underlined ctermfg=75
+
+
+let mapleader = ","
+
+"=== tabs and buffers
+nnoremap tj :bnext<CR>
+nnoremap tk :bprev<CR>
+nnoremap tq :bd<CR>
+nnoremap tl :tabnext<CR>
+nnoremap th :tabprev<CR>
+nnoremap tn :tabnew<Space>
+nnoremap tt :tabedit<Space>
+nnoremap tm :tabmove<Space>
+nnoremap td :tabclose<CR>
+
+
+"=== For term/window
+tnoremap <C-\><C-\> <C-\><C-n>
+nnoremap <C-w>- :sp<CR>
+nnoremap <C-w>\| :vsp<CR>
+nnoremap <C-w>J <C-w>20+
+nnoremap <C-w>K <C-w>20-
+nnoremap <C-w>H <C-w>20<
+nnoremap <C-w>L <C-w>20>
+
+
+"=== Perl::Tidy
+"nnoremap ;ptt <Esc>:%! perltidy -se<CR>
+"nnoremap ;ptv <Esc>:'<,'>! perltidy -se<CR>
+
+
+"=== sqlformat
+function! s:sqlformat_run(in) abort
+    let @z = system("sqlformat -k upper -r -", a:in)
+    execute "normal! O\<esc>\"zP"
+endfunction
+
+function! s:sqlformat(range) range
+    if a:range == 0
+        let in = join(getline(0, "$"), "\n")
+        1,$delete
+        call <SID>sqlformat_run(in)
+    else
+        let in = join(getline("'<", "'>"), "\n")
+        '<,'>delete
+        call <SID>sqlformat_run(in)
+    endif
+endfunction
+
+command! -range=% SQL <line1>,<line2>call <SID>sqlformat(<range>)
