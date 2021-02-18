@@ -94,6 +94,7 @@ update/langs/nodejs:
 			diagnostic-languageserver \
 			intelephense \
 			neovim \
+			npm \
 			typescript \
 			yarn \
 			; \
