@@ -416,22 +416,20 @@ nnoremap <C-w>L <C-w>20>
 "nnoremap ;ptv <Esc>:'<,'>! perltidy -se<CR>
 
 
-"=== sqlformat
-function! s:sqlformat_run(in) abort
-    let @z = system("sqlformat -k upper -r -", a:in)
-    execute "normal! O\<esc>\"zP"
-endfunction
-
-function! s:sqlformat(range) range
+"=== various formatting
+function! s:format(cmd, range, l1, l2) range
+    let in = join(getline(a:l1, a:l2), "\n")
+    let out = system(a:cmd, in)
+    if v:shell_error != 0
+        echoerr substitute(out, '[\r\n]', ' ', 'g')
+        return
+    endif
+    execute a:l1 . "," . a:l2 . "delete"
     if a:range == 0
-        let in = join(getline(0, "$"), "\n")
-        1,$delete
-        call <SID>sqlformat_run(in)
+        call setline(a:l1, split(out, "\n"))
     else
-        let in = join(getline("'<", "'>"), "\n")
-        '<,'>delete
-        call <SID>sqlformat_run(in)
+        call append(a:l1 - 1, split(out, "\n"))
     endif
 endfunction
 
-command! -range=% SQL <line1>,<line2>call <SID>sqlformat(<range>)
+command! -range=% SQL <line1>,<line2>call <SID>format("sqlformat -k upper -r -s -", <range>, <line1>, <line2>)
