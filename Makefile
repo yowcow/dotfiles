@@ -11,6 +11,7 @@ TARGETS := \
 	fzf.zsh \
 	gitconfig \
 	gitignore_global \
+	gnupg/gpg.conf \
 	gnupg/gpg-agent.conf \
 	goenv.zsh \
 	goenv \
