@@ -6,4 +6,5 @@ PATH=$GOENV_ROOT/bin:$PATH
 eval "$(goenv init -)"
 
 export GOPATH=$HOME/go
+
 PATH=$GOPATH/bin:$PATH
