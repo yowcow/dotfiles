@@ -86,7 +86,6 @@ update/langs/golang:
 		go get -u golang.org/x/lint/golint; \
 		go get -u golang.org/x/tools/cmd/goimports; \
 		go get -u golang.org/x/tools/gopls; \
-		go get -u github.com/mikefarah/yq; \
 	fi
 
 update/langs/nodejs:
@@ -107,6 +106,7 @@ update/langs/python3:
 			pynvim \
 			msgpack \
 			sqlparse \
+			yq \
 			; \
 	fi
 
