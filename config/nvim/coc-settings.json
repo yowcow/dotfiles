@@ -1,12 +1,33 @@
 {
   "coc.preferences.formatOnSaveFiletypes": [
+    "elm",
     "go",
     "json",
     "php",
     "zig"
   ],
+  "codeLens.enable": true,
   "languageserver": {
-    "dls": {
+    "elm": {
+      "command": "elm-language-server",
+      "filetypes": [
+        "elm"
+      ],
+      "rootPatterns": [
+        "elm.json"
+      ]
+    },
+    "go": {
+      "command": "gopls",
+      "rootPatterns": [
+        "go.mod"
+      ],
+      "disableWorkspaceFolders": true,
+      "filetypes": [
+        "go"
+      ]
+    },
+    "golint": {
       "command": "diagnostic-languageserver",
       "args": [
         "--stdio"
@@ -57,16 +78,6 @@
           }
         }
       }
-    },
-    "go": {
-      "command": "gopls",
-      "rootPatterns": [
-        "go.mod"
-      ],
-      "disableWorkspaceFolders": true,
-      "filetypes": [
-        "go"
-      ]
     },
     "intelephense": {
       "command": "intelephense",

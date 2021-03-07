@@ -92,6 +92,8 @@ update/langs/nodejs:
 	if which npm; then \
 		npm -g install \
 			diagnostic-languageserver \
+			elm elm-test elm-format \
+			@elm-tooling/elm-language-server \
 			intelephense \
 			neovim \
 			npm \

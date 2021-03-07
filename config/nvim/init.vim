@@ -49,6 +49,7 @@ augroup FileTyping
     autocmd BufNewFile,BufRead *.jsx set filetype=javascript.jsx
     autocmd BufNewFile,BufRead *.tsx set filetype=typescript.tsx
     autocmd BufNewFile,BufRead *.go set filetype=go
+    autocmd BufNewFile,BufRead *.elm set filetype=elm
 augroup END
 
 augroup TabStop
@@ -69,6 +70,7 @@ if &compatible
 endif
 
 call plug#begin()
+Plug 'andys8/vim-elm-syntax', { 'for': ['elm'] }
 "Plug 'fatih/vim-go'
 "Plug 'hyhugh/coc-erlang_ls', {'do': 'yarn install --frozen-lockfile'}
 Plug 'itchyny/lightline.vim'
