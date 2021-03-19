@@ -62,7 +62,8 @@ else
 MAKE := make -O
 endif
 
-all: update
+all:
+	$(MAKE) install && $(MAKE) update
 
 update:
 	+$(MAKE) update/gitmodules
