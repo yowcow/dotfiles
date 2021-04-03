@@ -1,7 +1,6 @@
 TARGETS := \
 	zshrc \
 	config/alacritty/alacritty.yml \
-	config/i3/config \
 	config/nvim/init.vim \
 	config/nvim/coc-settings.json \
 	config/nvim/colors/molokai.vim \
