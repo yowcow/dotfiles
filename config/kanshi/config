@@ -1,0 +1,4 @@
+profile {
+    output HDMI-A-2 enable scale 1.5
+    output "Dell Inc. DELL U2720Q 5LXD223" mode 3840x2160 position 0,0
+}

@@ -75,6 +75,7 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     input type:keyboard {
         repeat_delay 250
         repeat_rate 80
+        xkb_options ctrl:nocaps
     }
     input type:pointer {
         natural_scroll "enabled"
@@ -89,6 +90,9 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 #
     # Start a terminal
     bindsym $mod+Return exec $term
+
+    # Start a browser
+    bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -250,6 +254,7 @@ bindsym $mod+r mode "resize"
 #    }
 #}
 
+exec --no-startup-id kanshi
 exec --no-startup-id waybar
 exec --no-startup-id blueman-applet
 exec --no-startup-id nm-applet
