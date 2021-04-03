@@ -19,7 +19,8 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term x-terminal-emulator
+#set $term x-terminal-emulator
+set $term alacritty
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
@@ -252,5 +253,6 @@ bindsym $mod+r mode "resize"
 exec --no-startup-id waybar
 exec --no-startup-id blueman-applet
 exec --no-startup-id nm-applet
+exec --no-startup-id ibus-daemon -drx
 
 include /etc/sway/config.d/*

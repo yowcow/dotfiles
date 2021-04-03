@@ -99,7 +99,8 @@ font:
     #   - (Windows) Consolas
     #family: monospace
     #family: Fira Code
-    family: Liberation Mono
+    #family: Liberation Mono
+    family: JetBrains Mono
 
     # The `style` can be specified to pick a specific face.
     #style: Regular
@@ -138,13 +139,13 @@ font:
     #style: Bold Italic
 
   # Point size
-  size: 11.0
+  size: 7.4
 
   # Offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
-  #offset:
-  #  x: 0
-  #  y: 0
+  offset:
+    x: 1
+    y: 2
 
   # Glyph offset determines the locations of the glyphs within their cells with
   # the default being at the bottom. Increasing `x` moves the glyph to the right,
@@ -176,30 +177,30 @@ font:
 colors:
   # Default colors
   primary:
-    background: '0x202020'
-    foreground: '0xe0e0e0'
+    background: '0x1F2430'
+    foreground: '0xCBCCC6'
 
   # Normal colors
   normal:
-    black:   '0x161616'
-    red:     '0xfd4285'
-    green:   '0xa6e22d'
-    yellow:  '0xe5da72'
-    blue:    '0x0094d8'
-    magenta: '0x9a37ff'
-    cyan:    '0x50b6d8'
-    white:   '0xc7c7c7'
+    black:   '0x1F2430'
+    red:     '0xFF3333'
+    green:   '0xA6CC70'
+    yellow:  '0xFFD580'
+    blue:    '0x77A8D9'
+    magenta: '0xB48EAD'
+    cyan:    '0x95E6CB'
+    white:   '0xCBCCC6'
 
   # Bright colors
   bright:
-    black:   '0x676767'
-    red:     '0xfa7fac'
-    green:   '0xbde271'
-    yellow:  '0xfff27f'
-    blue:    '0x00bdff'
-    magenta: '0xbd9eff'
-    cyan:    '0x5ed6fe'
-    white:   '0xfeffff'
+    black:   '0xBFBAB0'
+    red:     '0xFF3333'
+    green:   '0xBAE67E'
+    yellow:  '0xFFE6B3'
+    blue:    '0x73D0FF'
+    magenta: '0xD4BFFF'
+    cyan:    '0x5CCFE6'
+    white:   '0xFFFFFF'
 
   cursor:
     text: '#000000'
