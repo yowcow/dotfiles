@@ -62,11 +62,6 @@ export AWS_VAULT_BACKEND=pass
 export AWS_VAULT_PASS_PREFIX=aws-vault
 export AWS_SESSION_TOKEN_TTL=1h
 
-export GTK_IM_MODULE=ibus
-export QT_IM_MODULE=ibus
-export XMODIFIERS=@im=ibus
-export MOZ_ENABLE_WAYLAND=1
-
 umask 022
 
 cert-check() {
