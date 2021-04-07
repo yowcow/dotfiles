@@ -1,10 +1,10 @@
 TARGETS := \
 	zshrc \
 	config/alacritty/alacritty.yml \
+	config/i3/config \
 	config/nvim/init.vim \
 	config/nvim/coc-settings.json \
 	config/nvim/colors/molokai.vim \
-	config/regolith/Xresources \
 	config/kanshi/config \
 	config/sway/config \
 	config/waybar/config \
@@ -30,9 +30,9 @@ TARGETS := \
 	plenv.zsh \
 	screenrc \
 	tmux.conf \
-	Xmodmap
-	#Xresources \
-	#xprofile \
+	Xmodmap \
+	Xresources \
+	xprofile
 
 FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
 

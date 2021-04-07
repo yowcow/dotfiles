@@ -1,49 +1,8 @@
 !! DPI configuration (See dpi.lv for screen info)
-!Xft.dpi: 276
-Xft.dpi: 207
-!Xft.dpi: 138
-
-!! URxvt
-URxvt.font: xft:Fira Code:pixelsize=18,xft:Noto Sans Mono CJK JP
-URxvt.iso14755: false
-URxvt.iso14755_52: false
-URxvt.keysym.Shift-Control-V: eval:paste_clipboard
-URxvt.keysym.Shift-Control-C: eval:selection_to_clipboard
-URxvt.keysym.Control-Meta-c: builtin-string:
-URxvt.keysym.Control-Meta-v: builtin-string:
-
-! https://terminal.sexy/#Jygi-PjyJygi-SZypuIu9L91ZtnvroH_oe_k-PjydXFe-SZypuIu9L91ZtnvroH_oe_k-fj1
-! Do `xrdb -merge ~/.Xresources && xrdb -query` to load
-
-! special
-*.foreground:   #f8f8f2
-*.background:   #272822
-*.cursorColor:  #00ff00
-*.cursorBlink:  1
-! black
-*.color0:       #272822
-*.color8:       #75715e
-! red
-*.color1:       #f92672
-*.color9:       #f92672
-! green
-*.color2:       #a6e22e
-*.color10:      #a6e22e
-! yellow
-*.color3:       #f4bf75
-*.color11:      #f4bf75
-! blue
-!*.color4:       #66d9ef
-!*.color12:      #66d9ef
-*.color4:       #1dc1e0
-*.color12:      #1dc1e0
-! magenta
-*.color5:       #ae81ff
-*.color13:      #ae81ff
-! cyan
-*.color6:       #a1efe4
-*.color14:      #a1efe4
-! white
-*.color7:       #f8f8f2
-*.color15:      #f9f8f5
-
+Xft.dpi: 221
+Xft.autohint: 0
+Xft.lcdfilter:  lcddefault
+Xft.hintstyle:  hintfull
+Xft.hinting: 1
+Xft.antialias: 1
+Xft.rgba: rgb
