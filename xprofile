@@ -1,5 +1,4 @@
 export TERMINAL=alacritty
-
 export GDK_SCALE=1
 export GDK_DPI_SCALE=0.65
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
@@ -9,11 +8,17 @@ xrdb -merge ~/.Xresources
 
 xset r rate 250 60
 
-[ "$(xinput | grep 'Kensington Slimblade Trackball' | wc -l)" -eq "1" ] \
-    && xinput set-prop 'Kensington Slimblade Trackball' 'libinput Natural Scrolling Enabled' 1
+TRACKBALL="Kensington Slimblade Trackball"
+TOUCHPAD="SynPS/2 Synaptics TouchPad"
 
-[ "$(xinput | grep 'SynPS/2 Synaptics TouchPad' | wc -l)" -eq "1" ] \
-    && xinput set-prop 'SynPS/2 Synaptics TouchPad' 'libinput Natural Scrolling Enabled' 1
+if [ "$(xinput | grep "$TRACKBALL" | wc -l)" -eq "1" ]; then \
+    xinput set-prop "$TRACKBALL" 'libinput Natural Scrolling Enabled' 1;
+fi
+
+if [ "$(xinput | grep "$TOUCHPAD" | wc -l)" -eq "1" ]; then \
+    xinput set-prop "$TOUCHPAD" 'libinput Natural Scrolling Enabled' 1;
+    xinput set-prop "$TOUCHPAD" 'libinput Tapping Enabled' 1;
+fi
 
 xrandr \
     | awk '/HDMI-2 connected/ { getline; print $1 }' \
