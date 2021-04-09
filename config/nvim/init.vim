@@ -72,6 +72,7 @@ endif
 call plug#begin()
 Plug 'andys8/vim-elm-syntax', { 'for': ['elm'] }
 "Plug 'fatih/vim-go'
+Plug 'godlygeek/tabular'
 "Plug 'hyhugh/coc-erlang_ls', {'do': 'yarn install --frozen-lockfile'}
 Plug 'itchyny/lightline.vim'
 Plug 'jremmen/vim-ripgrep'
