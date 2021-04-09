@@ -2,6 +2,7 @@ TARGETS := \
 	zshrc \
 	config/alacritty/alacritty.yml \
 	config/i3/config \
+	config/i3blocks/config \
 	config/nvim/init.vim \
 	config/nvim/coc-settings.json \
 	config/nvim/colors/molokai.vim \
@@ -39,6 +40,7 @@ FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
 ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
+I3BLOCKS     := src/github.com/vivien/i3blocks-contrib
 MOLOKAI      := src/github.com/tomasr/molokai
 NODENV       := src/github.com/nodenv/nodenv
 NODENV_BUILD := src/github.com/nodenv/node-build
@@ -51,6 +53,7 @@ GITMODULES := \
 	$(ERLANG_LS) \
 	$(FZF) \
 	$(GOENV) \
+	$(I3BLOCKS) \
 	$(MOLOKAI) \
 	$(NODENV) \
 	$(NODENV_BUILD) \
@@ -152,6 +155,7 @@ clean:
 realclean: clean
 	rm -rf src $(HOME)/.config/nvim/plugged
 
+.PRECIOUS: src/%
 .PHONY: all install update update/* clean realclean
 
 

@@ -1,0 +1,64 @@
+# i3blocks config file
+#
+# Please see man i3blocks for a complete reference!
+# The man page is also hosted at http://vivien.github.io/i3blocks
+#
+# List of valid properties:
+#
+# align
+# color
+# command
+# full_text
+# instance
+# interval
+# label
+# min_width
+# name
+# separator
+# separator_block_width
+# short_text
+# signal
+# urgent
+
+# Global properties
+#
+# The top properties below are applied to every block, but can be overridden.
+# Each block command defaults to the script name to avoid boilerplate.
+# Change $SCRIPT_DIR to the location of your scripts!
+command=~/dotfiles/src/github.com/vivien/i3blocks-contrib/$BLOCK_NAME/$BLOCK_NAME
+separator_block_width=40
+markup=none
+
+[iface]
+label=IP:
+#color=#00FF00
+interval=10
+
+[backlight]
+command=echo $(light)"%"
+label=☀:
+interval=once
+signal=2
+
+[volume]
+label=♪:
+#label=VOL:
+interval=once
+signal=2
+#STEP=5%
+
+[cpu_usage]
+label=CPU:
+interval=10
+
+[memory]
+label=MEM:
+interval=30
+
+[battery]
+label=BAT:
+interval=30
+
+[time]
+command=date '+%Y-%m-%d %H:%M'
+interval=5

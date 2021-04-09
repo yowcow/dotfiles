@@ -6,4 +6,4 @@ keycode 66 = Control_L
 add control = Control_L Control_R
 
 !! menu -> super
-keysym Menu = Super_R
+!!keysym Menu = Super_R
