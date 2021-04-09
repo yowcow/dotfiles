@@ -10,6 +10,8 @@ TRACKBALL="Kensington Slimblade Trackball"
 if [ "$(xinput | grep "$TRACKBALL" | wc -l)" -eq "1" ]; then \
     xinput set-prop "$TRACKBALL" "libinput Natural Scrolling Enabled" 1;
     xinput set-prop "$TRACKBALL" "libinput Accel Speed" 1.0;
+    # https://gist.github.com/yowcow/c33a00b7ff89e50f6b3a58f24f1072b5
+    xinput set-button-map "Kensington Slimblade Trackball" 1 8 3 4 5 9 9 2 9;
 fi
 
 TOUCHPAD="SynPS/2 Synaptics TouchPad"
