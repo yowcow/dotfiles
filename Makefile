@@ -6,7 +6,6 @@ TARGETS := \
 	config/nvim/coc-settings.json \
 	config/nvim/colors/molokai.vim \
 	config/kanshi/config \
-	config/polybar/config \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
