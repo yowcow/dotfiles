@@ -31,21 +31,8 @@ markup=none
 
 [iface]
 label=IP:
-#color=#00FF00
+color=#00FF00
 interval=10
-
-[backlight]
-command=echo $(light)"%"
-label=☀:
-interval=once
-signal=2
-
-[volume]
-label=♪:
-#label=VOL:
-interval=once
-signal=2
-#STEP=5%
 
 [cpu_usage]
 label=CPU:
@@ -58,6 +45,19 @@ interval=15
 [battery]
 label=BAT:
 interval=20
+
+[backlight]
+command=echo $(light | xargs printf "%d%%")
+label=☀:
+interval=once
+signal=2
+
+[volume]
+label=♪:
+#label=VOL:
+interval=once
+signal=2
+#STEP=5%
 
 [time]
 command=date '+%Y-%m-%d (%a) %H:%M'
