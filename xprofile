@@ -16,6 +16,7 @@ TOUCHPAD="SynPS/2 Synaptics TouchPad"
 if [ "$(xinput | grep "$TOUCHPAD" | wc -l)" -eq "1" ]; then \
     xinput set-prop "$TOUCHPAD" 'libinput Natural Scrolling Enabled' 1;
     xinput set-prop "$TOUCHPAD" 'libinput Tapping Enabled' 1;
+    xinput set-prop "$TOUCHPAD" 'libinput Accel Speed' 1.0;
 fi
 
 DISP1="eDP-1"
