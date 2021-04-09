@@ -1,25 +1,35 @@
+#!/bin/sh
+
 export TERMINAL=alacritty
 export GDK_SCALE=1
 export GDK_DPI_SCALE=0.65
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 
-xmodmap ~/.Xmodmap
-xrdb -merge ~/.Xresources
-
-xset r rate 250 60
-
 TRACKBALL="Kensington Slimblade Trackball"
-TOUCHPAD="SynPS/2 Synaptics TouchPad"
 
 if [ "$(xinput | grep "$TRACKBALL" | wc -l)" -eq "1" ]; then \
     xinput set-prop "$TRACKBALL" 'libinput Natural Scrolling Enabled' 1;
 fi
+
+TOUCHPAD="SynPS/2 Synaptics TouchPad"
 
 if [ "$(xinput | grep "$TOUCHPAD" | wc -l)" -eq "1" ]; then \
     xinput set-prop "$TOUCHPAD" 'libinput Natural Scrolling Enabled' 1;
     xinput set-prop "$TOUCHPAD" 'libinput Tapping Enabled' 1;
 fi
 
-xrandr \
-    | awk '/HDMI-2 connected/ { getline; print $1 }' \
-    | xargs -I{} xrandr --output HDMI-2 --mode {} --left-of eDP-1
+DISP1="eDP-1"
+DISP2="HDMI-2"
+
+if [ "$(xrandr -q | grep "$DISP2 connected" | wc -l)" -eq "1" ]; then \
+    xrandr -q \
+        | awk "/$DISP2 connected/ { getline; print \$1 }" \
+        | xargs -I{} xrandr --output $DISP2 --mode {} --left-of $DISP1;
+else
+    xrandr --output $DISP2 --off;
+fi
+
+xmodmap ~/.Xmodmap
+xrdb -merge ~/.Xresources
+
+xset r rate 250 60
