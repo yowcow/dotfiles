@@ -40,11 +40,15 @@ interval=10
 
 [memory]
 label=MEM:
-interval=15
+interval=10
+
+[temperature]
+label=TMP:
+interval=10
 
 [battery]
 label=BAT:
-interval=20
+interval=10
 
 [backlight]
 command=echo $(light | xargs printf "%d%%")
