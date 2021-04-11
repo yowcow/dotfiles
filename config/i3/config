@@ -11,6 +11,12 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -e -f -c 
 bindsym $mod+Control+l exec --no-startup-id loginctl lock-session
 exec --no-startup-id xautolock -time 5 -locker 'loginctl lock-session'
 
+# Suspend
+bindsym $mod+Control+s exec --no-startup-id systemctl suspend
+
+# X
+bindsym $mod+Control+x exec --no-startup-id sh ~/.xprofile
+
 exec --no-startup-id nm-applet
 exec --no-startup-id blueman-applet
 exec --no-startup-id pasystray
