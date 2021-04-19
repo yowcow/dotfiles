@@ -90,9 +90,9 @@ update/langs/erlang: $(ERLANG_LS)
 
 update/langs/golang:
 	if which go; then \
-		go get -u golang.org/x/lint/golint; \
-		go get -u golang.org/x/tools/cmd/goimports; \
-		go get -u golang.org/x/tools/gopls; \
+		GO111MODULE=on go get -u golang.org/x/lint/golint@latest; \
+		GO111MODULE=on go get -u golang.org/x/tools/cmd/goimports@latest; \
+		GO111MODULE=on go get -u golang.org/x/tools/gopls@latest; \
 	fi
 
 update/langs/nodejs:
