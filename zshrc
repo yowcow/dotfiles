@@ -21,8 +21,8 @@ zstyle ':vcs_info:*' actionformats '─ %%B%%F{229}%%K{161} %a %%k%f %%F{229}%b%
 # pistachio: 193
 # cyan: 81
 # blue: 75
-PROMPT='┬╴%F{208}%B%n@%U%m%u%b%f ─ %F{81}%B%~%b%f ${vcs_info_msg_0_}
-╰╴%F{248}%D{%Y/%m/%d} %*%f%(?.. %F{118}%B[%?]%b%f) %B%#%b '
+PROMPT='┬╴%F{208}%B%n@%U%m%u%b%f ─ %F{248}%D{%Y/%m/%d} %*%f ─ %F{81}%B%~%b%f ${vcs_info_msg_0_}
+╰╴%(?..%F{118}%B[%?]%b%f)%B%#%b '
 
 add-zsh-hook precmd vcs_info # hook vcs_info
 
