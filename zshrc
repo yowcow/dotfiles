@@ -44,6 +44,7 @@ alias vi="nvim"
 alias be="bundle exec"
 alias ce="carton exec"
 alias realpath="readlink"
+alias bt="bluetoothctl"
 
 export EDITOR=nvim
 export PAGER=less
