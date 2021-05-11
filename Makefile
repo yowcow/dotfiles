@@ -165,6 +165,13 @@ $(HOME)/.%: %
 	ln -sfn `pwd`/$* $@
 
 
+## For macOS Alacritty
+ifeq ($(shell uname -s),Darwin)
+$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.macos.yml
+	ln -s `pwd`/$< $@
+endif
+
+
 ## For fzf
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
