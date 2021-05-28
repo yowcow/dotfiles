@@ -88,11 +88,17 @@ update/langs/erlang: $(ERLANG_LS)
 		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
 	fi
 
+GOTOOLS := \
+	golang.org/x/lint/golint \
+	golang.org/x/tools/cmd/goimports \
+	golang.org/x/tools/gopls
+
 update/langs/golang:
 	if which go; then \
-		GO111MODULE=on go get -u golang.org/x/lint/golint@latest; \
-		GO111MODULE=on go get -u golang.org/x/tools/cmd/goimports@latest; \
-		GO111MODULE=on go get -u golang.org/x/tools/gopls@latest; \
+		for mod in $(GOTOOLS); do \
+			go install $$mod@latest; \
+			echo "installed: $$mod"; \
+		done \
 	fi
 
 update/langs/nodejs:
