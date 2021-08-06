@@ -47,7 +47,6 @@ NODENV_BUILD := src/github.com/nodenv/node-build
 PLENV        := src/github.com/tokuhirom/plenv
 PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
 VIM_PLUG     := src/github.com/junegunn/vim-plug
-ZLS          := src/github.com/zigtools/zls
 
 GITMODULES := \
 	$(ERLANG_LS) \
@@ -59,8 +58,7 @@ GITMODULES := \
 	$(NODENV_BUILD) \
 	$(PLENV) \
 	$(PLENV_BUILD) \
-	$(VIM_PLUG) \
-	$(ZLS)
+	$(VIM_PLUG)
 
 ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
 MAKE := make
@@ -79,7 +77,7 @@ update/gitmodules: $(HOME)/.gitconfig
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
 update/langs:
-	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby ziglang)
+	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby)
 
 update/langs/erlang: $(ERLANG_LS)
 	if which rebar3; then \
@@ -137,13 +135,6 @@ update/langs/python:
 update/langs/ruby:
 	if which gem; then \
 		gem install --user-install neovim; \
-	fi
-
-update/langs/ziglang: $(ZLS)
-	if which zig; then \
-		mkdir -p $(HOME)/.local/bin && \
-		cd $< && \
-		zig build --prefix $(HOME)/.local; \
 	fi
 
 src/%:
