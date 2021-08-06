@@ -3,8 +3,7 @@
     "elm",
     "go",
     "json",
-    "php",
-    "zig"
+    "php"
   ],
   "codeLens.enable": true,
   "languageserver": {
@@ -90,12 +89,6 @@
       "initializationOptions": {
         "storagePath": "/tmp/intelephense"
       }
-    },
-    "zig": {
-      "command": "zls",
-      "filetypes": [
-        "zig"
-      ]
     }
   },
   "snippets.extends": {

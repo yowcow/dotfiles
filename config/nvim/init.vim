@@ -83,7 +83,6 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'szw/vim-tags'
 Plug 'vim-erlang/vim-erlang-runtime'
-Plug 'ziglang/zig.vim'
 call plug#end()
 
 
