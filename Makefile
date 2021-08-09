@@ -23,7 +23,6 @@ TARGETS := \
 	nodenv \
 	nodenv/plugins/node-build \
 	nodenv.zsh \
-	npmrc \
 	ocamlinit \
 	perltidyrc \
 	plenv \
