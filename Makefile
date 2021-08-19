@@ -107,6 +107,7 @@ update/langs/nodejs:
 			intelephense \
 			neovim \
 			npm \
+			sql-formatter-cli \
 			typescript \
 			yarn \
 			; \
