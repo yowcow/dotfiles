@@ -437,5 +437,8 @@ endfunction
 " pip3 install sqlparse
 "command! -range=% SQL <line1>,<line2>call <SID>format("sqlformat -k upper -r -s -", <range>, <line1>, <line2>)
 
+" npm i sql-formatter
+command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter -u -l mysql", <range>, <line1>, <line2>)
+
 " npm i sql-formatter-cli
-command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter-cli -", <range>, <line1>, <line2>)
+"command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter-cli -", <range>, <line1>, <line2>)
