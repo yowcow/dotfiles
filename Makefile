@@ -23,6 +23,7 @@ TARGETS := \
 	nodenv \
 	nodenv/plugins/node-build \
 	nodenv.zsh \
+	npmrc \
 	ocamlinit \
 	perltidyrc \
 	plenv \
@@ -200,6 +201,11 @@ $(HOME)/.nodenv: $(NODENV)
 $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
+
+
+## For npm
+$(HOME)/.npmrc:
+	echo 'prefix = $${HOME}/.npm' > $@
 
 
 ## For plenv
