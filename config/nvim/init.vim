@@ -421,16 +421,17 @@ nnoremap <C-w>L <C-w>20>
 "=== various formatting
 function! s:format(cmd, range, l1, l2) range
     let in = join(getline(a:l1, a:l2), "\n")
-    let out = system(a:cmd, in)
+    let out = system(a:cmd, l:in)
     if v:shell_error != 0
-        echoerr substitute(out, '[\r\n]', ' ', 'g')
+        echoerr substitute(l:out, '[\r\n]', ' ', 'g')
         return
     endif
+    let queries = split(substitute(l:out, '[\r\n]*$', '', 'g'), "\n")
     execute a:l1 . "," . a:l2 . "delete"
     if a:range == 0
-        call setline(a:l1, split(out, "\n"))
+        call setline(a:l1, l:queries)
     else
-        call append(a:l1 - 1, split(out, "\n"))
+        call append(a:l1 - 1, l:queries)
     endif
 endfunction
 
@@ -438,7 +439,7 @@ endfunction
 "command! -range=% SQL <line1>,<line2>call <SID>format("sqlformat -k upper -r -s -", <range>, <line1>, <line2>)
 
 " npm i sql-formatter
-command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter --uppercase --language mysql --lines-between-queries 2 --lines-after-output 0", <range>, <line1>, <line2>)
+command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter --uppercase --language mysql --lines-between-queries 2", <range>, <line1>, <line2>)
 
 " npm i sql-formatter-cli
 "command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter-cli -", <range>, <line1>, <line2>)
