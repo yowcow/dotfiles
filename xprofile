@@ -26,6 +26,8 @@ XRANDR_PRIMARY_OUTPUT="eDP-1"
 XRANDR_SCALE="1.0x1.0"
 XRANDR_PREV_OUTPUT=$XRANDR_PRIMARY_OUTPUT
 
+xrandr --output $XRANDR_PRIMARY_OUTPUT --mode 2560x1440
+
 for output in $(xrandr -q | awk '$2 == "connected" { print $1 }' | grep -v $XRANDR_PRIMARY_OUTPUT); do
     mode=$(xrandr -q | awk "\$1 == \"$output\" { getline; print \$1; }" | head -n1);
     if [ "$XRANDR_PREV_OUTPUT" = "" ]; then
