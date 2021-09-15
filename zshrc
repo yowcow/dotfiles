@@ -66,6 +66,15 @@ export AWS_SESSION_TOKEN_TTL=1h
 
 umask 022
 
+aws-ec2() {
+    aws-vault exec $AWS_PROFILE -- \
+        aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=$1" "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[]" \
+    | jq '.[] | .PrivateIpAddress' -r
+    #| jq '.[] | { InstanceId: .InstanceId, PublicIpAddress: .PublicIpAddress, PrivateIpAddress: .PrivateIpAddress, LaunchTime: .LaunchTime }'
+}
+
 cert-check() {
     echo \
         | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
