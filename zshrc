@@ -75,7 +75,7 @@ aws-ec2() {
         aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=$1" "Name=instance-state-name,Values=running" \
             --query "Reservations[].Instances[]" \
-    | jq '.[] | .PrivateIpAddress' -r
+    | jq '.[] | [.InstanceId, .PrivateIpAddress] | @tsv' -r
     #| jq '.[] | { InstanceId: .InstanceId, PublicIpAddress: .PublicIpAddress, PrivateIpAddress: .PrivateIpAddress, LaunchTime: .LaunchTime }'
 }
 
@@ -92,6 +92,7 @@ ssh-proxy() {
         -o ProxyCommand="ssh -W %h:%p $SSH_PROXY_HOST"
         -o StrictHostKeyChecking=no
         -o UserKnownHostsFile=/dev/null
+        -o TCPKeepAlive=yes
     );
     ssh-copy-id "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 2>/dev/null;
     ssh "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 $2;
