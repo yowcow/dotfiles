@@ -67,6 +67,10 @@ export AWS_SESSION_TOKEN_TTL=1h
 umask 022
 
 aws-ec2() {
+    if [ "$AWS_PROFILE" = "" ]; then
+        echo '$AWS_PROFILE is required';
+        return;
+    fi
     aws-vault exec $AWS_PROFILE -- \
         aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=$1" "Name=instance-state-name,Values=running" \
@@ -76,13 +80,21 @@ aws-ec2() {
 }
 
 ssh-proxy() {
+    if [ "$SSH_PROXY_HOST" = "" ]; then
+        echo '$SSH_PROXY_HOST is required';
+        return;
+    fi
+    if [ "$SSH_REMOTE_USER" = "" ]; then
+        echo '$SSH_REMOTE_USER is required';
+        return;
+    fi
     SSH_PROXY_OPTIONS=(
         -o ProxyCommand="ssh -W %h:%p $SSH_PROXY_HOST"
         -o StrictHostKeyChecking=no
         -o UserKnownHostsFile=/dev/null
-    )
-    ssh-copy-id "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 2>/dev/null
-    ssh "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 $2
+    );
+    ssh-copy-id "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 2>/dev/null;
+    ssh "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 $2;
 }
 
 cert-check() {
