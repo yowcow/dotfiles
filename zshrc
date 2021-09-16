@@ -75,7 +75,7 @@ aws-ec2() {
         aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=$1" "Name=instance-state-name,Values=running" \
             --query "Reservations[].Instances[]" \
-    | jq '.[] | [.InstanceId, .PrivateIpAddress] | @tsv' -r
+    | jq '.[] | [.InstanceId, .PrivateIpAddress, .PublicIpAddress] | @tsv' -r
     #| jq '.[] | { InstanceId: .InstanceId, PublicIpAddress: .PublicIpAddress, PrivateIpAddress: .PrivateIpAddress, LaunchTime: .LaunchTime }'
 }
 
