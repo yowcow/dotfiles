@@ -261,6 +261,6 @@ exec --no-startup-id waybar
 exec --no-startup-id blueman-applet
 exec --no-startup-id nm-applet
 #exec --no-startup-id fcitx -r
-exec --no-startup-id uim-xim
+#exec --no-startup-id uim-xim
 
 include /etc/sway/config.d/*
