@@ -10,6 +10,7 @@ TARGETS := \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
+	config/wofi/style.css \
 	ctags.d/default.ctags \
 	fzf \
 	fzf.zsh \
