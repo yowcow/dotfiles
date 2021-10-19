@@ -87,7 +87,22 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     }
     input type:touchpad {
         natural_scroll "enabled"
+        dwt "enabled"
+        drag "enabled"
+        tap "enabled"
+        tap_button_map "lrm"
+        accel_profile "adaptive"
+        pointer_accel 1.0
     }
+    #input "1149:8257:Kensington_Slimblade_Trackball" {
+    #}
+
+    # Swapping slimblade BTN_SIDE and BTN_MIDDLE
+    # * Device ID retrieved from: swaymsg -t get_inputs
+    # * See https://github.com/swaywm/sway/issues/3960
+    set $TRACKBALL 1149:8257:Kensington_Slimblade_Trackball
+    bindsym --input-device=$TRACKBALL --whole-window button2 seat - cursor press button8, seat - cursor release button8
+    bindsym --input-device=$TRACKBALL --whole-window button8 seat - cursor press button2, seat - cursor release button2
 
 ### Key bindings
 #
