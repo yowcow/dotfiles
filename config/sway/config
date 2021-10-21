@@ -64,6 +64,9 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
              timeout 600  'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
              before-sleep 'swaylock -f -c 333333'
 
+    bindswitch --reload --locked lid:on output eDP-1 disable
+    bindswitch --reload --locked lid:off output eDP-1 enable
+
 ### Input configuration
 #
 # Example configuration:
@@ -131,7 +134,14 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
+    bindsym $mod+Shift+e exec swaynag \
+        -t warning \
+        -f 'JetBrains Mono' \
+        -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' \
+        -b 'Yes, exit sway' 'swaymsg exit'
+
+    # Suspend
+    bindsym $mod+ctrl+s exec systemctl suspend
 
     # Audio Volume
     bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
