@@ -1,6 +1,6 @@
 set $mod Mod4
 
-font pango:JetBrains Mono 5
+font pango:JetBrains Mono 6
 default_border normal 1
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
