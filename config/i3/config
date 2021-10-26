@@ -21,9 +21,8 @@ exec --no-startup-id nm-applet
 exec --no-startup-id blueman-applet
 exec --no-startup-id pasystray
 exec --no-startup-id nitrogen --restore
-exec --no-startup-id fcitx-autostart
-#exec --no-startup-id uim-xim
-#exec --no-startup-id uim-toolbar-gtk3
+#exec --no-startup-id fcitx-autostart
+exec --no-startup-id fcitx5 -r
 exec_always --no-startup-id python3 /opt/i3-alternating-layout/alternating_layouts.py
 exec_always --no-startup-id python3 /opt/i3ipc-python/examples/disable-standby-fs.py
 

@@ -288,6 +288,10 @@ exec --no-startup-id kanshi
 exec --no-startup-id waybar
 exec --no-startup-id blueman-applet
 exec --no-startup-id nm-applet
+
+# im
+#exec --no-startup-id ibus-daeon --panel disable -r --xim
+#exec --no-startup-id fcitx -r
 exec --no-startup-id fcitx5 -r
 #exec --no-startup-id uim-xim
 
