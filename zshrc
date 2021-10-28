@@ -112,15 +112,16 @@ cert-check() {
 ssh-agent-start() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            # update/create symlink so that I can find the path easily later on
             eval $(ssh-agent) && \
-                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock && \
-                export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
         else
             # some environment ssh-agent starts automatically
             [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+            # find the path to sock and and restore the env
             [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=/tmp/ssh-auth.sock;
+                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
         fi
         KEY=$HOME/.ssh/id_rsa \
             && [ -f $KEY ] \
