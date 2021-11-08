@@ -20,6 +20,7 @@ TARGETS := \
 	gnupg/gpg-agent.conf \
 	goenv.zsh \
 	goenv \
+	local/bin/buf \
 	local/share/nvim/site/autoload/plug.vim \
 	nodenv \
 	nodenv/plugins/node-build \
@@ -216,3 +217,9 @@ $(HOME)/.plenv: $(PLENV)
 $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
+
+
+## For tools
+$(HOME)/.local/bin/buf:
+	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
+		&& chmod +x $@
