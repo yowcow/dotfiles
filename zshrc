@@ -52,7 +52,7 @@ export LANG="en_US.UTF-8"
 export GPG_TTY=$(tty)
 export PATH=$HOME/.fzf/bin:$HOME/.local/bin:$HOME/go/bin:/opt/julia/bin:/usr/local/sbin:/usr/sbin:$PATH
 
-for pin in $(find $HOME/.gem/ruby -maxdepth 2 -type d -name bin); do
+for p in $(find $HOME/.gem/ruby -type d -name bin); do
     PATH=$p:$PATH;
 done
 
