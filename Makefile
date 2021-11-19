@@ -221,5 +221,6 @@ $(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
 
 ## For tools
 $(HOME)/.local/bin/buf:
+	mkdir -p $(dir $@)
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
