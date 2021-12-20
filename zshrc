@@ -100,7 +100,7 @@ ssh-proxy() {
         -o TCPKeepAlive=yes
     );
     ssh-copy-id "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 2>/dev/null;
-    ssh "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 $2;
+    ssh "${SSH_PROXY_OPTIONS[@]}" -t -t $SSH_REMOTE_USER@$1 $2;
 }
 
 cert-check() {
