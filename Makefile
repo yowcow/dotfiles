@@ -138,7 +138,9 @@ update/langs/python:
 
 update/langs/ruby:
 	if which gem; then \
-		gem install --user-install neovim; \
+		gem install --user-install --no-document \
+			travis \
+			neovim; \
 	fi
 
 src/%:
