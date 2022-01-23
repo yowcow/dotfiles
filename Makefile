@@ -137,6 +137,8 @@ update/langs/python:
 	fi
 
 update/langs/ruby:
+	## WTF?? Do:
+	## travis login --com --github-token XXXX
 	if which gem; then \
 		gem install --user-install --no-document \
 			travis \
