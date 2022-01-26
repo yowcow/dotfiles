@@ -1,12 +1,13 @@
 TARGETS := \
-	zshrc \
+	Xmodmap \
+	Xresources \
 	config/alacritty/alacritty.yml \
 	config/i3/config \
 	config/i3blocks/config \
-	config/nvim/init.vim \
+	config/kanshi/config \
 	config/nvim/coc-settings.json \
 	config/nvim/colors/molokai.vim \
-	config/kanshi/config \
+	config/nvim/init.vim \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
@@ -16,30 +17,30 @@ TARGETS := \
 	fzf.zsh \
 	gitconfig \
 	gitignore_global \
-	gnupg/gpg.conf \
 	gnupg/gpg-agent.conf \
-	goenv.zsh \
+	gnupg/gpg.conf \
 	goenv \
+	goenv.zsh \
 	local/bin/buf \
 	local/share/nvim/site/autoload/plug.vim \
 	nodenv \
-	nodenv/plugins/node-build \
 	nodenv.zsh \
+	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
 	perltidyrc \
 	plenv \
-	plenv/plugins/perl-build \
 	plenv.zsh \
+	plenv/plugins/perl-build \
 	screenrc \
 	tmux.conf \
-	Xmodmap \
-	Xresources \
-	xprofile
+	xprofile \
+	zshrc
 
 FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
 
 ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
+ERLFMT       := src/github.com/whatsapp/erlfmt
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
 I3BLOCKS     := src/github.com/vivien/i3blocks-contrib
@@ -52,6 +53,7 @@ VIM_PLUG     := src/github.com/junegunn/vim-plug
 
 GITMODULES := \
 	$(ERLANG_LS) \
+	$(ERLFMT) \
 	$(FZF) \
 	$(GOENV) \
 	$(I3BLOCKS) \
@@ -81,11 +83,20 @@ update/gitmodules: $(HOME)/.gitconfig
 update/langs:
 	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby)
 
-update/langs/erlang: $(ERLANG_LS)
+update/langs/erlang: update/langs/erlang/erlang_ls update/langs/erlang/erlfmt
+
+update/langs/erlang/erlang_ls: $(ERLANG_LS)
 	if which rebar3; then \
 		mkdir -p $(HOME)/.local/bin && \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
+	fi
+
+update/langs/erlang/erlfmt: $(ERLFMT)
+	if which rebar3; then \
+		mkdir -p $(HOME)/.local/bin; \
+		$(MAKE) -C $< release && \
+		cp $</_build/release/bin/erlfmt $(HOME)/.local/bin/; \
 	fi
 
 GOTOOLS := \

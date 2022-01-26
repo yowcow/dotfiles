@@ -472,16 +472,11 @@ function! s:replace_visual_selection(out)
     call append(l:line_start-1, l:result)
 endfunction
 
-function! s:format_erlval() range
-    let in = <SID>get_visual_selection()
-    let cmd = "erl -noshell -eval 'io:format(\"~40p\", [" . l:in . "]).' -s init stop"
-    let out = system(l:cmd)
-    if v:shell_error != 0
-        echoerr substitute(l:out, '[\r\n]', ' ', 'g')
-        return
-    endif
-    call <SID>replace_visual_selection(l:out)
+function! s:format_erl()
+    let out = system("erlfmt ". expand('%'))
+    %delete
+    call append(0, split(l:out, "\n"))
 endfunction
 
 " erlang format
-command! -range Erl '<,'> call <SID>format_erlval()
+command! Erl call <SID>format_erl()
