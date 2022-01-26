@@ -419,7 +419,7 @@ nnoremap <C-w>L <C-w>20>
 
 
 "=== various formatting
-function! s:format(cmd, range, l1, l2) range
+function! s:format_lines(cmd, range, l1, l2) range
     let in = join(getline(a:l1, a:l2), "\n")
     let out = system(a:cmd, l:in)
     if v:shell_error != 0
@@ -436,10 +436,52 @@ function! s:format(cmd, range, l1, l2) range
 endfunction
 
 " pip3 install sqlparse
-"command! -range=% SQL <line1>,<line2>call <SID>format("sqlformat -k upper -r -s -", <range>, <line1>, <line2>)
+"command! -range=% SQL <line1>,<line2>call <SID>format("sqlformat -k upper -s -", <range>, <line1>, <line2>)
 
 " npm i sql-formatter
-command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter --uppercase --language db2 --lines-between-queries 2", <range>, <line1>, <line2>)
+command! -range=% SQL <line1>,<line2>call <SID>format_lines("sql-formatter --uppercase --language mysql --lines-between-queries 2", <range>, <line1>, <line2>)
 
 " npm i sql-formatter-cli
 "command! -range=% SQL <line1>,<line2>call <SID>format("sql-formatter-cli -", <range>, <line1>, <line2>)
+
+" https://stackoverflow.com/questions/1533565/how-to-get-visually-selected-text-in-vimscript/6271254#6271254
+function! s:get_visual_selection()
+    " Why is this not a built-in Vim script function?!
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let lines = getline(line_start, line_end)
+    if len(lines) == 0
+        return ''
+    endif
+    let lines[-1] = lines[-1][: column_end - (&selection == 'inclusive' ? 1 : 2)]
+    let lines[0] = lines[0][column_start - 1:]
+    return join(lines, "\n")
+endfunction
+
+function! s:replace_visual_selection(out)
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    "echom join(["start -> line", l:line_start, "col", l:column_start,
+    "            \"end -> line", l:line_end, "col", l:column_end], " ")
+    let prev = l:column_start == 1 ? "" : getline(l:line_start)[:l:column_start-2]
+    let post = getline(l:line_end)[l:column_end:]
+    let result = split(a:out, "\n")
+    let result[0] = l:prev . l:result[0]
+    let result[-1] = l:result[-1] . l:post
+    '<,'>delete
+    call append(l:line_start-1, l:result)
+endfunction
+
+function! s:format_erlval() range
+    let in = <SID>get_visual_selection()
+    let cmd = "erl -noshell -eval 'io:format(\"~40p\", [" . l:in . "]).' -s init stop"
+    let out = system(l:cmd)
+    if v:shell_error != 0
+        echoerr substitute(l:out, '[\r\n]', ' ', 'g')
+        return
+    endif
+    call <SID>replace_visual_selection(l:out)
+endfunction
+
+" erlang format
+command! -range Erl '<,'> call <SID>format_erlval()
