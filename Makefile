@@ -5,9 +5,7 @@ TARGETS := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
-	config/nvim/coc-settings.json \
-	config/nvim/colors/molokai.vim \
-	config/nvim/init.vim \
+	config/nvim/init.lua \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
@@ -22,7 +20,7 @@ TARGETS := \
 	goenv \
 	goenv.zsh \
 	local/bin/buf \
-	local/share/nvim/site/autoload/plug.vim \
+	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	nodenv \
 	nodenv.zsh \
 	nodenv/plugins/node-build \
@@ -37,6 +35,11 @@ TARGETS := \
 	xprofile \
 	zshrc
 
+	#config/nvim/coc-settings.json \
+	#config/nvim/colors/molokai.vim \
+	#config/nvim/init.vim \
+	#local/share/nvim/site/autoload/plug.vim \
+
 FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
 
 ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
@@ -47,9 +50,10 @@ I3BLOCKS     := src/github.com/vivien/i3blocks-contrib
 MOLOKAI      := src/github.com/tomasr/molokai
 NODENV       := src/github.com/nodenv/nodenv
 NODENV_BUILD := src/github.com/nodenv/node-build
+PAQ_NVIM     := src/github.com/savq/paq-nvim
 PLENV        := src/github.com/tokuhirom/plenv
 PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
-VIM_PLUG     := src/github.com/junegunn/vim-plug
+#VIM_PLUG     := src/github.com/junegunn/vim-plug
 
 GITMODULES := \
 	$(ERLANG_LS) \
@@ -60,9 +64,9 @@ GITMODULES := \
 	$(MOLOKAI) \
 	$(NODENV) \
 	$(NODENV_BUILD) \
+	$(PAQ_NVIM) \
 	$(PLENV) \
-	$(PLENV_BUILD) \
-	$(VIM_PLUG)
+	$(PLENV_BUILD)
 
 ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
 MAKE := make
@@ -204,6 +208,10 @@ $(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
 $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</plug.vim $@
+
+$(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$</ $@
 
 
 ## For goenv
