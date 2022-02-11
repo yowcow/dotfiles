@@ -104,9 +104,10 @@ update/langs/erlang/erlfmt: $(ERLFMT)
 	fi
 
 GOTOOLS := \
-	golang.org/x/lint/golint \
+	github.com/mattn/efm-langserver \
 	golang.org/x/tools/cmd/goimports \
-	golang.org/x/tools/gopls
+	golang.org/x/tools/gopls \
+	honnef.co/go/tools/cmd/staticcheck
 
 update/langs/golang:
 	if which go; then \
@@ -119,7 +120,9 @@ update/langs/golang:
 update/langs/nodejs:
 	if which npm; then \
 		npm -g install \
+			@ansible/ansible-language-server \
 			diagnostic-languageserver \
+			eslint \
 			elm elm-test elm-format \
 			@elm-tooling/elm-language-server \
 			intelephense \
@@ -127,7 +130,8 @@ update/langs/nodejs:
 			npm \
 			sql-formatter \
 			sql-formatter-cli \
-			typescript \
+			typescript typescript-language-server \
+			vscode-langservers-extracted \
 			yarn \
 			; \
 	fi
