@@ -240,11 +240,11 @@ cmd('augroup END')
 
 cmd('augroup bufwritepre')
 cmd('autocmd!')
+cmd('autocmd FileType php autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync(nil, 1000)')
 cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!goimports')
 -- cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!gofmt')
 cmd('autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <buffer> silent! EslintFixAll')
 cmd('autocmd FileType json autocmd BufWritePre <buffer> silent! %!jq "."')
--- cmd('autocmd FileType * autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync(nil, 1000)')
 cmd('augroup END')
 
 map('n', 'tl', ':tabs<CR>')
