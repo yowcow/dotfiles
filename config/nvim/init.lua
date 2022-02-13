@@ -21,6 +21,10 @@ opt.tabstop = 4
 opt.visualbell = false
 opt.writebackup = false
 
+--
+-- https://github.com/savq/paq-nvim
+-- :help paq
+--
 require 'paq' {
   'godlygeek/tabular';
   'hrsh7th/cmp-buffer';
@@ -37,12 +41,19 @@ require 'paq' {
   'nvim-lua/plenary.nvim';
   'nvim-treesitter/nvim-treesitter';
   'savq/paq-nvim';
+  'tanvirtin/monokai.nvim';
   {'junegunn/fzf', dir = '~/.fzf/'};
   -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'};
 }
 
 --
+-- https://github.com/tanvirtin/monokai.nvim
+--
+require 'monokai'.setup {}
+
+--
 -- https://github.com/nvim-treesitter/nvim-treesitter
+-- :help treesitter
 --
 require 'nvim-treesitter.configs'.setup {
   ensure_installed = 'all',
@@ -54,6 +65,7 @@ require 'nvim-treesitter.configs'.setup {
 
 --
 -- https://github.com/hrsh7th/nvim-cmp
+-- :help nvim-cmp
 --
 local cmp = require 'cmp'
 cmp.setup {
@@ -143,6 +155,7 @@ end
 
 --
 -- https://github.com/neovim/nvim-lspconfig
+-- :help lsp
 --
 local lspconfig = require 'lspconfig'
 local lspservers = {
@@ -192,6 +205,7 @@ nullls.setup {
 
 --
 -- https://github.com/itchyny/lightline.vim
+-- :help lightline
 --
 g.lightline = {
   component = {
@@ -211,7 +225,10 @@ g.lightline = {
   }
 }
 
+--
 -- FZF
+-- :help fzf
+--
 map('n', ';b', ':Buffers<CR>')
 map('n', ';w', ':Windows<CR>')
 map('n', ';t', ':Files<CR>')
