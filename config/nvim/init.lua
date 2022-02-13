@@ -58,7 +58,8 @@ require 'monokai'.setup {}
 -- :help treesitter
 --
 require 'nvim-treesitter.configs'.setup {
-  ensure_installed = 'all',
+  -- one of: all, maintained, or a list of languages
+  ensure_installed = {},
   sync_install = false,
   highlight = {
     enable = true
