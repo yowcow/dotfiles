@@ -5,9 +5,7 @@ TARGETS := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
-	config/nvim/coc-settings.json \
-	config/nvim/colors/molokai.vim \
-	config/nvim/init.vim \
+	config/nvim/init.lua \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
@@ -22,7 +20,7 @@ TARGETS := \
 	goenv \
 	goenv.zsh \
 	local/bin/buf \
-	local/share/nvim/site/autoload/plug.vim \
+	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	nodenv \
 	nodenv.zsh \
 	nodenv/plugins/node-build \
@@ -32,24 +30,21 @@ TARGETS := \
 	plenv \
 	plenv.zsh \
 	plenv/plugins/perl-build \
-	screenrc \
 	tmux.conf \
-	xprofile \
-	zshrc
+	xprofile
 
-FULLTARGETS = $(addprefix $(HOME)/.,$(TARGETS))
+FULLTARGETS = $(addprefix $(HOME)/.,zshrc $(TARGETS))
 
 ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
 ERLFMT       := src/github.com/whatsapp/erlfmt
 FZF          := src/github.com/junegunn/fzf
 GOENV        := src/github.com/syndbg/goenv
 I3BLOCKS     := src/github.com/vivien/i3blocks-contrib
-MOLOKAI      := src/github.com/tomasr/molokai
 NODENV       := src/github.com/nodenv/nodenv
 NODENV_BUILD := src/github.com/nodenv/node-build
+PAQ_NVIM     := src/github.com/savq/paq-nvim
 PLENV        := src/github.com/tokuhirom/plenv
 PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
-VIM_PLUG     := src/github.com/junegunn/vim-plug
 
 GITMODULES := \
 	$(ERLANG_LS) \
@@ -57,12 +52,11 @@ GITMODULES := \
 	$(FZF) \
 	$(GOENV) \
 	$(I3BLOCKS) \
-	$(MOLOKAI) \
 	$(NODENV) \
 	$(NODENV_BUILD) \
+	$(PAQ_NVIM) \
 	$(PLENV) \
-	$(PLENV_BUILD) \
-	$(VIM_PLUG)
+	$(PLENV_BUILD)
 
 ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
 MAKE := make
@@ -75,24 +69,24 @@ all:
 
 update:
 	+$(MAKE) update/gitmodules
-	+$(MAKE) update/langs
+	+$(MAKE) update/lang
 
 update/gitmodules: $(HOME)/.gitconfig
 	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
 
-update/langs:
+update/lang:
 	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby)
 
-update/langs/erlang: update/langs/erlang/erlang_ls update/langs/erlang/erlfmt
+update/lang/erlang: update/lang/erlang/erlang_ls update/lang/erlang/erlfmt
 
-update/langs/erlang/erlang_ls: $(ERLANG_LS)
+update/lang/erlang/erlang_ls: $(ERLANG_LS)
 	if which rebar3; then \
 		mkdir -p $(HOME)/.local/bin && \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
 	fi
 
-update/langs/erlang/erlfmt: $(ERLFMT)
+update/lang/erlang/erlfmt: $(ERLFMT)
 	if which rebar3; then \
 		mkdir -p $(HOME)/.local/bin; \
 		$(MAKE) -C $< release && \
@@ -100,11 +94,11 @@ update/langs/erlang/erlfmt: $(ERLFMT)
 	fi
 
 GOTOOLS := \
-	golang.org/x/lint/golint \
 	golang.org/x/tools/cmd/goimports \
-	golang.org/x/tools/gopls
+	golang.org/x/tools/gopls \
+	honnef.co/go/tools/cmd/staticcheck
 
-update/langs/golang:
+update/lang/golang:
 	if which go; then \
 		for mod in $(GOTOOLS); do \
 			go install $$mod@latest; \
@@ -112,10 +106,12 @@ update/langs/golang:
 		done \
 	fi
 
-update/langs/nodejs:
+update/lang/nodejs:
 	if which npm; then \
 		npm -g install \
+			@ansible/ansible-language-server \
 			diagnostic-languageserver \
+			eslint \
 			elm elm-test elm-format \
 			@elm-tooling/elm-language-server \
 			intelephense \
@@ -123,12 +119,14 @@ update/langs/nodejs:
 			npm \
 			sql-formatter \
 			sql-formatter-cli \
-			typescript \
+			tree-sitter-cli \
+			typescript typescript-language-server \
+			vscode-langservers-extracted \
 			yarn \
 			; \
 	fi
 
-update/langs/python3:
+update/lang/python3:
 	if which pip3; then \
 		pip3 install --upgrade \
 			pynvim \
@@ -138,7 +136,7 @@ update/langs/python3:
 			; \
 	fi
 
-update/langs/python:
+update/lang/python:
 	if which pip; then \
 		pip install --upgrade \
 			neovim \
@@ -147,7 +145,7 @@ update/langs/python:
 			; \
 	fi
 
-update/langs/ruby:
+update/lang/ruby:
 	## WTF?? Do:
 	## travis login --com --github-token XXXX
 	if which gem; then \
@@ -169,16 +167,10 @@ clean:
 	rm -rf $(FULLTARGETS)
 
 realclean: clean
-	rm -rf src $(HOME)/.config/nvim/plugged
+	rm -rf src $(HOME)/.config/nvim $(HOME)/.local/share/nvim
 
 .PRECIOUS: src/%
 .PHONY: all install update update/* clean realclean
-
-
-## Create symlink by default
-$(HOME)/.%: %
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$* $@
 
 
 ## For macOS Alacritty
@@ -188,7 +180,7 @@ $(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.macos.yml
 endif
 
 
-## For fzf
+## For fzf (should be called after ~/.zshrc)
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
 
@@ -197,13 +189,9 @@ $(HOME)/.fzf.zsh: $(HOME)/.fzf
 
 
 ### For neovim
-$(HOME)/.config/nvim/colors/molokai.vim: $(MOLOKAI)
+$(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
 	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$</colors/molokai.vim $@
-
-$(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIM_PLUG)
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$</plug.vim $@
+	ln -sfn `pwd`/$</ $@
 
 
 ## For goenv
@@ -239,3 +227,9 @@ $(HOME)/.local/bin/buf:
 	mkdir -p $(dir $@)
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
+
+
+## By default, fallback to create symlink
+$(HOME)/.%: %
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$* $@
