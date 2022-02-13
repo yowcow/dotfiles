@@ -2,6 +2,8 @@
 	name = Yoko OYAMA
 	email = yowcow@gmail.com
 	signingkey = B328BCB4509C0BDB
+[github]
+	user = yowcow
 [color]
 	ui = auto
 [core]
