@@ -37,6 +37,8 @@ require 'paq' {
   'itchyny/lightline.vim';
   'jose-elias-alvarez/null-ls.nvim';
   'junegunn/fzf.vim';
+  'mattn/vim-gist';
+  'mattn/webapi-vim';
   'neovim/nvim-lspconfig';
   'nvim-lua/plenary.nvim';
   'nvim-treesitter/nvim-treesitter';
