@@ -18,10 +18,13 @@ opt.showmode = false
 opt.showtabline = 2
 opt.signcolumn = 'yes'
 opt.smartcase = true
+opt.smartindent = true
 opt.softtabstop = 4
 opt.tabstop = 4
 opt.visualbell = false
 opt.writebackup = false
+
+cmd('filetype plugin indent on')
 
 --
 -- https://github.com/savq/paq-nvim
@@ -162,6 +165,7 @@ end
 -- https://github.com/neovim/nvim-lspconfig
 -- :help lsp
 --
+-- vim.lsp.set_log_level('debug')
 local lspconfig = require 'lspconfig'
 local lspservers = {
   'ansiblels',
@@ -256,7 +260,7 @@ cmd('augroup tabstop')
 cmd('autocmd!')
 cmd('autocmd FileType make,go setlocal noexpandtab')
 cmd('autocmd FileType xml,xhtml,html,smarty setlocal softtabstop=2 tabstop=2 shiftwidth=2')
-cmd('autocmd FileType javascript,javascript.jsx,typescript,typescript.tsx,ruby,lua,json,yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2')
+cmd('autocmd FileType javascript,javascript.jsx,javascriptreact,typescript,typescript.tsx,typescriptreact,ruby,lua,json,yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2')
 cmd('autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2')
 cmd('augroup END')
 
@@ -269,17 +273,17 @@ cmd('autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <
 cmd('autocmd FileType json autocmd BufWritePre <buffer> silent! %!jq "."')
 cmd('augroup END')
 
-map('n', 'tl', ':tabs<CR>')
+-- map('n', 'tl', ':tabs<CR>')
 map('n', 'tn', ':tabnew<space>')
 map('n', 'tt', ':tabedit<space>')
-map('n', 'tj', ':tabnext<CR>')
-map('n', 'tk', ':tabprev<CR>')
+map('n', 'tl', ':tabnext<CR>')
+map('n', 'th', ':tabprev<CR>')
 map('n', 'tm', ':tabmove<space>')
 map('n', 'td', ':tabclose<CR>')
-map('n', 'bl', ':buffers<CR>')
+-- map('n', 'bl', ':buffers<CR>')
 map('n', 'bn', ':e<space>')
-map('n', 'bj', ':bnext<CR>')
-map('n', 'bk', ':bprev<CR>')
+map('n', 'bl', ':bnext<CR>')
+map('n', 'bh', ':bprev<CR>')
 map('n', 'bd', ':bd<CR>')
 
 local function get_selection(from, to)

@@ -5,6 +5,7 @@ TARGETS := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
+	config/nvim/after \
 	config/nvim/init.lua \
 	config/sway/config \
 	config/waybar/config \
