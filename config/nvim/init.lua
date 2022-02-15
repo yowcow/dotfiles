@@ -250,6 +250,7 @@ g.fzf_history_dir = '~/.fzf-history'
 cmd('colorscheme monokai')
 cmd('hi Comment ctermfg=244')
 cmd('hi Cursorline ctermbg=236')
+cmd('hi PmenuSel ctermbg=208')
 cmd('hi Visual ctermbg=240')
 
 cmd('augroup filetyping')
