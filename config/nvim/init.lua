@@ -48,15 +48,10 @@ require 'paq' {
   'nvim-lua/plenary.nvim';
   'nvim-treesitter/nvim-treesitter';
   'savq/paq-nvim';
-  'tanvirtin/monokai.nvim';
+  'sickill/vim-monokai';
   {'junegunn/fzf', dir = '~/.fzf/'};
   -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'};
 }
-
---
--- https://github.com/tanvirtin/monokai.nvim
---
-require 'monokai'.setup {}
 
 --
 -- https://github.com/nvim-treesitter/nvim-treesitter
@@ -250,6 +245,13 @@ g.fzf_history_dir = '~/.fzf-history'
 --
 -- personal things
 --
+
+-- https://www.ditig.com/256-colors-cheat-sheet
+cmd('colorscheme monokai')
+cmd('hi Comment ctermfg=244')
+cmd('hi Cursorline ctermbg=236')
+cmd('hi Visual ctermbg=240')
+
 cmd('augroup filetyping')
 cmd('autocmd!')
 cmd('autocmd BufNewFile,BufRead *.psgi set filetype=perl')
