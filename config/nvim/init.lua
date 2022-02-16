@@ -20,6 +20,7 @@ opt.signcolumn = 'yes'
 opt.smartcase = true
 opt.smartindent = true
 opt.softtabstop = 4
+opt.swapfile = false
 opt.tabstop = 4
 opt.visualbell = false
 opt.writebackup = false
@@ -80,7 +81,7 @@ cmp.setup {
   mapping = {
     ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), {'i', 'c'}),
     ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), {'i', 'c'}),
-    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), {'i', 'c'}),
+    ['<C-k>'] = cmp.mapping(cmp.mapping.complete(), {'i', 'c'}),
     ['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
     ['<C-l>'] = cmp.mapping({
       i = cmp.mapping.abort(),
@@ -111,9 +112,6 @@ cmp.setup.cmdline(':', {
     {name = 'cmdline'}
   })
 })
-
--- Setup lspconfig.
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 local function map(mode, lhs, rhs, opts)
   vim.api.nvim_set_keymap(mode, lhs, rhs, opts and opts or {noremap = true})
@@ -161,6 +159,7 @@ end
 -- :help lsp
 --
 -- vim.lsp.set_log_level('debug')
+local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 local lspconfig = require 'lspconfig'
 local lspservers = {
   'ansiblels',
