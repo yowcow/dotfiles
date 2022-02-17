@@ -253,7 +253,7 @@ cmd('hi MatchParen ctermfg=202')
 cmd('hi Pmenu ctermfg=252 ctermbg=236')
 cmd('hi PmenuSel ctermbg=166 ctermfg=255')
 cmd('hi Search ctermbg=100')
-cmd('hi Visual ctermbg=240')
+cmd('hi Visual ctermbg=237')
 
 cmd('augroup filetyping')
 cmd('autocmd!')
