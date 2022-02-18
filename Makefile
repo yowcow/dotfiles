@@ -117,7 +117,7 @@ update/lang/nodejs:
 			@elm-tooling/elm-language-server \
 			intelephense \
 			neovim \
-			npm \
+			npm npm-check-updates \
 			sql-formatter \
 			sql-formatter-cli \
 			tree-sitter-cli \

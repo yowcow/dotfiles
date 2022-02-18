@@ -18,7 +18,7 @@ opt.showmode = false
 opt.showtabline = 2
 opt.signcolumn = 'yes'
 opt.smartcase = true
-opt.smartindent = true
+opt.smartindent = false
 opt.softtabstop = 4
 opt.swapfile = false
 opt.tabstop = 4
@@ -36,6 +36,7 @@ require 'paq' {
   'hrsh7th/cmp-buffer';
   'hrsh7th/cmp-cmdline';
   'hrsh7th/cmp-nvim-lsp';
+  'hrsh7th/cmp-nvim-lua';
   'hrsh7th/cmp-path';
   'hrsh7th/cmp-vsnip';
   'hrsh7th/nvim-cmp';
@@ -90,10 +91,12 @@ cmp.setup {
     ['<CR>'] = cmp.mapping.confirm({select = true}), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
   },
   sources = cmp.config.sources({
+    {name = 'nvim_lua'},
     {name = 'nvim_lsp'},
     {name = 'vsnip'}, -- For vsnip users.
+    {name = 'path'},
+    {name = 'buffer', keyword_length = 5},
   }, {
-    {name = 'buffer'},
   })
 }
 
