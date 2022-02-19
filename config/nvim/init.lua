@@ -73,7 +73,7 @@ require 'nvim-treesitter.configs'.setup {
 -- https://github.com/folke/tokyonight.nvim
 -- https://www.ditig.com/256-colors-cheat-sheet
 --
-vim.g.tokyonight_style = 'storm';
+vim.g.tokyonight_style = 'night';
 cmd('colorscheme tokyonight');
 
 require 'lualine'.setup {
