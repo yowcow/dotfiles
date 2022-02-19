@@ -97,15 +97,9 @@ font:
     #   - (macOS) Menlo
     #   - (Linux/BSD) monospace
     #   - (Windows) Consolas
+    #   - fc-list | rg nerd -i | cut -d: -f2 | sort | uniq -c
     #family: monospace
-    #family: DejaVu Sans Mono
-    #family: Fira Code Medium
-    #family: FreeMono
-    family: IBM Plex Mono Medm
-    #family: JetBrains Mono
-    #family: Liberation Mono
-    #family: PT Mono
-    #family: Ubuntu Mono
+    family: BlexMono NF
 
     # The `style` can be specified to pick a specific face.
     #style: Regular
@@ -148,9 +142,9 @@ font:
 
   # Offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
-  #offset:
-  #  x: 1
-  #  y: 1
+  offset:
+    x: 0
+    y: -1
 
   # Glyph offset determines the locations of the glyphs within their cells with
   # the default being at the bottom. Increasing `x` moves the glyph to the right,

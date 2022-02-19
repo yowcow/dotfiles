@@ -32,6 +32,7 @@ cmd('filetype plugin indent on')
 -- :help paq
 --
 require 'paq' {
+  'folke/tokyonight.nvim';
   'godlygeek/tabular';
   'hrsh7th/cmp-buffer';
   'hrsh7th/cmp-cmdline';
@@ -41,16 +42,16 @@ require 'paq' {
   'hrsh7th/cmp-vsnip';
   'hrsh7th/nvim-cmp';
   'hrsh7th/vim-vsnip';
-  'itchyny/lightline.vim';
   'jose-elias-alvarez/null-ls.nvim';
   'junegunn/fzf.vim';
+  'kyazdani42/nvim-web-devicons';
   'mattn/vim-gist';
   'mattn/webapi-vim';
   'neovim/nvim-lspconfig';
   'nvim-lua/plenary.nvim';
+  'nvim-lualine/lualine.nvim';
   'nvim-treesitter/nvim-treesitter';
   'savq/paq-nvim';
-  'sickill/vim-monokai';
   {'junegunn/fzf', dir = '~/.fzf/'};
   -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'};
 }
@@ -61,11 +62,29 @@ require 'paq' {
 --
 require 'nvim-treesitter.configs'.setup {
   -- one of: all, maintained, or a list of languages
-  ensure_installed = {},
+  ensure_installed = 'all',
   sync_install = false,
   highlight = {
     enable = true
   }
+}
+
+--
+-- https://github.com/folke/tokyonight.nvim
+-- https://www.ditig.com/256-colors-cheat-sheet
+--
+vim.g.tokyonight_style = 'storm';
+cmd('colorscheme tokyonight');
+
+require 'lualine'.setup {
+  sections = {
+    lualine_c = {
+      {'filename', path = 1}
+    },
+  },
+  options = {
+    theme = 'tokyonight',
+  },
 }
 
 --
@@ -210,28 +229,6 @@ nullls.setup {
 }
 
 --
--- https://github.com/itchyny/lightline.vim
--- :help lightline
---
-g.lightline = {
-  component = {
-    filename = '%f',
-    charvaluehex = '0x%B',
-  },
-  tab = {
-    active   = {'tabnum', 'filename', 'modified'},
-    inactive = {'tabnum', 'filename', 'modified'},
-  },
-  active = {
-    right = {
-      {'lineinfo'},
-      {'percent'},
-      {'fileformat', 'fileencoding', 'filetype', 'charvaluehex'},
-    }
-  }
-}
-
---
 -- FZF
 -- :help fzf
 --
@@ -247,17 +244,6 @@ g.fzf_history_dir = '~/.fzf-history'
 --
 -- personal things
 --
-
--- https://www.ditig.com/256-colors-cheat-sheet
-cmd('colorscheme monokai')
-cmd('hi Comment ctermfg=244')
-cmd('hi Cursorline ctermbg=236')
-cmd('hi MatchParen ctermfg=202')
-cmd('hi Pmenu ctermfg=252 ctermbg=236')
-cmd('hi PmenuSel ctermbg=166 ctermfg=255')
-cmd('hi Search ctermbg=100')
-cmd('hi Visual ctermbg=237')
-
 cmd('augroup filetyping')
 cmd('autocmd!')
 cmd('autocmd BufNewFile,BufRead *.psgi set filetype=perl')

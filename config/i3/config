@@ -1,6 +1,6 @@
 set $mod Mod4
 
-font pango:IBM Plex Mono Medm 6
+font pango:IBM Plex Mono Medm 5
 
 default_border normal 0
 
