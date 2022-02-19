@@ -1,7 +1,8 @@
 set $mod Mod4
 
 font pango:IBM Plex Mono Medm 6
-default_border normal 1
+
+default_border normal 0
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
