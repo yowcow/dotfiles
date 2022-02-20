@@ -22,6 +22,7 @@ opt.smartindent = false
 opt.softtabstop = 4
 opt.swapfile = false
 opt.tabstop = 4
+opt.termguicolors = true
 opt.visualbell = false
 opt.writebackup = false
 
@@ -57,24 +58,10 @@ require 'paq' {
 }
 
 --
--- https://github.com/nvim-treesitter/nvim-treesitter
--- :help treesitter
---
-require 'nvim-treesitter.configs'.setup {
-  -- one of: all, maintained, or a list of languages
-  ensure_installed = 'all',
-  sync_install = false,
-  highlight = {
-    enable = true
-  }
-}
-
---
--- https://github.com/folke/tokyonight.nvim
 -- https://www.ditig.com/256-colors-cheat-sheet
 --
-vim.g.tokyonight_style = 'night';
-cmd('colorscheme tokyonight');
+vim.g.tokyonight_style = 'night'
+cmd('colorscheme tokyonight')
 
 require 'lualine'.setup {
   sections = {
@@ -83,8 +70,24 @@ require 'lualine'.setup {
     },
   },
   options = {
+    icons_enabled = false,
     theme = 'tokyonight',
+    component_separators = {left = '', right = ''},
+    section_separators = {left = '', right = ''},
   },
+}
+
+--
+-- https://github.com/nvim-treesitter/nvim-treesitter
+-- :help treesitter
+--
+require 'nvim-treesitter.configs'.setup {
+  -- one of: all, maintained, or a list of languages
+  ensure_installed = {},
+  sync_install = false,
+  highlight = {
+    enable = true
+  }
 }
 
 --

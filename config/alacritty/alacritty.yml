@@ -100,7 +100,8 @@ font:
     #   - fc-list | rg nerd -i | cut -d: -f2 | sort | uniq -c
     #family: monospace
     #family: BlexMono NF
-    family: Cousine NF
+    #family: Cousine NF
+    family: IBM Plex Mono Medm
 
     # The `style` can be specified to pick a specific face.
     #style: Regular
