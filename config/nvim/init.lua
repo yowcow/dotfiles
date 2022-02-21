@@ -35,7 +35,6 @@ cmd('filetype plugin indent on')
 -- :help paq
 --
 require 'paq' {
-  'folke/tokyonight.nvim';
   'godlygeek/tabular';
   'hrsh7th/cmp-buffer';
   'hrsh7th/cmp-cmdline';
@@ -55,15 +54,33 @@ require 'paq' {
   'nvim-lualine/lualine.nvim';
   'nvim-treesitter/nvim-treesitter';
   'savq/paq-nvim';
+  'tanvirtin/monokai.nvim';
   {'junegunn/fzf', dir = '~/.fzf/'};
   -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'};
 }
 
 --
+-- tanvirtin/monokai.vim
+-- https://github.com/tanvirtin/monokai.nvim
+-- https://github.com/tomasr/molokai/blob/master/colors/molokai.vim
+-- https://www.color-hex.com/
 -- https://www.ditig.com/256-colors-cheat-sheet
 --
-vim.g.tokyonight_style = 'night'
-cmd('colorscheme tokyonight')
+local monokai = require 'monokai'
+local palette = monokai.classic
+monokai.setup {
+  custom_hlgroups = {
+    TabLine = {
+      fg = palette.grey
+    },
+    Identifier = {
+      fg = palette.orange
+    },
+    Special = {
+      fg = palette.aqua
+    },
+  },
+}
 
 require 'lualine'.setup {
   sections = {
@@ -73,7 +90,7 @@ require 'lualine'.setup {
   },
   options = {
     icons_enabled = false,
-    theme = 'tokyonight',
+    theme = 'molokai',
     component_separators = {left = '', right = ''},
     section_separators = {left = '', right = ''},
   },
