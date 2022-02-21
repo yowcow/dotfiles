@@ -41,8 +41,6 @@ setopt share_history
 setopt magic_equal_subst
 
 alias vi="nvim"
-alias be="bundle exec"
-alias ce="carton exec"
 alias realpath="readlink"
 alias bt="bluetoothctl"
 
