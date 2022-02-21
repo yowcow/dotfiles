@@ -13,6 +13,7 @@ opt.ignorecase = true
 opt.joinspaces = false
 opt.list = true
 opt.listchars = 'tab:>-,trail:^'
+opt.number = true
 opt.shiftwidth = 4
 opt.showmode = false
 opt.showtabline = 2
@@ -29,6 +30,9 @@ opt.visualbell = false
 opt.writebackup = false
 
 cmd('filetype plugin indent on')
+
+-- https://www.reddit.com/r/neovim/comments/petq61/neovim_060_y_not_yanking_line_but_to_end_of_line/
+cmd('nnoremap Y Y')
 
 --
 -- https://github.com/savq/paq-nvim
@@ -70,14 +74,17 @@ local monokai = require 'monokai'
 local palette = monokai.classic
 monokai.setup {
   custom_hlgroups = {
-    TabLine = {
-      fg = palette.grey
-    },
     Identifier = {
       fg = palette.orange
     },
     Special = {
       fg = palette.aqua
+    },
+    TabLine = {
+      fg = palette.grey
+    },
+    Visual = {
+      bg = palette.base5
     },
   },
 }
@@ -105,7 +112,8 @@ require 'nvim-treesitter.configs'.setup {
   ensure_installed = {},
   sync_install = false,
   highlight = {
-    enable = true
+    enable = true,
+    additional_vim_regex_highlighting = true,
   }
 }
 
