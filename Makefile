@@ -1,4 +1,4 @@
-ZPREZTO_SOURCES := zlogin zlogout zprofile zshenv
+ZPREZTO_SOURCES := zlogin zlogout zshenv
 SOURCES := \
 	Xmodmap \
 	Xresources \
@@ -27,6 +27,7 @@ SOURCES := \
 	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
+	p10k.zsh \
 	tmux.conf \
 	xprofile \
 	zprezto \

@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
@@ -24,6 +31,7 @@ alias realpath="readlink"
 alias bt="bluetoothctl"
 
 export EDITOR=nvim
+export VISUAL=nvim
 export PAGER=less
 export LANG="en_US.UTF-8"
 export GPG_TTY=$(tty)
@@ -145,9 +153,9 @@ esac
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
-# general ***env
 [ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
 [ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
 [ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
 [ -f $HOME/.zshlocal ] && source ~/.zshlocal
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
