@@ -1,30 +1,9 @@
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
 bindkey -v
-
-autoload -Uz compinit vcs_info add-zsh-hook
-compinit
-setopt PROMPT_SUBST
-
-zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' stagedstr '%F{118}!!%f'
-zstyle ':vcs_info:git:*' unstagedstr '%F{210}??%f'
-zstyle ':vcs_info:*' formats '─ %%F{193}%b%u%c%%f'
-zstyle ':vcs_info:*' actionformats '─ %%F{229}%%K{161} %a %%k%f %%F{229}%b%u%c%%f'
-
-# https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
-# red: 166
-# pink: 161
-# yellow: 229
-# orange: 208
-# bright orange: 222
-# magenta: 135
-# green 118
-# pistachio: 193
-# cyan: 81
-# blue: 75
-PROMPT='┬╴%F{167}%n@%U%m%u%f ─ %F{248}%D{%Y/%m/%d} %*%f ─ %F{81}%3~%f ${vcs_info_msg_0_}
-╰╴%(?..%F{118}[%?]%f)%# '
-
-add-zsh-hook precmd vcs_info # hook vcs_info
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
@@ -167,7 +146,6 @@ esac
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
 # general ***env
-[ -f $HOME/.plenv.zsh ] && source ~/.plenv.zsh
 [ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
 [ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
 [ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh

@@ -1,4 +1,5 @@
-TARGETS := \
+ZPREZTO_SOURCES := zlogin zlogout zprofile zshenv
+SOURCES := \
 	Xmodmap \
 	Xresources \
 	config/alacritty/alacritty.yml \
@@ -11,9 +12,7 @@ TARGETS := \
 	config/waybar/config \
 	config/waybar/style.css \
 	config/wofi/style.css \
-	ctags.d/default.ctags \
 	fzf \
-	fzf.zsh \
 	gitconfig \
 	gitignore_global \
 	gnupg/gpg-agent.conf \
@@ -21,114 +20,148 @@ TARGETS := \
 	goenv \
 	goenv.zsh \
 	local/bin/buf \
+	local/bin/erlang_ls \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	nodenv \
 	nodenv.zsh \
 	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
-	perltidyrc \
-	plenv \
-	plenv.zsh \
-	plenv/plugins/perl-build \
 	tmux.conf \
-	xprofile
+	xprofile \
+	zprezto \
+	zpreztorc \
+	zshrc \
+	$(ZPREZTO_SOURCES)
 
-FULLTARGETS = $(addprefix $(HOME)/.,zshrc $(TARGETS))
+TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
-ERLANG_LS    := src/github.com/erlang-ls/erlang_ls
-ERLFMT       := src/github.com/whatsapp/erlfmt
-FZF          := src/github.com/junegunn/fzf
-GOENV        := src/github.com/syndbg/goenv
-I3BLOCKS     := src/github.com/vivien/i3blocks-contrib
-NODENV       := src/github.com/nodenv/nodenv
-NODENV_BUILD := src/github.com/nodenv/node-build
-PAQ_NVIM     := src/github.com/savq/paq-nvim
-PLENV        := src/github.com/tokuhirom/plenv
-PLENV_BUILD  := src/github.com/tokuhirom/Perl-Build
+ERLANG_LS    := _modules/github.com/erlang-ls/erlang_ls
+FZF          := _modules/github.com/junegunn/fzf
+GOENV        := _modules/github.com/syndbg/goenv
+I3BLOCKS     := _modules/github.com/vivien/i3blocks-contrib
+NODENV       := _modules/github.com/nodenv/nodenv
+NODENV_BUILD := _modules/github.com/nodenv/node-build
+PAQ_NVIM     := _modules/github.com/savq/paq-nvim
+PREZTO       := _modules/github.com/sorin-ionescu/prezto
 
-GITMODULES := \
-	$(ERLANG_LS) \
-	$(ERLFMT) \
-	$(FZF) \
-	$(GOENV) \
-	$(I3BLOCKS) \
-	$(NODENV) \
-	$(NODENV_BUILD) \
-	$(PAQ_NVIM) \
-	$(PLENV) \
-	$(PLENV_BUILD)
-
-ifeq ($(shell make -v | head -n1 | cut -d' ' -f3 | cut -d'.' -f1),3)
-MAKE := make
-else
-MAKE := make -O
-endif
+GIT_MODULES := $(ERLANG_LS) \
+			   $(FZF) \
+			   $(GOENV) \
+			   $(I3BLOCKS) \
+			   $(NODENV) \
+			   $(NODENV_BUILD) \
+			   $(PAQ_NVIM) \
+			   $(PREZTO)
 
 all:
-	$(MAKE) install && $(MAKE) update
+	$(MAKE) install
+
+install: $(TARGETS)
+	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
+
+$(HOME)/.config/i3blocks/config: $(I3BLOCKS)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/config/i3blocks/config $@
+
+$(HOME)/.fzf: $(FZF)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.goenv: $(GOENV)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.local/bin/buf:
+	mkdir -p $(dir $@)
+	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
+		&& chmod +x $@
+
+$(HOME)/.local/bin/erlang_ls: $(ERLANG_LS)
+	mkdir -p $(dir $@)
+	if which rebar3 1>/dev/null; then \
+		$(MAKE) -C $< && \
+		cp $</_build/default/bin/erlang_ls $@; \
+	fi
+
+$(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$</ $@
+
+$(HOME)/.nodenv: $(NODENV)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.npmrc:
+	echo 'prefix = $${HOME}/.npm' > $@
+
+$(HOME)/.zprezto: $(PREZTO)
+	ln -sfn `pwd`/$< $@
+
+$(addprefix $(HOME)/.,$(ZPREZTO_SOURCES)): $(PREZTO)
+	ln -sfn `pwd`/$</runcoms/$(subst .,,$(notdir $@)) $@
+
+$(HOME)/.%: %
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$* $@
+
+_modules/%:
+	mkdir -p $(dir $@)
+	git clone \
+		--depth=1 \
+		--recurse-submodules \
+		git@$$(echo $* | sed -e 's|/|:|') \
+		$@
 
 update:
-	+$(MAKE) update/gitmodules
-	+$(MAKE) update/lang
+	$(MAKE) $(addprefix update/,$(GIT_MODULES))
+	$(MAKE) -j4 $(addprefix update/lang/,golang nodejs python3 python ruby)
+	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
-update/gitmodules: $(HOME)/.gitconfig
-	+$(MAKE) -j4 $(addprefix update/,$(GITMODULES))
+update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
+	git -C _modules/$* pull --depth=1 \
+		&& git -C _modules/$* submodule sync --recursive \
+		&& git -C _modules/$* submodule update --depth=1 --init --recursive
 
-update/lang:
-	+$(MAKE) -j4 $(addprefix $@/,erlang golang nodejs python3 python ruby)
-
-update/lang/erlang: update/lang/erlang/erlang_ls update/lang/erlang/erlfmt
-
-update/lang/erlang/erlang_ls: $(ERLANG_LS)
-	if which rebar3; then \
-		mkdir -p $(HOME)/.local/bin && \
-		$(MAKE) -C $< && \
-		cp $</_build/default/bin/erlang_ls $(HOME)/.local/bin/; \
-	fi
-
-update/lang/erlang/erlfmt: $(ERLFMT)
-	if which rebar3; then \
-		mkdir -p $(HOME)/.local/bin; \
-		$(MAKE) -C $< release && \
-		cp $</_build/release/bin/erlfmt $(HOME)/.local/bin/; \
-	fi
-
-GOTOOLS := \
+update/lang/golang: GOTOOLS := \
 	golang.org/x/tools/cmd/goimports \
 	golang.org/x/tools/gopls \
 	honnef.co/go/tools/cmd/staticcheck
-
-update/lang/golang:
-	if which go; then \
+update/lang/golang: FORCE
+	@if which go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
 			go install $$mod@latest; \
 			echo "installed: $$mod"; \
 		done \
 	fi
 
-update/lang/nodejs:
-	if which npm; then \
+update/lang/nodejs: FORCE
+	@if which npm 1>/dev/null; then \
 		npm -g install \
 			@ansible/ansible-language-server \
-			diagnostic-languageserver \
-			eslint \
-			elm elm-test elm-format \
 			@elm-tooling/elm-language-server \
+			elm \
+			elm-format \
+			elm-test \
+			eslint \
 			intelephense \
 			neovim \
-			npm npm-check-updates \
+			npm \
+			npm-check-updates \
 			sql-formatter \
 			sql-formatter-cli \
 			tree-sitter-cli \
-			typescript typescript-language-server \
+			typescript \
+			typescript-language-server \
 			vscode-langservers-extracted \
 			yarn \
 			; \
 	fi
 
-update/lang/python3:
-	if which pip3; then \
+update/lang/python3: FORCE
+	@if which pip3 1>/dev/null; then \
 		pip3 install --upgrade \
 			pynvim \
 			msgpack \
@@ -137,8 +170,8 @@ update/lang/python3:
 			; \
 	fi
 
-update/lang/python:
-	if which pip; then \
+update/lang/python: FORCE
+	@if which pip 1>/dev/null; then \
 		pip install --upgrade \
 			neovim \
 			pynvim \
@@ -146,91 +179,21 @@ update/lang/python:
 			; \
 	fi
 
-update/lang/ruby:
+update/lang/ruby: FORCE
 	## WTF?? Do:
 	## travis login --com --github-token XXXX
-	if which gem; then \
+	@if which gem 1>/dev/null; then \
 		gem install --user-install --no-document \
 			travis \
 			neovim; \
 	fi
 
-src/%:
-	mkdir -p $(dir $@)
-	echo $* | sed -e 's|/|:|' | xargs -I{} git clone --recurse-submodules git@{} $@
-
-update/src/%: src/%
-	cd src/$* && git pull && git submodule update --init
-
-install: $(FULLTARGETS)
-
 clean:
-	rm -rf $(FULLTARGETS)
+	rm -f $(TARGETS)
 
 realclean: clean
-	rm -rf src $(HOME)/.config/nvim $(HOME)/.local/share/nvim
+	rm -rf _modules
 
-.PRECIOUS: src/%
-.PHONY: all install update update/* clean realclean
+FORCE:
 
-
-## For macOS Alacritty
-ifeq ($(shell uname -s),Darwin)
-$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.macos.yml
-	ln -s `pwd`/$< $@
-endif
-
-
-## For fzf (should be called after ~/.zshrc)
-$(HOME)/.fzf: $(FZF)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.fzf.zsh: $(HOME)/.fzf
-	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
-
-
-### For neovim
-$(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$</ $@
-
-
-## For goenv
-$(HOME)/.goenv: $(GOENV)
-	ln -sfn `pwd`/$< $@
-
-
-## For nodenv
-$(HOME)/.nodenv: $(NODENV)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD) $(HOME)/.nodenv
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-
-## For npm
-$(HOME)/.npmrc:
-	echo 'prefix = $${HOME}/.npm' > $@
-
-
-## For plenv
-$(HOME)/.plenv: $(PLENV)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-
-## For tools
-$(HOME)/.local/bin/buf:
-	mkdir -p $(dir $@)
-	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
-		&& chmod +x $@
-
-
-## By default, fallback to create symlink
-$(HOME)/.%: %
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$* $@
+.PHONY: all install update clean realclean
