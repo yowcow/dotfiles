@@ -1,8 +1,8 @@
 set $mod Mod4
 
-font pango:Liberation Mono 5
+font pango:JetBrains Mono 5
 
-default_border normal 0
+default_border normal 1
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
