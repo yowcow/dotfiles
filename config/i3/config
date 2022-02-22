@@ -1,6 +1,6 @@
 set $mod Mod4
 
-font pango:Cousine NF 5
+font pango:Liberation Mono 5
 
 default_border normal 0
 
