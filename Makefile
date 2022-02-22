@@ -55,6 +55,12 @@ GIT_MODULES := $(ERLANG_LS) \
 			   $(PAQ_NVIM) \
 			   $(PREZTO)
 
+ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
+MAKE := make -j4
+else
+MAKE := make -j4 -O
+endif
+
 all:
 	$(MAKE) install
 
@@ -76,7 +82,7 @@ $(HOME)/.local/bin/buf:
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
 
-$(HOME)/.local/bin/erlang_ls: $(ERLANG_LS)
+$(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 	mkdir -p $(dir $@)
 	if which rebar3 1>/dev/null; then \
 		$(MAKE) -C $< && \
@@ -118,7 +124,7 @@ _modules/%:
 
 update:
 	$(MAKE) $(addprefix update/,$(GIT_MODULES))
-	$(MAKE) -j4 $(addprefix update/lang/,golang nodejs python3 python ruby)
+	$(MAKE) $(addprefix update/lang/,golang nodejs python3 python ruby)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
@@ -131,7 +137,7 @@ update/lang/golang: GOTOOLS := \
 	golang.org/x/tools/gopls \
 	honnef.co/go/tools/cmd/staticcheck
 update/lang/golang: FORCE
-	@if which go 1>/dev/null; then \
+	if which go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
 			go install $$mod@latest; \
 			echo "installed: $$mod"; \
@@ -139,7 +145,7 @@ update/lang/golang: FORCE
 	fi
 
 update/lang/nodejs: FORCE
-	@if which npm 1>/dev/null; then \
+	if which npm 1>/dev/null; then \
 		npm -g install \
 			@ansible/ansible-language-server \
 			@elm-tooling/elm-language-server \
@@ -162,7 +168,7 @@ update/lang/nodejs: FORCE
 	fi
 
 update/lang/python3: FORCE
-	@if which pip3 1>/dev/null; then \
+	if which pip3 1>/dev/null; then \
 		pip3 install --upgrade \
 			pynvim \
 			msgpack \
@@ -172,7 +178,7 @@ update/lang/python3: FORCE
 	fi
 
 update/lang/python: FORCE
-	@if which pip 1>/dev/null; then \
+	if which pip 1>/dev/null; then \
 		pip install --upgrade \
 			neovim \
 			pynvim \
@@ -183,7 +189,7 @@ update/lang/python: FORCE
 update/lang/ruby: FORCE
 	## WTF?? Do:
 	## travis login --com --github-token XXXX
-	@if which gem 1>/dev/null; then \
+	if which gem 1>/dev/null; then \
 		gem install --user-install --no-document \
 			travis \
 			neovim; \
