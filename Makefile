@@ -117,7 +117,6 @@ $(HOME)/.%: %
 _modules/%:
 	mkdir -p $(dir $@)
 	git clone \
-		--depth=1 \
 		--recurse-submodules \
 		git@$$(echo $* | sed -e 's|/|:|') \
 		$@
@@ -128,9 +127,9 @@ update:
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
-	git -C _modules/$* pull --depth=1 \
+	git -C _modules/$* pull \
 		&& git -C _modules/$* submodule sync --recursive \
-		&& git -C _modules/$* submodule update --depth=1 --init --recursive
+		&& git -C _modules/$* submodule update --init --recursive
 
 update/lang/golang: GOTOOLS := \
 	golang.org/x/tools/cmd/goimports \
