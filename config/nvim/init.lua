@@ -4,7 +4,7 @@ local g = vim.g -- to access global variables
 local opt = vim.opt -- to set options
 
 opt.autoindent = true
-opt.backspace = 'indent'
+opt.backspace = 'indent,start'
 opt.backup = false
 opt.completeopt = 'menu,menuone,noselect'
 opt.cursorline = true
