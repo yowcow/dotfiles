@@ -52,6 +52,7 @@ require 'paq' {
   'junegunn/fzf.vim';
   'kyazdani42/nvim-web-devicons';
   'mattn/vim-gist';
+  'mattn/vim-goimports';
   'mattn/webapi-vim';
   'neovim/nvim-lspconfig';
   'nvim-lua/plenary.nvim';
@@ -291,7 +292,7 @@ cmd('augroup END')
 cmd('augroup bufwritepre')
 cmd('autocmd!')
 cmd('autocmd FileType php autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync(nil, 1000)')
-cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!goimports')
+-- cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!goimports')
 -- cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!gofmt')
 cmd('autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <buffer> silent! EslintFixAll')
 cmd('autocmd FileType json autocmd BufWritePre <buffer> silent! %!jq "."')
