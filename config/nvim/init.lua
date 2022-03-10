@@ -298,6 +298,12 @@ cmd('autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <
 cmd('autocmd FileType json autocmd BufWritePre <buffer> silent! %!jq "."')
 cmd('augroup END')
 
+cmd('augroup term')
+cmd('autocmd!')
+cmd('autocmd TermOpen * startinsert')
+cmd('augroup END')
+
+-- tabs/buffers
 -- map('n', 'tl', ':tabs<CR>')
 map('n', 'tn', ':tabnew<space>')
 map('n', 'tt', ':tabedit<space>')
@@ -310,6 +316,9 @@ map('n', 'td', ':tabclose<CR>')
 -- map('n', 'bl', ':bnext<CR>')
 -- map('n', 'bh', ':bprev<CR>')
 -- map('n', 'bd', ':bd<CR>')
+
+-- term
+map('t', '<C-\\><C-\\>', '<C-\\><C-n>')
 
 local function get_selection(from, to)
   local header = {}
