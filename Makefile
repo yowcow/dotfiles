@@ -71,12 +71,6 @@ $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/config/i3blocks/config $@
 
-ifeq ($(shell uname),Darwin)
-$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.darwin.yml
-	mkdir -p $(dir $@)
-	cp $< $@
-endif
-
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
 
@@ -115,6 +109,19 @@ $(HOME)/.zprezto: $(PREZTO)
 
 $(addprefix $(HOME)/.,$(ZPREZTO_SOURCES)): $(PREZTO)
 	ln -sfn `pwd`/$</runcoms/$(subst .,,$(notdir $@)) $@
+
+##
+## Darwin specific
+##
+ifeq ($(shell uname),Darwin)
+$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.darwin.yml
+	mkdir -p $(dir $@)
+	cp $< $@
+
+$(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
+endif
 
 $(HOME)/.%: %
 	mkdir -p $(dir $@)
