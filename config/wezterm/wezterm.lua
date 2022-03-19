@@ -8,9 +8,12 @@ end
 
 return {
   color_scheme = "Molokai",
-  font = wezterm.font({
-    family = "JetBrains Mono",
-    harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
+  font = wezterm.font_with_fallback({
+    {
+      family = "JetBrains Mono",
+      harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
+    },
+    "Ubuntu Mono",
   }),
   font_size = font_size,
   initial_cols = 160,
