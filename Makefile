@@ -6,6 +6,7 @@ SOURCES := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
+	config/kitty/kitty.conf \
 	config/nvim/after \
 	config/nvim/init.lua \
 	config/sway/config \
