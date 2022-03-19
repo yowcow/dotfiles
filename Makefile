@@ -12,6 +12,7 @@ SOURCES := \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
+	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
 	fzf \
 	gitconfig \
