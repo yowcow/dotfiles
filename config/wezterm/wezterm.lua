@@ -13,7 +13,7 @@ return {
       family = "JetBrains Mono",
       harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
     },
-    "Ubuntu Mono",
+    "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
   initial_cols = 160,
