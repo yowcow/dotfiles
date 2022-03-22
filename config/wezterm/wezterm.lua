@@ -11,11 +11,13 @@ return {
   font = wezterm.font_with_fallback({
     {
       family = "JetBrains Mono",
+      weight = "Medium",
       harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
     },
     "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
+  freetype_load_target = "HorizontalLcd",
   initial_cols = 160,
   initial_rows = 48,
   tab_bar_at_bottom = true,
