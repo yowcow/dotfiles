@@ -7,6 +7,7 @@ if os.getenv("GDK_DPI_SCALE") ~= nil then
 end
 
 return {
+  audio_bell = "Disabled",
   color_scheme = "Molokai",
   font = wezterm.font_with_fallback({
     {
@@ -14,6 +15,7 @@ return {
       weight = "Medium",
       harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
     },
+    "Hiragino Sans",
     "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
