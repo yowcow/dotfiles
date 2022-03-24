@@ -7,7 +7,7 @@ if os.getenv("GDK_DPI_SCALE") ~= nil then
 end
 
 return {
-  audio_bell = "Disabled",
+  audible_bell = "Disabled",
   color_scheme = "Molokai",
   font = wezterm.font_with_fallback({
     {
@@ -19,7 +19,7 @@ return {
     "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
-  freetype_load_target = "HorizontalLcd",
+  --freetype_load_target = "HorizontalLcd",
   initial_cols = 160,
   initial_rows = 48,
   tab_bar_at_bottom = true,
