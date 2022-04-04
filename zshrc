@@ -150,6 +150,7 @@ case "${OSTYPE}" in
         ;;
     linux*)
         alias ls="ls --color"
+        alias diff="diff --color"
         ;;
 esac
 
