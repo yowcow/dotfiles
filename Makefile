@@ -124,6 +124,9 @@ $(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
 	ln -sfn `pwd`/$< $@
 endif
 
+##
+## Default Fallback
+##
 $(HOME)/.%: %
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$* $@
