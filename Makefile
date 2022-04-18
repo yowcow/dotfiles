@@ -20,6 +20,7 @@ SOURCES := \
 	gnupg/gpg.conf \
 	goenv \
 	goenv.zsh \
+	local/bin/btvol \
 	local/bin/buf \
 	local/bin/erlang_ls \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \

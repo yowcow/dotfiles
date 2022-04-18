@@ -1,0 +1,25 @@
+#!/bin/sh
+
+OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects \
+    | rg '/org/bluez/hci0' \
+    | rg '/sep' \
+    | rg '/fd' \
+    | awk '{ print $3 }' \
+    | sed 's/"//g')
+
+case "$1" in
+    set)
+        dbus-send \
+            --system \
+            --print-reply \
+            --dest=org.bluez $OBJPATH org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" variant:uint16:$2
+        ;;
+    *)
+        dbus-send \
+            --system \
+            --print-reply \
+            --dest=org.bluez $OBJPATH \
+            org.freedesktop.DBus.Properties.Get string:"org.bluez.MediaTransport1" string:"Volume"
+        ;;
+esac
+
