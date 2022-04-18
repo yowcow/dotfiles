@@ -4,8 +4,11 @@ OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DB
     | rg '/org/bluez/hci0' \
     | rg '/sep' \
     | rg '/fd' \
+    | head -1 \
     | awk '{ print $3 }' \
     | sed 's/"//g')
+
+echo "object path: ${OBJPATH}";
 
 case "$1" in
     set)
