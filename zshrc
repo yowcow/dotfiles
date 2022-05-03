@@ -2,6 +2,40 @@
 # https://unix.stackexchange.com/questions/608842/zshrc-export-gpg-tty-tty-says-not-a-tty
 export GPG_TTY=$(tty)
 
+ssh-agent-start() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            # update/create symlink so that I can find the path easily later on
+            eval $(ssh-agent) && \
+                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
+        else
+            # some environment ssh-agent starts automatically
+            [ -z $SSH_AGENT_PID ] && \
+                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+            # find the path to sock and and restore the env
+            [ -L /tmp/ssh-auth.sock ] && \
+                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
+        fi
+        # add a key if its fingerprint is not in the agent
+        KEY=$HOME/.ssh/id_rsa \
+            && [ -f $KEY ] \
+            && [ -z "$(ssh-add -l | rg $(ssh-keygen -lf $KEY | cut -d' ' -f2))" ] \
+            && ssh-add $KEY;
+    fi
+}
+
+ssh-agent-stop() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
+            unset SSH_AGENT_PID;
+            unset SSH_AUTH_SOCK;
+        fi
+    fi
+}
+
+ssh-agent-start
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -33,6 +67,17 @@ setopt magic_equal_subst
 alias vi="nvim"
 alias realpath="readlink"
 alias bt="bluetoothctl"
+
+case "$(uname -s)" in
+    "Darwin")
+        alias ls="ls -G"
+        alias zcat="gunzip -c"
+        ;;
+    "Linux")
+        alias ls="ls --color"
+        alias diff="diff --color"
+        ;;
+esac
 
 export EDITOR=nvim
 export VISUAL=nvim
@@ -107,50 +152,6 @@ cert-check() {
         | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
         | openssl x509 -inform pem -noout -text
 }
-
-ssh-agent-start() {
-    if [ ! -z "$(which ssh-agent)" ]; then
-        if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-            # update/create symlink so that I can find the path easily later on
-            eval $(ssh-agent) && \
-                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
-        else
-            # some environment ssh-agent starts automatically
-            [ -z $SSH_AGENT_PID ] && \
-                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
-            # find the path to sock and and restore the env
-            [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
-        fi
-        KEY=$HOME/.ssh/id_rsa \
-            && [ -f $KEY ] \
-            && [ -z "$(ssh-add -l | grep "${KEY}\b")" ] \
-            && ssh-add $KEY;
-    fi
-}
-
-ssh-agent-stop() {
-    if [ ! -z "$(which ssh-agent)" ]; then
-        if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-            pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
-            unset SSH_AGENT_PID;
-            unset SSH_AUTH_SOCK;
-        fi
-    fi
-}
-
-ssh-agent-start
-
-case "${OSTYPE}" in
-    darwin*)
-        alias ls="ls -G"
-        alias zcat="gunzip -c"
-        ;;
-    linux*)
-        alias ls="ls --color"
-        alias diff="diff --color"
-        ;;
-esac
 
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
