@@ -19,7 +19,7 @@ ssh-agent-start() {
         # add a key if its fingerprint is not in the agent
         KEY=$HOME/.ssh/id_rsa \
             && [ -f $KEY ] \
-            && [ -z "$(ssh-add -l | rg $(ssh-keygen -lf $KEY | cut -d' ' -f2))" ] \
+            && [ -z "$(ssh-add -l | grep $(ssh-keygen -lf $KEY | cut -d' ' -f2))" ] \
             && ssh-add $KEY;
     fi
 }
