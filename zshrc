@@ -2,6 +2,21 @@
 # https://unix.stackexchange.com/questions/608842/zshrc-export-gpg-tty-tty-says-not-a-tty
 export GPG_TTY=$(tty)
 
+alias vi="nvim"
+alias realpath="readlink"
+alias bt="bluetoothctl"
+
+case "$(uname -s)" in
+    "Darwin")
+        alias ls="ls -G"
+        alias zcat="gunzip -c"
+        ;;
+    "Linux")
+        alias ls="ls --color"
+        alias diff="diff --color"
+        ;;
+esac
+
 ssh-agent-start() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
@@ -63,21 +78,6 @@ SAVEHIST=1000000
 setopt hist_ignore_dups
 setopt share_history
 setopt magic_equal_subst
-
-alias vi="nvim"
-alias realpath="readlink"
-alias bt="bluetoothctl"
-
-case "$(uname -s)" in
-    "Darwin")
-        alias ls="ls -G"
-        alias zcat="gunzip -c"
-        ;;
-    "Linux")
-        alias ls="ls --color"
-        alias diff="diff --color"
-        ;;
-esac
 
 export EDITOR=nvim
 export VISUAL=nvim
