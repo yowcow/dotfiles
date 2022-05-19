@@ -83,7 +83,11 @@ export EDITOR=nvim
 export VISUAL=nvim
 export PAGER=less
 export LANG="en_US.UTF-8"
-export PATH=$HOME/.gem/ruby/3.0.0/bin:$HOME/.fzf/bin:$HOME/.local/bin:$HOME/go/bin:/opt/julia/bin:/usr/local/sbin:/usr/sbin:$PATH
+export PATH=$HOME/.fzf/bin:$HOME/.local/bin:$HOME/go/bin:/opt/julia/bin:/usr/local/sbin:/usr/sbin:$PATH
+
+if which ruby >/dev/null && which gem >/dev/null; then
+    PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
 
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
