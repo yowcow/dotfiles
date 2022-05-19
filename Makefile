@@ -8,6 +8,7 @@ SOURCES := \
 	config/kanshi/config \
 	config/nvim/after \
 	config/nvim/init.lua \
+	config/sql-formatter/config.json \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \

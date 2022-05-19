@@ -383,4 +383,4 @@ function _G.do_format(command, range, line1, line2)
   fn.append(line1 - 1, merge_tables(merge_tables(header, result), footer))
 end
 
-cmd('command! -range=% FSQL <line1>,<line2>lua do_format("sql-formatter --uppercase --language mysql --lines-between-queries 2", <range>, <line1>, <line2>)')
+cmd('command! -range=% FSQL <line1>,<line2>lua do_format("sql-formatter --config ~/.config/sql-formatter/config.json", <range>, <line1>, <line2>)')
