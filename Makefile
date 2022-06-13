@@ -6,7 +6,7 @@ SOURCES := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
-	config/nvim/after \
+	config/nvim/after/indent/php.vim \
 	config/nvim/init.lua \
 	config/sql-formatter/config.json \
 	config/sway/config \
@@ -133,6 +133,9 @@ $(HOME)/.%: %
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$* $@
 
+##
+## Tasks
+##
 _modules/%:
 	mkdir -p $(dir $@)
 	git clone \
