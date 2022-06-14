@@ -170,6 +170,7 @@ update/lang/nodejs: FORCE
 		npm -g install \
 			@ansible/ansible-language-server \
 			@elm-tooling/elm-language-server \
+			aws-cdk \
 			elm \
 			elm-format \
 			elm-test \
