@@ -40,6 +40,8 @@ cmd('nnoremap Y Y')
 --
 require 'paq' {
   'godlygeek/tabular';
+  'hashivim/vim-terraform';
+  'hashivim/vim-vagrant';
   'hrsh7th/cmp-buffer';
   'hrsh7th/cmp-cmdline';
   'hrsh7th/cmp-nvim-lsp';
