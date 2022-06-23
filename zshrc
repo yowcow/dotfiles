@@ -160,9 +160,12 @@ cert-check() {
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
-[ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
-[ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
 [ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
+[ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
+[ -f $HOME/.p10k.zsh ] && source ~/.p10k.zsh
 [ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
 [ -f $HOME/.zshlocal ] && source ~/.zshlocal
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+autoload -U +X bashcompinit && bashcompinit
+[ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
