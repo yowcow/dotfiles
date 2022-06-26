@@ -224,6 +224,7 @@ local lspservers = {
   'erlangls',
   'eslint',
   'intelephense',
+  'terraformls',
   'tsserver',
 }
 for _, lsp in pairs(lspservers) do
@@ -323,6 +324,9 @@ map('n', 'td', ':tabclose<CR>')
 
 -- term
 map('t', '<C-\\><C-\\>', '<C-\\><C-n>')
+
+-- some global variables
+g.terraform_fmt_on_save = 1
 
 local function get_selection(from, to)
   local header = {}
