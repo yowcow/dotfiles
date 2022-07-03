@@ -24,6 +24,7 @@ SOURCES := \
 	local/bin/btvol \
 	local/bin/buf \
 	local/bin/erlang_ls \
+	local/bin/mylock \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	nodenv \
 	nodenv.zsh \

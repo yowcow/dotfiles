@@ -1,0 +1,4 @@
+#!/bin/sh
+
+i3lock --nofork -e -f -c 75715e;
+sh ~/.xprofile;

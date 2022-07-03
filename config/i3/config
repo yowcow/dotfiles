@@ -7,7 +7,8 @@ default_border normal 1
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -e -f -c 75715e
+#exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -e -f -c 75715e
+exec --no-startup-id xss-lock -- mylock
 
 # Lock
 bindsym $mod+Control+l exec --no-startup-id loginctl lock-session
