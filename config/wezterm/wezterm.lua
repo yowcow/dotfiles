@@ -4,6 +4,9 @@ local font_size = 11.0;
 if os.getenv("GDK_DPI_SCALE") ~= nil then
   -- Tweak for HiDPI X Window System
   font_size = math.floor(os.getenv("GDK_DPI_SCALE") * font_size) * 1.0 - 1.0;
+elseif os.getenv("XDG_SESSION_TYPE") == "wayland" then
+  -- Tweak for Wayland sessions
+  font_size = font_size - 2.0
 end
 
 return {

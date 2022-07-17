@@ -7,7 +7,7 @@
 #
 # $mod + shift + c to reload config
 #
-font pango:JetBrains Mono 11px
+font pango:JetBrains Mono 12px
 #titlebar_padding 5 5
 
 ### Variables
@@ -42,11 +42,11 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 #
 # You can get the names of your outputs by running: swaymsg -t get_outputs
     output eDP-1 {
-        scale 2
-        position 1920,200
+        scale 1.5
+        position 3840,500
     }
     output HDMI-A-2 {
-        scale 2
+        scale 1
         scale_filter smart
         position 0,0
     }
@@ -120,7 +120,7 @@ output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Return exec $term
 
     # Start a browser
-    bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
+    #bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox
 
     # Kill focused window
     bindsym $mod+Shift+q kill
