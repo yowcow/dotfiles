@@ -1,5 +1,5 @@
-#set $mod Mod4
-set $mod Mod1
+set $mod Mod4
+#set $mod Mod1
 
 font pango:JetBrains Mono 5
 
