@@ -10,6 +10,7 @@ SOURCES := \
 	config/nvim/init.lua \
 	config/sql-formatter/config.json \
 	config/sway/config \
+	config/sway/background.jpg \
 	config/waybar/config \
 	config/waybar/style.css \
 	config/wezterm/wezterm.lua \
@@ -70,6 +71,9 @@ all:
 
 install: $(TARGETS)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
+
+$(HOME)/.config/%.jpg: config/%.jpg.gpg
+	gpg --decrypt -o $@ $<
 
 $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 	mkdir -p $(dir $@)
