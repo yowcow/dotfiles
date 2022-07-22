@@ -50,6 +50,7 @@ NODENV       := _modules/github.com/nodenv/nodenv
 NODENV_BUILD := _modules/github.com/nodenv/node-build
 PAQ_NVIM     := _modules/github.com/savq/paq-nvim
 PREZTO       := _modules/github.com/sorin-ionescu/prezto
+WOFI_ARC     := _modules/github.com/sachahjkl/wofi-arc-dark
 
 GIT_MODULES := $(ERLANG_LS) \
 			   $(FZF) \
@@ -58,7 +59,8 @@ GIT_MODULES := $(ERLANG_LS) \
 			   $(NODENV) \
 			   $(NODENV_BUILD) \
 			   $(PAQ_NVIM) \
-			   $(PREZTO)
+			   $(PREZTO) \
+			   $(WOFI_ARC)
 
 ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
 MAKE := make -j4
@@ -78,6 +80,10 @@ $(HOME)/.config/%.jpg: config/%.jpg.gpg
 $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/config/i3blocks/config $@
+
+$(HOME)/.config/wofi/style.css: $(WOFI_ARC)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$</style.css $@
 
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
