@@ -236,6 +236,14 @@ for _, lsp in pairs(lspservers) do
     },
   }
 end
+-- lspconfig.erlangls.setup {
+--   cmd = {'/home/yowcow/repos/erlang_ls/_build/default/bin/erlang_ls', '-d', '/tmp/erlangls/', '-l', 'debug'},
+--   capabilities = capabilities,
+--   on_attach = on_attach,
+--   flags = {
+--     debounce_text_changes = 150
+--   },
+-- }
 lspconfig.gopls.setup {
   cmd = {'gopls', 'serve'},
   settings = {
