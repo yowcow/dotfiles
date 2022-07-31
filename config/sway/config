@@ -9,7 +9,7 @@
 #
 font pango:JetBrains Mono 12px
 #titlebar_padding 5 5
-gaps inner 5
+gaps inner 15
 
 ### Variables
 #
