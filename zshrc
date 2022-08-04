@@ -6,7 +6,7 @@ alias vi="nvim"
 alias vim="nvim"
 alias realpath="readlink"
 alias bt="bluetoothctl"
-alias cal="ncal -b"
+alias cal="ncal -C"
 
 case "$(uname -s)" in
     "Darwin")
