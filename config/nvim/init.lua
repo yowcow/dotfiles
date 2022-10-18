@@ -28,6 +28,7 @@ opt.tabstop = 4
 opt.termguicolors = true
 opt.visualbell = false
 opt.writebackup = false
+opt.mouse = ''
 
 cmd('filetype plugin indent on')
 
