@@ -1,10 +1,8 @@
 export GOENV_ROOT=$HOME/.goenv
-export GOENV_DISABLE_GOPATH=1
-
-PATH=$GOENV_ROOT/bin:$PATH
+export PATH=$GOENV_ROOT/bin:$PATH
+#export GOENV_DISABLE_GOPATH=1
 
 eval "$(goenv init -)"
 
-export GOPATH=$HOME/go
-
-PATH=$GOPATH/bin:$PATH
+export PATH=$GOROOT/bin:$PATH
+export PATH=$GOPATH/bin:$PATH
