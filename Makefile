@@ -156,7 +156,7 @@ _modules/%:
 
 update:
 	$(MAKE) $(addprefix update/,$(GIT_MODULES))
-	$(MAKE) $(addprefix update/lang/,golang nodejs python3 python ruby)
+	$(MAKE) $(addprefix update/lang/,golang nodejs python3 python ruby rust)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
@@ -227,6 +227,9 @@ update/lang/ruby: FORCE
 			travis \
 			neovim; \
 	fi
+
+update/lang/rust: FORCE
+	(which rustup && rustup update) || true
 
 clean:
 	rm -f $(TARGETS)
