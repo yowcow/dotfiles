@@ -124,14 +124,17 @@ $(HOME)/.zprezto: $(PREZTO)
 $(addprefix $(HOME)/.,$(ZPREZTO_SOURCES)): $(PREZTO)
 	ln -sfn `pwd`/$</runcoms/$(subst .,,$(notdir $@)) $@
 
-##
-## Darwin specific
-##
+$(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 9.0
 ifeq ($(shell uname),Darwin)
-$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.darwin.yml
+$(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 11.0
+endif
+$(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.yml FORCE
 	mkdir -p $(dir $@)
-	cp $< $@
+	cat $< \
+		| sed 's/%%font_size%%/$(ALACRITTY_FONT_SIZE)/g' \
+		> $@
 
+ifeq ($(shell uname),Darwin)
 $(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$< $@
