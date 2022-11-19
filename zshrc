@@ -91,6 +91,8 @@ if which ruby >/dev/null && which gem >/dev/null; then
     PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
 fi
 
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
 
