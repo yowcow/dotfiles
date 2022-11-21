@@ -7,6 +7,7 @@ SOURCES := \
 	config/kanshi/config \
 	config/nvim/init.lua \
 	config/sql-formatter/config.json \
+	config/starship.toml \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
@@ -72,6 +73,10 @@ $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</style.css $@
+
+$(HOME)/.config/starship.toml: FORCE
+	(which starship 1>/dev/null && starship preset pure-preset > $@) || true;
+	#(which starship 1>/dev/null && starship preset bracketed-segments > $@) || true;
 
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
