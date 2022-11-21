@@ -1,4 +1,3 @@
-# Declare this before p10k initialization
 # https://unix.stackexchange.com/questions/608842/zshrc-export-gpg-tty-tty-says-not-a-tty
 export GPG_TTY=$(tty)
 
@@ -53,17 +52,8 @@ ssh-agent-stop() {
 
 ssh-agent-start
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-fi
+# start starship if available
+which starship 1>/dev/null && eval "$(starship init zsh)"
 
 bindkey -v
 
@@ -92,6 +82,9 @@ if which ruby >/dev/null && which gem >/dev/null; then
 fi
 
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
 
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
@@ -167,7 +160,6 @@ _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' 
 [ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
 [ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
-[ -f $HOME/.p10k.zsh ] && source ~/.p10k.zsh
 [ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
 [ -f $HOME/.zshlocal ] && source ~/.zshlocal
 

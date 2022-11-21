@@ -1,4 +1,3 @@
-ZPREZTO_SOURCES := zlogin zlogout zshenv
 SOURCES := \
 	Xmodmap \
 	Xresources \
@@ -6,11 +5,9 @@ SOURCES := \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
-	config/nvim/after/indent/php.vim \
 	config/nvim/init.lua \
 	config/sql-formatter/config.json \
 	config/sway/config \
-	config/sway/background.jpg \
 	config/waybar/config \
 	config/waybar/style.css \
 	config/wezterm/wezterm.lua \
@@ -32,13 +29,9 @@ SOURCES := \
 	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
-	p10k.zsh \
 	tmux.conf \
 	xprofile \
-	zprezto \
-	zpreztorc \
-	zshrc \
-	$(ZPREZTO_SOURCES)
+	zshrc
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
@@ -49,7 +42,6 @@ I3BLOCKS     := _modules/github.com/vivien/i3blocks-contrib
 NODENV       := _modules/github.com/nodenv/nodenv
 NODENV_BUILD := _modules/github.com/nodenv/node-build
 PAQ_NVIM     := _modules/github.com/savq/paq-nvim
-PREZTO       := _modules/github.com/sorin-ionescu/prezto
 WOFI_ARC     := _modules/github.com/sachahjkl/wofi-arc-dark
 
 GIT_MODULES := $(ERLANG_LS) \
@@ -59,7 +51,6 @@ GIT_MODULES := $(ERLANG_LS) \
 			   $(NODENV) \
 			   $(NODENV_BUILD) \
 			   $(PAQ_NVIM) \
-			   $(PREZTO) \
 			   $(WOFI_ARC)
 
 ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
@@ -73,9 +64,6 @@ all:
 
 install: $(TARGETS)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
-
-$(HOME)/.config/%.jpg: config/%.jpg.gpg
-	gpg --decrypt -o $@ $<
 
 $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 	mkdir -p $(dir $@)
@@ -117,12 +105,6 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD)
 
 $(HOME)/.npmrc:
 	echo 'prefix = $${HOME}/.npm' > $@
-
-$(HOME)/.zprezto: $(PREZTO)
-	ln -sfn `pwd`/$< $@
-
-$(addprefix $(HOME)/.,$(ZPREZTO_SOURCES)): $(PREZTO)
-	ln -sfn `pwd`/$</runcoms/$(subst .,,$(notdir $@)) $@
 
 $(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 9.0
 ifeq ($(shell uname),Darwin)
@@ -232,7 +214,9 @@ update/lang/ruby: FORCE
 	fi
 
 update/lang/rust: FORCE
-	(which rustup && rustup update) || true
+	if which rustup 1>/dev/null; then \
+		rustup update; \
+	fi
 
 clean:
 	rm -f $(TARGETS)
