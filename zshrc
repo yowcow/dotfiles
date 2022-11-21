@@ -74,7 +74,7 @@ setopt magic_equal_subst
 export EDITOR=nvim
 export VISUAL=nvim
 export PAGER=less
-export LC_ALL=C
+export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
 export PATH=$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
 
