@@ -2,6 +2,7 @@ SOURCES := \
 	Xmodmap \
 	Xresources \
 	config/alacritty/alacritty.yml \
+	config/alacritty-theme \
 	config/i3/config \
 	config/i3blocks/config \
 	config/kanshi/config \
@@ -36,16 +37,18 @@ SOURCES := \
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
-ERLANG_LS    := _modules/github.com/erlang-ls/erlang_ls
-FZF          := _modules/github.com/junegunn/fzf
-GOENV        := _modules/github.com/syndbg/goenv
-I3BLOCKS     := _modules/github.com/vivien/i3blocks-contrib
-NODENV       := _modules/github.com/nodenv/nodenv
-NODENV_BUILD := _modules/github.com/nodenv/node-build
-PAQ_NVIM     := _modules/github.com/savq/paq-nvim
-WOFI_ARC     := _modules/github.com/sachahjkl/wofi-arc-dark
+ALACRITTY_THEME := _modules/github.com/eendroroy/alacritty-theme
+ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
+FZF             := _modules/github.com/junegunn/fzf
+GOENV           := _modules/github.com/syndbg/goenv
+I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
+NODENV          := _modules/github.com/nodenv/nodenv
+NODENV_BUILD    := _modules/github.com/nodenv/node-build
+PAQ_NVIM        := _modules/github.com/savq/paq-nvim
+WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 
-GIT_MODULES := $(ERLANG_LS) \
+GIT_MODULES := $(ALACRITTY_THEME) \
+			   $(ERLANG_LS) \
 			   $(FZF) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
@@ -65,6 +68,10 @@ all:
 
 install: $(TARGETS)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
+
+$(HOME)/.config/alacritty-theme: $(ALACRITTY_THEME)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
 
 $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
 	mkdir -p $(dir $@)
