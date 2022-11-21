@@ -76,7 +76,7 @@ export VISUAL=nvim
 export PAGER=less
 export LC_ALL=C
 export LANG="en_US.UTF-8"
-export PATH=$HOME/.fzf/bin:$HOME/.local/bin:$HOME/go/bin:/opt/julia/bin:/usr/local/sbin:/usr/sbin:$PATH
+export PATH=$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
 
 if which ruby >/dev/null && which gem >/dev/null; then
     PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
@@ -86,6 +86,18 @@ export CARGO_NET_GIT_FETCH_WITH_CLI=true
 if [ -f "$HOME/.cargo/env" ]; then
     . "$HOME/.cargo/env"
 fi
+
+# .ssh/config to have `HashKnownHosts no` will help
+_cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
+
+[ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
+[ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
+[ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
+[ -f $HOME/.zshlocal ] && source ~/.zshlocal
+
+autoload -U +X bashcompinit && bashcompinit
+[ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
 
 export GOPATH=$HOME/go
 export GOPRIVATE=github.com/voyagegroup
@@ -154,15 +166,3 @@ cert-check() {
         | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
         | openssl x509 -inform pem -noout -text
 }
-
-# .ssh/config to have `HashKnownHosts no` will help
-_cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
-
-[ -f $HOME/.fzf.zsh ] && source ~/.fzf.zsh
-[ -f $HOME/.goenv.zsh ] && source ~/.goenv.zsh
-[ -f $HOME/.nodenv.zsh ] && source ~/.nodenv.zsh
-[ -f $HOME/.travis/travis.sh ] && source ~/.travis/travis.sh
-[ -f $HOME/.zshlocal ] && source ~/.zshlocal
-
-autoload -U +X bashcompinit && bashcompinit
-[ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
