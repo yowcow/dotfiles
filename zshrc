@@ -74,6 +74,7 @@ setopt magic_equal_subst
 export EDITOR=nvim
 export VISUAL=nvim
 export PAGER=less
+export LC_ALL=C
 export LANG="en_US.UTF-8"
 export PATH=$HOME/.fzf/bin:$HOME/.local/bin:$HOME/go/bin:/opt/julia/bin:/usr/local/sbin:/usr/sbin:$PATH
 
