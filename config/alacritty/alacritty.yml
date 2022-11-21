@@ -3,6 +3,7 @@ font:
     family: JetBrains Mono
     style: Regular
   size: %%font_size%%
+  builtin_box_drawing: true
 
 colors:
   primary:
