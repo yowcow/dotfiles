@@ -75,28 +75,28 @@ require 'paq' {
 -- https://www.color-hex.com/
 -- https://www.ditig.com/256-colors-cheat-sheet
 --
--- local monokai = require 'monokai'
--- local palette = monokai.classic
--- monokai.setup {
---   custom_hlgroups = {
---     Identifier = {
---       fg = palette.orange
---     },
---     Special = {
---       fg = palette.aqua
---     },
---     TabLine = {
---       fg = palette.grey
---     },
---     Visual = {
---       bg = palette.base5
---     },
---   },
--- }
+local monokai = require 'monokai'
+local palette = monokai.classic
+monokai.setup {
+  custom_hlgroups = {
+    Identifier = {
+      fg = palette.orange
+    },
+    Special = {
+      fg = palette.aqua
+    },
+    TabLine = {
+      fg = palette.grey
+    },
+    Visual = {
+      bg = palette.base5
+    },
+  },
+}
 
-g.sonokai_style = 'andromeda'
--- g.sonokai_better_performance = 1
-cmd('colorscheme sonokai')
+-- g.sonokai_style = 'andromeda'
+-- -- g.sonokai_better_performance = 1
+-- cmd('colorscheme sonokai')
 
 require 'lualine'.setup {
   sections = {
@@ -106,8 +106,8 @@ require 'lualine'.setup {
   },
   options = {
     icons_enabled = false,
-    --theme = 'molokai',
-    theme = 'sonokai',
+    theme = 'molokai',
+    --theme = 'sonokai',
     component_separators = {left = '', right = ''},
     section_separators = {left = '', right = ''},
   },
