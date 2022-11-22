@@ -10,7 +10,7 @@ import:
 
 colors:
   primary:
-    foreground: '#cccccc'
+    foreground: '#ededed'
   cursor:
     text: '#000000'
     cursor: '#a6e22d'
