@@ -9,6 +9,8 @@ import:
   - ~/.config/alacritty-theme/themes/argonaut.yaml
 
 colors:
+  primary:
+    foreground: '#cccccc'
   cursor:
     text: '#000000'
     cursor: '#a6e22d'
