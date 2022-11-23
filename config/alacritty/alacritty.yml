@@ -6,7 +6,7 @@ font:
   builtin_box_drawing: true
 
 import:
-  - ~/.config/alacritty-theme/themes/material_theme_mod.yaml
+  - ~/.config/alacritty-theme/themes/argonaut.yaml
 
 colors:
   #primary:
