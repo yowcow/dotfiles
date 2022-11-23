@@ -61,7 +61,6 @@ require 'paq' {
   'nvim-lua/plenary.nvim';
   'nvim-lualine/lualine.nvim';
   'nvim-treesitter/nvim-treesitter';
-  'sainnhe/sonokai';
   'savq/paq-nvim';
   'tanvirtin/monokai.nvim';
   {'junegunn/fzf', dir = '~/.fzf/'};
@@ -80,23 +79,25 @@ local palette = monokai.classic
 monokai.setup {
   custom_hlgroups = {
     Identifier = {
-      fg = palette.orange
+      fg = palette.orange,
     },
     Special = {
-      fg = palette.aqua
+      fg = palette.aqua,
     },
     TabLine = {
-      fg = palette.grey
+      fg = palette.grey,
     },
     Visual = {
-      bg = palette.base5
+      bg = palette.base4,
+    },
+    Search = {
+      -- explicitly highlight matches in visual selection
+      style = 'reverse',
+      fg = palette.yellow,
+      bg = palette.black,
     },
   },
 }
-
--- g.sonokai_style = 'andromeda'
--- -- g.sonokai_better_performance = 1
--- cmd('colorscheme sonokai')
 
 require 'lualine'.setup {
   sections = {
@@ -107,7 +108,6 @@ require 'lualine'.setup {
   options = {
     icons_enabled = false,
     theme = 'molokai',
-    --theme = 'sonokai',
     component_separators = {left = '', right = ''},
     section_separators = {left = '', right = ''},
   },
