@@ -81,10 +81,6 @@ $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</style.css $@
 
-$(HOME)/.config/starship.toml: FORCE
-	(which starship 1>/dev/null && starship preset pure-preset > $@) || true;
-	#(which starship 1>/dev/null && starship preset bracketed-segments > $@) || true;
-
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
 
