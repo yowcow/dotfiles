@@ -11,6 +11,8 @@ import:
 colors:
   primary:
     foreground: '#dddddd'
+  normal:
+    black: '#555555'
   cursor:
     text: '#000000'
     cursor: '#a6e22d'
