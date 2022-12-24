@@ -95,6 +95,8 @@ output * bg ~/.config/sway/background.jpg fill
     }
     input type:pointer {
         natural_scroll "enabled"
+        accel_profile "adaptive"
+        pointer_accel -0.6
     }
     input type:touchpad {
         natural_scroll "enabled"
@@ -103,7 +105,7 @@ output * bg ~/.config/sway/background.jpg fill
         tap "enabled"
         tap_button_map "lrm"
         accel_profile "adaptive"
-        pointer_accel 1.0
+        pointer_accel 0.5
     }
     #input "1149:8257:Kensington_Slimblade_Trackball" {
     #}
