@@ -149,7 +149,7 @@ _modules/%:
 
 update:
 	$(MAKE) $(addprefix update/,$(GIT_MODULES))
-	$(MAKE) $(addprefix update/lang/,golang nodejs python3 python ruby rust)
+	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
@@ -201,24 +201,6 @@ update/lang/python3: FORCE
 			sqlparse \
 			yq \
 			; \
-	fi
-
-update/lang/python: FORCE
-	if which pip 1>/dev/null; then \
-		pip install --upgrade \
-			neovim \
-			pynvim \
-			msgpack \
-			; \
-	fi
-
-update/lang/ruby: FORCE
-	## WTF?? Do:
-	## travis login --com --github-token XXXX
-	if which gem 1>/dev/null; then \
-		gem install --user-install --no-document \
-			travis \
-			neovim; \
 	fi
 
 update/lang/rust: FORCE
