@@ -78,10 +78,6 @@ export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
 export PATH=$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
 
-if which ruby >/dev/null && which gem >/dev/null; then
-    PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
-fi
-
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 if [ -f "$HOME/.cargo/env" ]; then
     . "$HOME/.cargo/env"
