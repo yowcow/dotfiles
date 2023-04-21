@@ -116,7 +116,7 @@ $(HOME)/.npmrc:
 
 $(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 9.0
 ifeq ($(shell uname),Darwin)
-$(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 11.0
+$(HOME)/.config/alacritty/alacritty.yml: ALACRITTY_FONT_SIZE := 10.0
 endif
 $(HOME)/.config/alacritty/alacritty.yml: config/alacritty/alacritty.yml FORCE
 	mkdir -p $(dir $@)
