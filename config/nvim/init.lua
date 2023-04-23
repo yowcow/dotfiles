@@ -307,6 +307,7 @@ cmd('autocmd FileType make,go setlocal noexpandtab')
 cmd('autocmd FileType xml,xhtml,html,smarty,json,yaml setlocal softtabstop=2 tabstop=2 shiftwidth=2')
 cmd('autocmd FileType javascript,javascript.jsx,javascriptreact,typescript,typescript.tsx,typescriptreact,ruby,lua,sql setlocal softtabstop=2 tabstop=2 shiftwidth=2')
 cmd('autocmd FileType markdown setlocal softtabstop=4 tabstop=4 shiftwidth=2')
+cmd('autocmd FileType yaml setlocal indentkeys-=0#')
 cmd('augroup END')
 
 cmd('augroup bufwritepre')
