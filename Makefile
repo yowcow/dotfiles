@@ -12,6 +12,7 @@ SOURCES := \
 	config/sway/config \
 	config/waybar/config \
 	config/waybar/style.css \
+	config/weston.ini \
 	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
 	fzf \
