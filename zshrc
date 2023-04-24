@@ -33,11 +33,12 @@ ssh-agent-start() {
             [ -L /tmp/ssh-auth.sock ] && \
                 export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
         fi
-        # add a key if its fingerprint is not in the agent
-        KEY=$HOME/.ssh/id_rsa \
-            && [ -f $KEY ] \
-            && [ -z "$(ssh-add -l | grep $(ssh-keygen -lf $KEY | cut -d' ' -f2))" ] \
-            && ssh-add $KEY;
+        for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
+            # add a key if its fingerprint is not in the agent
+            [ -f $key ] \
+            && [ -z "$(ssh-add -l | grep $(ssh-keygen -lf $key | cut -d' ' -f2))" ] \
+            && ssh-add $key; \
+        done;
     fi
 }
 
