@@ -140,6 +140,11 @@ aws-ec2() {
             ] | @tsv' -r
 }
 
+aws-session() {
+    aws-vault exec $AWS_PROFILE -- \
+        aws ssm start-session --target $3
+}
+
 ssh-proxy() {
     if [ "$SSH_PROXY_HOST" = "" ]; then
         echo '$SSH_PROXY_HOST is required';
