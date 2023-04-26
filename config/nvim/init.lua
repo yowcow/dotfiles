@@ -312,7 +312,7 @@ cmd('augroup END')
 
 cmd('augroup bufwritepre')
 cmd('autocmd!')
-cmd('autocmd FileType php autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync(nil, 1000)')
+cmd('autocmd FileType php autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ async = false })')
 -- cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!goimports')
 -- cmd('autocmd FileType go autocmd BufWritePre <buffer> silent! %!gofmt')
 cmd('autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <buffer> silent! EslintFixAll')
