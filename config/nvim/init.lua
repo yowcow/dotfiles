@@ -29,6 +29,8 @@ opt.termguicolors = true
 opt.visualbell = false
 opt.writebackup = false
 opt.mouse = ''
+opt.encoding = 'utf-8'
+opt.fileencodings='iso-2022-jp,cp932,sjis,euc-jp,utf8'
 
 cmd('filetype plugin indent on')
 
