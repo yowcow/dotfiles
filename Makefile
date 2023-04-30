@@ -5,6 +5,7 @@ SOURCES := \
 	config/alacritty-theme \
 	config/i3/config \
 	config/i3blocks/config \
+	config/libskk \
 	config/kanshi/config \
 	config/nvim/init.lua \
 	config/sql-formatter/config.json \
