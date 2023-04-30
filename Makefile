@@ -198,8 +198,9 @@ update/lang/nodejs: FORCE
 update/lang/python3: FORCE
 	if which pip3 1>/dev/null; then \
 		pip3 install --upgrade --break-system-packages \
-			pynvim \
 			msgpack \
+			pip \
+			pynvim \
 			sqlparse \
 			yq \
 			; \
