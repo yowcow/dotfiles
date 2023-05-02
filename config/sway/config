@@ -92,7 +92,7 @@ set $menu wofi --allow-images --allow-markup --show drun --style ~/.config/wofi/
     input type:pointer {
         natural_scroll "enabled"
         accel_profile "adaptive"
-        pointer_accel -0.6
+        pointer_accel 0.0
     }
     input type:touchpad {
         natural_scroll "enabled"
