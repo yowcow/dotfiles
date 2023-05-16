@@ -201,6 +201,7 @@ update/lang/python3: FORCE
 			msgpack \
 			pip \
 			pynvim \
+			qmk \
 			sqlparse \
 			yq \
 			; \
