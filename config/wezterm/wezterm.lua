@@ -1,5 +1,5 @@
 local wezterm = require 'wezterm';
-local font_size = 11.0;
+local font_size = 10.0;
 
 if os.getenv("GDK_DPI_SCALE") ~= nil then
   -- Tweak for HiDPI X Window System
@@ -12,6 +12,10 @@ end
 return {
   audible_bell = "Disabled",
   color_scheme = "Molokai",
+  colors = {
+    cursor_bg = '#aaff00',
+    cursor_fg = 'black',
+  },
   font = wezterm.font_with_fallback({
     {
       family = "JetBrains Mono",
