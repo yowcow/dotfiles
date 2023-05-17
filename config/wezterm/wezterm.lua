@@ -8,7 +8,7 @@ end
 
 return {
   audible_bell = "Disabled",
-  color_scheme = "Molokai",
+  color_scheme = "MaterialDarker",
   colors = {
     cursor_bg = '#aaff00',
     cursor_fg = 'black',
