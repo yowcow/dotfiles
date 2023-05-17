@@ -24,7 +24,8 @@ set $right l
 # Your preferred terminal emulator
 #set $term x-terminal-emulator
 #set $term wezterm
-set $term ~/.cargo/bin/alacritty
+#set $term ~/.cargo/bin/alacritty
+set $term ~/.local/bin/wezterm
 
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
