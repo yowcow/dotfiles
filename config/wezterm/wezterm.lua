@@ -1,12 +1,9 @@
 local wezterm = require 'wezterm';
-local font_size = 10.0;
+local font_size = 10;
 
-if os.getenv("GDK_DPI_SCALE") ~= nil then
-  -- Tweak for HiDPI X Window System
-  font_size = math.floor(os.getenv("GDK_DPI_SCALE") * font_size) * 1.0 - 1.0;
-elseif os.getenv("XDG_SESSION_TYPE") == "wayland" then
+if os.getenv("XDG_SESSION_TYPE") == "wayland" then
   -- Tweak for Wayland sessions
-  font_size = font_size - 2.0
+  font_size = font_size - 1
 end
 
 return {
@@ -19,14 +16,15 @@ return {
   font = wezterm.font_with_fallback({
     {
       family = "JetBrains Mono",
-      weight = "Medium",
+      -- weight = "Medium",
       harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
     },
     "Hiragino Sans",
     "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
-  --freetype_load_target = "HorizontalLcd",
+  freetype_load_target = "Light",
+  freetype_render_target = "HorizontalLcd",
   initial_cols = 160,
   initial_rows = 48,
   tab_bar_at_bottom = true,
@@ -34,10 +32,10 @@ return {
   window_frame = {
     font_size = font_size,
   },
-  window_padding = {
-    top = 5,
-    bottom = 5,
-    left = 5,
-    right = 5,
-  },
+  -- window_padding = {
+  --   top = 5,
+  --   bottom = 5,
+  --   left = 5,
+  --   right = 5,
+  -- },
 }
