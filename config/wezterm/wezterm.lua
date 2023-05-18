@@ -16,19 +16,20 @@ return {
   font = wezterm.font_with_fallback({
     {
       family = "JetBrains Mono",
-      -- weight = "Medium",
+      weight = "Medium",
       harfbuzz_features = {"calt=0", "clig=0", "liga=0"}, -- disable ligature feature
     },
     "Hiragino Sans",
     "Noto Sans Mono CJK JP", -- fc-list | rg Noto | rg Mono | rg JP
   }),
   font_size = font_size,
-  freetype_load_target = "Light",
-  freetype_render_target = "HorizontalLcd",
+  --freetype_load_target = "Light",
+  --freetype_render_target = "HorizontalLcd",
   initial_cols = 160,
   initial_rows = 48,
   tab_bar_at_bottom = true,
   use_ime = true,
+  window_background_opacity = 0.95,
   window_frame = {
     font_size = font_size,
   },
