@@ -92,6 +92,18 @@ monokai.setup {
     Visual = {
       bg = palette.base4,
     },
+    Normal = {
+      fg = palette.white,
+      bg = '#101214',
+    },
+    LineNr = {
+      fg = palette.base5,
+      bg = '#101214',
+    },
+    SignColumn = {
+      fg = palette.white,
+      bg = '#101214',
+    },
     Search = {
       -- explicitly highlight matches in visual selection
       style = 'reverse',
