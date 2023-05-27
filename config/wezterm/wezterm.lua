@@ -10,7 +10,7 @@ return {
   audible_bell = "Disabled",
   color_scheme = "Molokai",
   colors = {
-    foreground = '#f8f8f8',
+    foreground = '#dddddd',
     cursor_bg = '#aaff00',
     cursor_fg = 'black',
   },
