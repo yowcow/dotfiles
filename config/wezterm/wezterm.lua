@@ -1,10 +1,10 @@
 local wezterm = require 'wezterm';
 local font_size = 10;
 
--- if os.getenv("XDG_SESSION_TYPE") == "wayland" then
---   -- Tweak for Wayland sessions
---   font_size = font_size - 1
--- end
+if os.getenv("XDG_SESSION_TYPE") == "wayland" then
+  -- Tweak for Wayland sessions
+  font_size = font_size - 1
+end
 
 return {
   audible_bell = "Disabled",
