@@ -6,5 +6,9 @@ export PATH=$GOENV_ROOT/bin:$PATH
 
 eval "$(goenv init -)"
 
-export PATH="$GOROOT/bin:$PATH"
-export PATH="$GOPATH/bin:$PATH"
+if [ ! -z "$GOROOT" ]; then
+    export PATH="$GOROOT/bin:$PATH"
+fi
+if [ ! -z "$GOPATH" ]; then
+    export PATH="$GOPATH/bin:$PATH"
+fi
