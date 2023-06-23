@@ -2,13 +2,13 @@ unset GOROOT
 unset GOPATH
 
 export GOENV_ROOT=$HOME/.goenv
-export PATH=$GOENV_ROOT/bin:$PATH
+export PATH=$GOENV_ROOT/bin:$GOENV_ROOT/shims:$PATH
 
 eval "$(goenv init -)"
 
-if [ ! -z "$GOROOT" ]; then
-    export PATH="$GOROOT/bin:$PATH"
-fi
-if [ ! -z "$GOPATH" ]; then
-    export PATH="$GOPATH/bin:$PATH"
-fi
+#if [ ! -z "$GOROOT" ]; then
+#    export PATH="$GOROOT/bin:$PATH"
+#fi
+#if [ ! -z "$GOPATH" ]; then
+#    export PATH="$GOPATH/bin:$PATH"
+#fi
