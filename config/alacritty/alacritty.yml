@@ -16,3 +16,6 @@ colors:
   cursor:
     text: '#000000'
     cursor: '#a6e22d'
+
+window:
+  opacity: 0.85
