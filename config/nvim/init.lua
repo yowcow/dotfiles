@@ -42,6 +42,7 @@ cmd('nnoremap Y Y')
 -- :help paq
 --
 require 'paq' {
+  'cheap-glitch/vim-v';
   'godlygeek/tabular';
   'hashivim/vim-terraform';
   'hashivim/vim-vagrant';
