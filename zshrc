@@ -142,7 +142,7 @@ aws-ec2() {
 
 aws-session() {
     aws-vault exec $AWS_PROFILE -- \
-        aws ssm start-session --target $3
+        aws ssm start-session --target $1
 }
 
 ssh-proxy() {
