@@ -201,6 +201,11 @@ update/lang/rust: FORCE
 	if which rustup 1>/dev/null; then \
 		rustup update; \
 	fi
+	if which cargo 1>/dev/null; then \
+		cargo install \
+			cargo-update \
+			; \
+	fi
 
 clean:
 	rm -f $(TARGETS)
