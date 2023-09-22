@@ -152,7 +152,8 @@ update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
 update/lang/golang: GOTOOLS := \
 	golang.org/x/tools/cmd/goimports \
 	golang.org/x/tools/gopls \
-	honnef.co/go/tools/cmd/staticcheck
+	honnef.co/go/tools/cmd/staticcheck \
+	github.com/yowcow/ezserve
 update/lang/golang: FORCE
 	if which go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
