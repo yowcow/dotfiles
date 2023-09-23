@@ -64,6 +64,7 @@ require 'paq' {
   'nvim-lua/plenary.nvim';
   'nvim-lualine/lualine.nvim';
   'nvim-treesitter/nvim-treesitter';
+  'rust-lang/rust.vim';
   'savq/paq-nvim';
   'tanvirtin/monokai.nvim';
   {'junegunn/fzf', dir = '~/.fzf/'};
@@ -359,6 +360,7 @@ map('t', '<C-\\><C-\\>', '<C-\\><C-n>')
 
 -- some global variables
 g.terraform_fmt_on_save = 1
+g.rustfmt_autosave = 1
 
 local function get_selection(from, to)
   local header = {}
