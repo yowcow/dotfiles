@@ -200,12 +200,18 @@ update/lang/python3: FORCE
 
 update/lang/rust: FORCE
 	if which rustup 1>/dev/null; then \
+		rustup component add \
+			rust-analyzer \
+			rust-src \
+			rustfmt \
+			; \
 		rustup update; \
 	fi
 	if which cargo 1>/dev/null; then \
 		cargo install \
 			cargo-update \
 			; \
+		cargo install-update -a; \
 	fi
 
 clean:

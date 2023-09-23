@@ -248,6 +248,7 @@ local lspservers = {
   'erlangls',
   'eslint',
   'intelephense',
+  'rust_analyzer',
   'terraformls',
   'tsserver',
 }
