@@ -169,3 +169,9 @@ cert-check() {
         | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
         | openssl x509 -inform pem -noout -text
 }
+
+git-url() {
+    git remote get-url $1 \
+        | sed 's/^.*@//; s/:/\//; s/\.git$//' \
+        | while read -r url; do echo "https://${url}/commit/${2}"; done
+}
