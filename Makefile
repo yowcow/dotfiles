@@ -187,15 +187,10 @@ update/lang/nodejs: FORCE
 	fi
 
 update/lang/python3: FORCE
-	if which pip3 1>/dev/null; then \
-		pip3 install --upgrade --break-system-packages \
-			msgpack \
-			pip \
-			pynvim \
-			qmk \
-			sqlparse \
-			yq \
-			; \
+	if which pipx 1>/dev/null; then \
+		for pkg in qmk; do \
+			(which $$pkg && pipx upgrade --include-injected $$pkg) || pipx install --include-deps $$pkg; \
+		done \
 	fi
 
 update/lang/rust: FORCE
