@@ -215,7 +215,7 @@ end
 map('n', 'ge', '<cmd>lua vim.diagnostic.open_float()<CR>')
 map('n', '[g', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
 map('n', ']g', '<cmd>lua vim.diagnostic.goto_next()<CR>')
-map('n', 'gq', '<cmd>lua vim.diagnostic.setloclist()<CR>')
+map('n', 'gl', '<cmd>lua vim.diagnostic.setloclist()<CR>')
 
 local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
