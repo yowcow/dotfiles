@@ -213,8 +213,8 @@ end
 
 -- map('i', '<tab>', 'v:lua.smarttab()', {expr = true, noremap = true})
 map('n', 'ge', '<cmd>lua vim.diagnostic.open_float()<CR>')
-map('n', '[g', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
 map('n', ']g', '<cmd>lua vim.diagnostic.goto_next()<CR>')
+map('n', '[g', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
 map('n', 'gl', '<cmd>lua vim.diagnostic.setloclist()<CR>')
 
 local on_attach = function(client, bufnr)
