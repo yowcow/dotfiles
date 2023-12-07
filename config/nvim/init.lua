@@ -67,7 +67,7 @@ require "paq" {
   "rust-lang/rust.vim",
   "savq/paq-nvim",
   "tanvirtin/monokai.nvim",
-  {"junegunn/fzf", dir = "~/.fzf/"},
+  {"junegunn/fzf", dir = fn.expand("~/.fzf/")},
   -- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
 }
 
@@ -152,7 +152,7 @@ local cmp = require "cmp"
 cmp.setup {
   snippet = {
     expand = function(args)
-      vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+      fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
     end,
   },
   mapping = {
@@ -208,7 +208,7 @@ end
 
 function _G.smarttab()
   print(vim.inspect(vim.fn.pumvisible()))
-  return vim.fn.pumvisible() == 1 and t"<C-n>" or t"<Tab>"
+  return fn.pumvisible() == 1 and t"<C-n>" or t"<Tab>"
 end
 
 -- map("i", "<tab>", "v:lua.smarttab()", {expr = true, noremap = true})
@@ -286,7 +286,11 @@ lspconfig.gopls.setup {
   },
 }
 lspconfig.lua_ls.setup {
-  cmd = {"lua-language-server", "--logpath", "~/.cache/lua_ls/log/", "--metapath", "~/.cache/lua_ls/meta/"}
+  cmd = {
+    "lua-language-server",
+    "--logpath", fn.expand("~/.cache/lua_ls/log/"),
+    "--metapath", fn.expand("~/.cache/lua_ls/meta/"),
+  }
 }
 
 --
@@ -310,8 +314,8 @@ map("n", ";t", ":Files<CR>")
 map("n", ";g", ":GFiles<CR>")
 map("n", ";h", ":History<CR>")
 map("n", ";c", ":Commits<CR>")
-map("n", ";r", ":Rg<CR>");
-g.fzf_history_dir = "~/.fzf-history"
+map("n", ";r", ":Rg<CR>")
+g.fzf_history_dir = fn.expand("~/.fzf-history")
 
 --
 -- personal things
@@ -370,7 +374,7 @@ local function get_selection(from, to)
   local header = {}
   local body = {}
   local footer = {}
-  for i, v in ipairs(vim.fn.getline(from["line"], to["line"])) do
+  for i, v in ipairs(fn.getline(from["line"], to["line"])) do
     local current_line = from["line"] + i - 1
     local from_col = 1
     local to_col = nil
@@ -397,8 +401,8 @@ local function get_range(range, line1, line2)
   if range == 0 then
     return unpack({from, to})
   end
-  local _, _, from_col = unpack(vim.fn.getpos("'<"))
-  local _, _, to_col = unpack(vim.fn.getpos("'>"))
+  local _, _, from_col = unpack(fn.getpos("'<"))
+  local _, _, to_col = unpack(fn.getpos("'>"))
   from.col = from_col
   to.col = to_col
   return unpack({from, to})
@@ -422,9 +426,13 @@ end
 function _G.do_format(command, range, line1, line2)
   local from, to = get_range(range, line1, line2)
   local header, body, footer = get_selection(from, to)
-  local result = split_string(vim.fn.system(command, table.concat(body, "\n")), "\r\n")
+  local result = split_string(fn.system(command, table.concat(body, "\n")), "\r\n")
   cmd(line1 .. "," .. line2 .. "delete")
   fn.append(line1 - 1, merge_tables(merge_tables(header, result), footer))
 end
 
-cmd([[command! -range=% FSQL <line1>,<line2>lua do_format("sql-formatter --config ~/.config/sql-formatter/config.json", <range>, <line1>, <line2>)]])
+cmd(
+  [[command! -range=% FSQL <line1>,<line2>lua do_format("]]
+  .. [[sql-formatter --config ]] .. fn.expand("~/.config/sql-formatter/config.json")
+  .. [[", <range>, <line1>, <line2>)]]
+)
