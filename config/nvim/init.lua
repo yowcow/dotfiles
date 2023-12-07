@@ -67,6 +67,7 @@ require "paq" {
   "rust-lang/rust.vim",
   "savq/paq-nvim",
   "tanvirtin/monokai.nvim",
+  "yowcow/partial.nvim",
   {"junegunn/fzf", dir = fn.expand("~/.fzf/")},
   -- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
 }
@@ -305,6 +306,15 @@ nullls.setup {
 }
 
 --
+-- https://github.com/yowcow/partial.nvim
+--
+require("partial").setup({
+  json = {"jq", "."},
+  sql = {"sql-formatter", "--config", fn.expand("~/.config/sql-formatter/config.json")},
+  xml = {"xmllint", "--format", "-"},
+})
+
+--
 -- FZF
 -- :help fzf
 --
@@ -369,70 +379,3 @@ map("t", "<C-\\><C-\\>", "<C-\\><C-n>")
 -- some global variables
 g.terraform_fmt_on_save = 1
 g.rustfmt_autosave = 1
-
-local function get_selection(from, to)
-  local header = {}
-  local body = {}
-  local footer = {}
-  for i, v in ipairs(fn.getline(from["line"], to["line"])) do
-    local current_line = from["line"] + i - 1
-    local from_col = 1
-    local to_col = nil
-    if current_line == from["line"] then
-      if from["col"] ~= nil and from["col"] ~= 1 then
-        table.insert(header, string.sub(v, 0, from["col"] -1))
-        from_col = from["col"]
-      end
-    end
-    if current_line == to["line"] then
-      if to["col"] ~= nil and to["col"] < string.len(v) then
-        table.insert(footer, string.sub(v, to["col"] + 1))
-        to_col = to["col"]
-      end
-    end
-    table.insert(body, string.sub(v, from_col, to_col))
-  end
-  return unpack({header, body, footer})
-end
-
-local function get_range(range, line1, line2)
-  local from = { line = line1 }
-  local to = { line = line2 }
-  if range == 0 then
-    return unpack({from, to})
-  end
-  local _, _, from_col = unpack(fn.getpos("'<"))
-  local _, _, to_col = unpack(fn.getpos("'>"))
-  from.col = from_col
-  to.col = to_col
-  return unpack({from, to})
-end
-
-local function split_string(input, sep)
-  local output = {}
-  for str in string.gmatch(input, "([^" .. sep .. "]+)") do
-    table.insert(output, str)
-  end
-  return output
-end
-
-local function merge_tables(t1, t2)
-  for _, v in ipairs(t2) do
-    table.insert(t1, v)
-  end
-  return t1
-end
-
-function _G.do_format(command, range, line1, line2)
-  local from, to = get_range(range, line1, line2)
-  local header, body, footer = get_selection(from, to)
-  local result = split_string(fn.system(command, table.concat(body, "\n")), "\r\n")
-  cmd(line1 .. "," .. line2 .. "delete")
-  fn.append(line1 - 1, merge_tables(merge_tables(header, result), footer))
-end
-
-cmd(
-  [[command! -range=% FSQL <line1>,<line2>lua do_format("]]
-  .. [[sql-formatter --config ]] .. fn.expand("~/.config/sql-formatter/config.json")
-  .. [[", <range>, <line1>, <line2>)]]
-)
