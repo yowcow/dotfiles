@@ -42,33 +42,33 @@ cmd('nnoremap Y Y')
 -- :help paq
 --
 require 'paq' {
-  'cheap-glitch/vim-v';
-  'godlygeek/tabular';
-  'hashivim/vim-terraform';
-  'hashivim/vim-vagrant';
-  'hrsh7th/cmp-buffer';
-  'hrsh7th/cmp-cmdline';
-  'hrsh7th/cmp-nvim-lsp';
-  'hrsh7th/cmp-nvim-lua';
-  'hrsh7th/cmp-path';
-  'hrsh7th/cmp-vsnip';
-  'hrsh7th/nvim-cmp';
-  'hrsh7th/vim-vsnip';
-  'jose-elias-alvarez/null-ls.nvim';
-  'junegunn/fzf.vim';
-  'kyazdani42/nvim-web-devicons';
-  'mattn/vim-gist';
-  'mattn/vim-goimports';
-  'mattn/webapi-vim';
-  'neovim/nvim-lspconfig';
-  'nvim-lua/plenary.nvim';
-  'nvim-lualine/lualine.nvim';
-  'nvim-treesitter/nvim-treesitter';
-  'rust-lang/rust.vim';
-  'savq/paq-nvim';
-  'tanvirtin/monokai.nvim';
-  {'junegunn/fzf', dir = '~/.fzf/'};
-  -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'};
+  'cheap-glitch/vim-v',
+  'godlygeek/tabular',
+  'hashivim/vim-terraform',
+  'hashivim/vim-vagrant',
+  'hrsh7th/cmp-buffer',
+  'hrsh7th/cmp-cmdline',
+  'hrsh7th/cmp-nvim-lsp',
+  'hrsh7th/cmp-nvim-lua',
+  'hrsh7th/cmp-path',
+  'hrsh7th/cmp-vsnip',
+  'hrsh7th/nvim-cmp',
+  'hrsh7th/vim-vsnip',
+  'jose-elias-alvarez/null-ls.nvim',
+  'junegunn/fzf.vim',
+  'kyazdani42/nvim-web-devicons',
+  'mattn/vim-gist',
+  'mattn/vim-goimports',
+  'mattn/webapi-vim',
+  'neovim/nvim-lspconfig',
+  'nvim-lua/plenary.nvim',
+  'nvim-lualine/lualine.nvim',
+  'nvim-treesitter/nvim-treesitter',
+  'rust-lang/rust.vim',
+  'savq/paq-nvim',
+  'tanvirtin/monokai.nvim',
+  {'junegunn/fzf', dir = '~/.fzf/'},
+  -- {'prettier/vim-prettier', do = 'npm install --frozen-lockfile --production'},
 }
 
 --
@@ -284,6 +284,9 @@ lspconfig.gopls.setup {
   flags = {
     debounce_text_changes = 150
   },
+}
+lspconfig.lua_ls.setup {
+  cmd = {"lua-language-server", "--logpath", "~/.cache/lua_ls/log/", "--metapath", "~/.cache/lua_ls/meta/"}
 }
 
 --
