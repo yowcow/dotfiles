@@ -42,7 +42,7 @@ cmd('nnoremap Y Y')
 -- :help paq
 --
 require "paq" {
-  "cheap-glitch/vim-v",
+  "akinsho/toggleterm.nvim",
   "godlygeek/tabular",
   "hashivim/vim-terraform",
   "hashivim/vim-vagrant",
@@ -71,6 +71,8 @@ require "paq" {
   {"junegunn/fzf", dir = fn.expand("~/.fzf/")},
   -- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
 }
+
+require "toggleterm".setup {}
 
 --
 -- tanvirtin/monokai.vim
