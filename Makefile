@@ -7,7 +7,7 @@ SOURCES := \
 	config/i3blocks/config \
 	config/libskk \
 	config/kanshi/config \
-	config/nvim/init.lua \
+	config/nvim \
 	config/sql-formatter/config.json \
 	config/starship.toml \
 	config/sway/config \
