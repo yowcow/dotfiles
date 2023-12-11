@@ -2,7 +2,7 @@ require("my-options")
 require("my-paq")
 require("my-lsp")
 require("my-autocmd")
-require("my-map")
+require("my-maps")
 
 -- some global variables
 vim.g.terraform_fmt_on_save = 1
