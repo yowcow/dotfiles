@@ -33,6 +33,8 @@ require "paq" {
   -- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
 }
 
+vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
+
 require "toggleterm".setup {}
 
 --

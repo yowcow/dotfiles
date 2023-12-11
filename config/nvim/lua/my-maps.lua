@@ -1,5 +1,4 @@
-local utils = require("my-utils")
-local map = utils.map
+local map = require("my-utils").map
 
 --[[
 function _G.smarttab()
@@ -10,8 +9,8 @@ end
 
 -- map("i", "<tab>", "v:lua.smarttab()", {expr = true, noremap = true})
 map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
-map("n", "]g", "<cmd>lua vim.diagnostic.goto_next()<CR>")
-map("n", "[g", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
+map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>")
+map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
 map("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
 
 
@@ -19,24 +18,23 @@ map("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
 -- FZF
 -- :help fzf
 --
-map("n", ";b", ":Buffers<CR>")
-map("n", ";w", ":Windows<CR>")
-map("n", ";t", ":Files<CR>")
-map("n", ";g", ":GFiles<CR>")
-map("n", ";h", ":History<CR>")
-map("n", ";c", ":Commits<CR>")
-map("n", ";r", ":Rg<CR>")
-
-vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
+map("n", "<Leader>;", ":Buffers<CR>")
+map("n", "<Leader>w", ":Windows<CR>")
+map("n", "<Leader>f", ":Files<CR>")
+map("n", "<Leader>h", ":History<CR>")
+map("n", "<Leader>r", ":Rg<CR>")
+map("n", "<Leader>gs", ":GFiles?<CR>")
+map("n", "<Leader>gl", ":Commits<CR>")
+map("n", "<Leader>gf", ":GFiles<CR>")
 
 -- tabs/buffers
--- map("n", "tl", ":tabs<CR>")
-map("n", "tn", ":tabnew<space>")
-map("n", "tt", ":tabedit<space>")
-map("n", "tl", ":tabnext<CR>")
-map("n", "th", ":tabprev<CR>")
-map("n", "tm", ":tabmove<space>")
-map("n", "td", ":tabclose<CR>")
+map("n", "<Leader>e", ":tabnew<space>")
+map("n", "<Leader>p", ":tabprev<CR>")
+map("n", "<Leader>n", ":tabnext<CR>")
+map("n", "<Leader>d", ":tabclose<CR>")
+-- map("n", "<Leader>l", ":tabs<CR>")
+-- map("n", "<Leader>n", ":tabedit<space>")
+-- map("n", "<Leader>m", ":tabmove<space>")
 -- map("n", "bl", ":buffers<CR>")
 -- map("n", "bn", ":e<space>")
 -- map("n", "bl", ":bnext<CR>")
@@ -44,4 +42,5 @@ map("n", "td", ":tabclose<CR>")
 -- map("n", "bd", ":bd<CR>")
 
 -- term
-map("t", "<C-\\><C-\\>", "<C-\\><C-n>")
+map("n", "<Leader>t", ":ToggleTerm<CR>")
+map("t", "<Leader>t", "<C-\\><C-n>")

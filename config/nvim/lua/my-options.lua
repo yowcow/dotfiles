@@ -27,8 +27,3 @@ opt.writebackup = false
 opt.mouse = ""
 opt.encoding = "utf-8"
 opt.fileencodings="utf8,iso-2022-jp,cp932,sjis,euc-jp"
-
-vim.cmd([[filetype plugin indent on]])
-
--- https://www.reddit.com/r/neovim/comments/petq61/neovim_060_y_not_yanking_line_but_to_end_of_line/
-vim.cmd('nnoremap Y Y')
