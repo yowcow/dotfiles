@@ -35,7 +35,15 @@ require "paq" {
 
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
 
-require "toggleterm".setup {}
+require "toggleterm".setup {
+  -- size = function(term)
+  --   if term.direction == "horizontal" then
+  --     return math.floor(vim.o.lines / 3)
+  --   elseif term.direction == "vertical" then
+  --     return math.floor(vim.o.columns / 3)
+  --   end
+  -- end,
+}
 
 --
 -- tanvirtin/monokai.vim
