@@ -28,6 +28,7 @@ SOURCES := \
 	local/bin/erlang_ls \
 	local/bin/mylock \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
+	luarocks.zsh \
 	nodenv \
 	nodenv.zsh \
 	nodenv/plugins/node-build \
