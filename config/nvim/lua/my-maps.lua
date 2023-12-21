@@ -27,7 +27,7 @@ map("n", "<Leader>gl", ":Commits<CR>")
 map("n", "<Leader>gf", ":GFiles<CR>")
 
 -- tabs/buffers
-map("n", "tn", ":tabnew<space>")
+map("n", "to", ":tabnew<space>")
 map("n", "tp", ":tabprev<CR>")
 map("n", "tn", ":tabnext<CR>")
 map("n", "td", ":tabclose<CR>")
