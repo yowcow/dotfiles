@@ -22,6 +22,7 @@ cmd([[autocmd FileType php autocmd BufWritePre <buffer> lua vim.lsp.buf.format({
 -- cmd([[autocmd FileType go autocmd BufWritePre <buffer> silent! %!gofmt]])
 cmd([[autocmd FileType javascript,typescript,typescript.tsx autocmd BufWritePre <buffer> silent! EslintFixAll]])
 cmd([[autocmd FileType json autocmd BufWritePre <buffer> silent! %!jq "."]])
+cmd([[autocmd FileType yaml autocmd BufWritePre <buffer> silent! %!yamlfmt -in]])
 cmd([[augroup END]])
 
 cmd([[augroup term]])
