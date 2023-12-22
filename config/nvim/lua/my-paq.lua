@@ -36,6 +36,7 @@ require "paq" {
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
 
 require "toggleterm".setup {
+  start_in_insert = false,
   direction = "float",
 }
 
@@ -169,4 +170,5 @@ require("partial").setup({
   json = {"jq", "."},
   sql = {"sql-formatter", "--config", vim.fn.expand("~/.config/sql-formatter/config.json")},
   xml = {"xmllint", "--format", "-"},
+  yaml = {"yamlfmt", "-in"},
 })

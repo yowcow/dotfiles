@@ -151,16 +151,18 @@ update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
 		&& git -C _modules/$* submodule update --init --recursive
 
 update/lang/golang: GOTOOLS := \
+	github.com/google/yamlfmt/cmd/yamlfmt \
+	github.com/yowcow/ezserve \
 	golang.org/x/tools/cmd/goimports \
 	golang.org/x/tools/gopls \
-	honnef.co/go/tools/cmd/staticcheck \
-	github.com/yowcow/ezserve
+	honnef.co/go/tools/cmd/staticcheck
 update/lang/golang: FORCE
 	if which go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
 			go install $$mod@latest; \
 			echo "installed: $$mod"; \
-		done \
+		done; \
+		goenv rehash; \
 	fi
 
 update/lang/nodejs: FORCE
