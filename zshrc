@@ -175,3 +175,7 @@ git-url() {
         | sed 's/^.*@//; s/:/\//; s/\.git$//' \
         | while read -r url; do echo "https://${url}/commit/${2}"; done
 }
+
+pin() {
+    for pin in $(shuf --random-source=/dev/urandom -i0-9999 -n5); do printf '%04d\n' $pin; done
+}
