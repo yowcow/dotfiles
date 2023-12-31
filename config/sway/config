@@ -118,7 +118,8 @@ set $menu wofi --allow-images --allow-markup --show drun --style ~/.config/wofi/
 # Basics:
 #
     # Start a terminal
-    bindsym $mod+Return exec WINIT_UNIX_BACKEND=x11 $term --option font.size=5.5
+    bindsym $mod+Return exec $term --option font.size=9
+    #bindsym $mod+Return exec WINIT_UNIX_BACKEND=x11 $term --option font.size=9
 
     # Start a browser
     #bindsym $mod+Shift+Return exec MOZ_ENABLE_WAYLAND=1 firefox

@@ -1,7 +1,7 @@
 SOURCES := \
 	Xmodmap \
 	Xresources \
-	config/alacritty/alacritty.yml \
+	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
 	config/i3/config \
 	config/i3blocks/config \
