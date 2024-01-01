@@ -40,7 +40,7 @@ SOURCES := \
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
-ALACRITTY_THEME := _modules/github.com/eendroroy/alacritty-theme
+ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
 GOENV           := _modules/github.com/syndbg/goenv
