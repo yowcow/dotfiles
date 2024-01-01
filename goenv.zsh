@@ -2,7 +2,9 @@ unset GOROOT
 unset GOPATH
 
 export GOENV_ROOT=$HOME/.goenv
-export PATH=$GOENV_ROOT/bin:$GOENV_ROOT/shims:$PATH
+export GOPATH=$HOME/go
+export PATH=$GOENV_ROOT/bin:$GOENV_ROOT/shims:$GOPATH/bin:$PATH
+#export GOPRIVATE=github.com/voyagegroup
 
 eval "$(goenv init -)"
 
@@ -12,3 +14,4 @@ eval "$(goenv init -)"
 #if [ ! -z "$GOPATH" ]; then
 #    export PATH="$GOPATH/bin:$PATH"
 #fi
+

@@ -90,15 +90,13 @@ _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' 
 
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 for src in .goenv.zsh .luarocks.zsh .nodenv.zsh .travis.zsh .local.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done
 
 autoload -U +X bashcompinit && bashcompinit
 [ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
-
-export GOPATH=$HOME/go
-export GOPRIVATE=github.com/voyagegroup
 
 export AWS_REGION=ap-northeast-1
 export AWS_VAULT_BACKEND=pass
