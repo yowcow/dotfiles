@@ -54,9 +54,6 @@ ssh-agent-stop() {
 
 ssh-agent-start
 
-# start starship if available
-which starship 1>/dev/null && eval "$(starship init zsh)"
-
 bindkey -v
 
 autoload history-search-end
@@ -80,23 +77,26 @@ export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
 export PATH=$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
 
-export CARGO_NET_GIT_FETCH_WITH_CLI=true
-if [ -f "$HOME/.cargo/env" ]; then
-    . "$HOME/.cargo/env"
-fi
-
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
 
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-for src in .goenv.zsh .luarocks.zsh .nodenv.zsh .travis.zsh .local.zsh; do
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
+
+for src in .local.zsh .goenv.zsh .luarocks.zsh .nodenv.zsh .travis.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done
 
 autoload -U +X bashcompinit && bashcompinit
 [ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
+
+# start starship if available
+which starship 1>/dev/null && eval "$(starship init zsh)"
 
 export AWS_REGION=ap-northeast-1
 export AWS_VAULT_BACKEND=pass
