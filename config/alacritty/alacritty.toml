@@ -6,3 +6,6 @@ import = [
 normal = { family = "JetBrains Mono" }
 size = 10.0
 builtin_box_drawing = true
+
+[window]
+opacity = 0.95
