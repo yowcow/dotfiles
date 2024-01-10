@@ -88,7 +88,7 @@ if [ -f "$HOME/.cargo/env" ]; then
     . "$HOME/.cargo/env"
 fi
 
-for src in .local.zsh .goenv.zsh .luarocks.zsh .nodenv.zsh .travis.zsh; do
+for src in .local.zsh .goenv.zsh .luarocks.zsh .nodenv.zsh .pyenv.zsh .travis.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done
 

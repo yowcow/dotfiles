@@ -34,6 +34,8 @@ SOURCES := \
 	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
+	pyenv \
+	pyenv.zsh \
 	tmux.conf \
 	xprofile \
 	zshrc
@@ -48,6 +50,7 @@ I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
 NODENV          := _modules/github.com/nodenv/nodenv
 NODENV_BUILD    := _modules/github.com/nodenv/node-build
 PAQ_NVIM        := _modules/github.com/savq/paq-nvim
+PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 
 GIT_MODULES := $(ALACRITTY_THEME) \
@@ -58,6 +61,7 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(NODENV) \
 			   $(NODENV_BUILD) \
 			   $(PAQ_NVIM) \
+			   $(PYENV) \
 			   $(WOFI_ARC)
 
 ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
@@ -116,6 +120,10 @@ $(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD)
 
 $(HOME)/.npmrc:
 	echo 'prefix = $${HOME}/.npm' > $@
+
+$(HOME)/.pyenv: $(PYENV)
+	mkdir -p $(dir $@)
+	ln -sfn `pwd`/$< $@
 
 ifeq ($(shell uname),Darwin)
 $(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
