@@ -187,6 +187,7 @@ update/lang/nodejs: FORCE
 			neovim \
 			npm \
 			npm-check-updates \
+			prettier \
 			sql-formatter \
 			sql-formatter-cli \
 			tree-sitter-cli \

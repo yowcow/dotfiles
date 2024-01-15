@@ -54,7 +54,7 @@ end
 --   },
 -- }
 lspconfig.gopls.setup {
-  cmd = {"gopls", "serve"},
+  cmd = { "gopls", "serve" },
   settings = {
     gopls = {
       analyses = {
@@ -78,12 +78,15 @@ lspconfig.lua_ls.setup {
 }
 
 --
--- https://github.com/jose-elias-alvarez/null-ls.nvim
+-- https://github.com/nvimtools/none-ls.nvim
 --
 local nullls = require("null-ls")
 nullls.setup {
   sources = {
+    nullls.builtins.diagnostics.eslint,
     nullls.builtins.diagnostics.staticcheck,
     nullls.builtins.diagnostics.tsc,
+    nullls.builtins.formatting.prettier,
+    nullls.builtins.formatting.stylua,
   }
 }

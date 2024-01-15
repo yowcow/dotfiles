@@ -12,6 +12,7 @@ map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
 map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>")
 map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
 map("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
+map("n", "<space>f", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>")
 
 --
 -- FZF

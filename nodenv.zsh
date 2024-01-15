@@ -1,4 +1,4 @@
-PATH=$HOME/.nodenv/bin:$PATH
+PATH=$HOME/.npm/bin:$HOME/.nodenv/bin:$PATH
 
 eval "$(nodenv init -)"
 
