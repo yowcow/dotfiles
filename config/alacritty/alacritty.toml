@@ -3,7 +3,7 @@ import = [
 ]
 
 [font]
-normal = { family = "JetBrains Mono" }
+normal = { family = "JetBrains Mono NL" }
 size = 10.0
 builtin_box_drawing = true
 
