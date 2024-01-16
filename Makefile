@@ -193,6 +193,7 @@ update/lang/nodejs: FORCE
 			tree-sitter-cli \
 			typescript \
 			typescript-language-server \
+			vls \
 			vscode-langservers-extracted \
 			yarn \
 			; \
