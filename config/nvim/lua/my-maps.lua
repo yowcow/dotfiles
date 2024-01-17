@@ -5,7 +5,8 @@ function _G.smarttab()
   print(vim.inspect(vim.fn.pumvisible()))
   return vim.fn.pumvisible() == 1 and t"<C-n>" or t"<Tab>"
 end
-]]--
+]]
+--
 
 -- map("i", "<tab>", "v:lua.smarttab()", {expr = true, noremap = true})
 map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
@@ -20,7 +21,7 @@ map("n", "<space>f", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>")
 --
 map("n", "<Leader>b", ":Buffers<CR>")
 map("n", "<Leader>w", ":Windows<CR>")
-map("n", "<Leader>f", ":Files<CR>")
+map("n", "<Leader>t", ":Files<CR>")
 map("n", "<Leader>h", ":History<CR>")
 map("n", "<Leader>r", ":Rg<CR>")
 map("n", "<Leader>gs", ":GFiles?<CR>")
