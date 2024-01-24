@@ -4,19 +4,20 @@ local bufmap = utils.bufmap
 local function on_attach(_, bufnr)
 	vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
+	--bufmap(bufnr, "i", "<C-p>", "<cmd>lua vim.lsp.buf.completion()<CR>")
+	--bufmap(bufnr, "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>")
+	--bufmap(bufnr, "n", "<space>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>")
+	--bufmap(bufnr, "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>")
+	bufmap(bufnr, "n", "<space>f", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>")
 	bufmap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>")
 	bufmap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>")
+	bufmap(bufnr, "n", "gc", "<cmd>lua vim.lsp.buf.code_action()<CR>")
 	bufmap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
-	bufmap(bufnr, "n", "gf", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>")
 	bufmap(bufnr, "n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>")
 	bufmap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>")
 	bufmap(bufnr, "n", "gn", "<cmd>lua vim.lsp.buf.rename()<CR>")
 	bufmap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>")
 	bufmap(bufnr, "n", "gt", "<cmd>lua vim.lsp.buf.type_definition()<CR>")
-	bufmap(bufnr, "n", "gc", "<cmd>lua vim.lsp.buf.code_action()<CR>")
-	--bufmap(bufnr, "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>")
-	--bufmap(bufnr, "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>")
-	--bufmap(bufnr, "n", "<space>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>")
 end
 
 --
