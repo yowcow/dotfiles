@@ -29,7 +29,8 @@ SOURCES := \
 	local/bin/mylock \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	luarocks.zsh \
-	npmrc \
+	nvm \
+	nvm.zsh \
 	ocamlinit \
 	pyenv \
 	pyenv.zsh \
@@ -44,6 +45,7 @@ ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
 GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
+NVM             := _modules/github.com/nvm-sh/nvm
 PAQ_NVIM        := _modules/github.com/savq/paq-nvim
 PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
@@ -53,6 +55,7 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(FZF) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
+			   $(NVM) \
 			   $(PAQ_NVIM) \
 			   $(PYENV) \
 			   $(WOFI_ARC)
@@ -103,8 +106,8 @@ $(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</ $@
 
-$(HOME)/.npmrc:
-	echo 'prefix = $${HOME}/.npm' > $@
+$(HOME)/.nvm: $(NVM)
+	ln -sfn `pwd`/$< $@
 
 $(HOME)/.pyenv: $(PYENV)
 	mkdir -p $(dir $@)
