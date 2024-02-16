@@ -29,9 +29,6 @@ SOURCES := \
 	local/bin/mylock \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	luarocks.zsh \
-	nodenv \
-	nodenv.zsh \
-	nodenv/plugins/node-build \
 	npmrc \
 	ocamlinit \
 	pyenv \
@@ -47,8 +44,6 @@ ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
 GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
-NODENV          := _modules/github.com/nodenv/nodenv
-NODENV_BUILD    := _modules/github.com/nodenv/node-build
 PAQ_NVIM        := _modules/github.com/savq/paq-nvim
 PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
@@ -58,8 +53,6 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(FZF) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
-			   $(NODENV) \
-			   $(NODENV_BUILD) \
 			   $(PAQ_NVIM) \
 			   $(PYENV) \
 			   $(WOFI_ARC)
@@ -109,14 +102,6 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 $(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
 	mkdir -p $(dir $@)
 	ln -sfn `pwd`/$</ $@
-
-$(HOME)/.nodenv: $(NODENV)
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.nodenv/plugins/node-build: $(NODENV_BUILD)
-	mkdir -p $(dir $@)
-	ln -sfn `pwd`/$< $@
 
 $(HOME)/.npmrc:
 	echo 'prefix = $${HOME}/.npm' > $@
