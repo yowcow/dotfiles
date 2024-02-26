@@ -92,6 +92,12 @@ for src in .local.zsh .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .travis.zsh; 
     [ -f $HOME/$src ] && source $HOME/$src;
 done
 
+# brew install coreutils
+GNUBIN=/opt/homebrew/opt/coreutils/libexec/gnubin
+if [ -d $GNUBIN ]; then
+    PATH=$GNUBIN:$PATH;
+fi
+
 autoload -U +X bashcompinit && bashcompinit
 [ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
 
