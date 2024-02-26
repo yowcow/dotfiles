@@ -10,7 +10,11 @@ alias help="run-help"
 
 case "$(uname -s)" in
     "Darwin")
-        alias ls="ls -G"
+        if [ -f "$(which gls)" ]; then
+            alias ls="gls --color";
+        else
+            alias ls="ls -G";
+        fi
         alias zcat="gunzip -c"
         ;;
     "Linux")
