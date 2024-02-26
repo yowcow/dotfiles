@@ -87,9 +87,9 @@ lspconfig.lua_ls.setup({
 local nullls = require("null-ls")
 nullls.setup({
 	sources = {
-		nullls.builtins.diagnostics.eslint,
+		-- nullls.builtins.diagnostics.eslint,
 		nullls.builtins.diagnostics.staticcheck,
-		nullls.builtins.diagnostics.tsc,
+		-- nullls.builtins.diagnostics.tsc,
 		nullls.builtins.formatting.prettier,
 		nullls.builtins.formatting.stylua,
 	},

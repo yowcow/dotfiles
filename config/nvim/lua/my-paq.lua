@@ -25,6 +25,7 @@ require("paq")({
 	"nvim-lualine/lualine.nvim",
 	"nvim-treesitter/nvim-treesitter",
 	"nvimtools/none-ls.nvim",
+	-- "nvimtools/none-ls-extras.nvim",
 	"rust-lang/rust.vim",
 	"savq/paq-nvim",
 	"tanvirtin/monokai.nvim",
