@@ -36,7 +36,7 @@ local lspservers = {
 	"rust_analyzer",
 	"terraformls",
 	"tsserver",
-	"vuels",
+	"volar",
 }
 for _, lsp in pairs(lspservers) do
 	lspconfig[lsp].setup({
