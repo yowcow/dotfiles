@@ -102,6 +102,7 @@ if [ -d $GNUBIN ]; then
     PATH=$GNUBIN:$PATH;
 fi
 
+autoload -Uz compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
 [ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
 
