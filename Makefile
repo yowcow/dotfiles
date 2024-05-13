@@ -203,6 +203,7 @@ update/lang/rust: FORCE
 	if which cargo 1>/dev/null; then \
 		cargo install \
 			cargo-update \
+			stylua \
 			; \
 		cargo install-update -a; \
 	fi
