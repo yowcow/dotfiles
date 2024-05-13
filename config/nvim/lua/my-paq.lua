@@ -4,6 +4,7 @@
 --
 require("paq")({
 	"akinsho/toggleterm.nvim",
+	"github/copilot.vim",
 	"godlygeek/tabular",
 	"hashivim/vim-terraform",
 	"hashivim/vim-vagrant",
