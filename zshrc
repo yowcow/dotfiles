@@ -138,13 +138,15 @@ aws-ec2() {
     fi
     aws-vault exec $AWS_PROFILE -- \
         aws ec2 describe-instances \
+            --output=json \
             --filters "Name=tag:Name,Values=$1" "Name=instance-state-name,Values=running" \
-            --query "Reservations[].Instances[]" \
+            --query "Reservations[].Instances[] | sort_by(@, &LaunchTime)" \
             | jq '.[] | [
+                .InstanceId,
                 .PrivateIpAddress,
                 .PublicIpAddress,
-                .InstanceId,
                 .LaunchTime,
+                .State.Name,
                 (.Tags | map(select(.Key | test("^[A-Z]")) | [.Key, .Value] | join(":")) | join(","))
             ] | @tsv' -r
 }
