@@ -80,6 +80,7 @@ export PAGER=less
 export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
 export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
+export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
 _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))

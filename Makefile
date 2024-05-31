@@ -37,6 +37,7 @@ SOURCES := \
 	plenv.zsh \
 	pyenv \
 	pyenv.zsh \
+	ripgreprc \
 	tmux.conf \
 	xprofile \
 	zshrc
