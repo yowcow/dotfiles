@@ -200,8 +200,8 @@ update/lang/nodejs: FORCE
 
 update/lang/python3: FORCE
 	if which pipx 1>/dev/null; then \
-		for pkg in ansible qmk ninja pre-commit; do \
-			(which $$pkg && pipx upgrade --include-injected $$pkg) || pipx install --include-deps $$pkg; \
+		for pkg in ansible qmk ninja pre-commit shandy-sqlfmt; do \
+			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done \
 	fi
 
