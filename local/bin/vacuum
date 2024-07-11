@@ -1,0 +1,27 @@
+#!/bin/sh
+
+opts=$(getopt -o vh --long verbose,help -n 'parse-options' -- "$@")
+eval set -- "$opts"
+
+HELP=false
+
+while true; do
+    case "$1" in
+        -h | --help ) HELP=true; shift ;;
+        -- ) shift; break ;;
+        * ) break ;;
+    esac
+done
+
+if [ "$HELP" = true ]; then
+    echo "Usage: $0 -- <command>"
+    echo
+    echo "Options:"
+    echo "  -h, --help      Show this help message and exit"
+    echo
+    echo "Commands:"
+    echo "  <command>       A command to run while dumping stderr to /dev/null"
+    exit 0
+fi
+
+exec "$@" 2>/dev/null
