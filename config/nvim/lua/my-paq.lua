@@ -169,7 +169,8 @@ cmp.setup.cmdline(":", {
 --
 require("partial").setup({
 	json = { "jq", "." },
-	sql = { "sql-formatter", "--config", vim.fn.expand("~/.config/sql-formatter/config.json") },
+	-- sql = { "sql-formatter", "--config", vim.fn.expand("~/.config/sql-formatter/config.json") },
+	sql = { "vacuum", "--", "sqlfmt", "--no-jinjafmt", "--quiet", "--safe", "-" },
 	xml = { "xmllint", "--format", "-" },
 	yaml = { "yamlfmt", "-in" },
 })
