@@ -89,11 +89,8 @@ _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
-if [ -f "$HOME/.cargo/env" ]; then
-    . "$HOME/.cargo/env"
-fi
 
-for src in .local.zsh .goenv.zsh .luarocks.zsh .nvm.zsh .plenv.zsh .pyenv.zsh .travis.zsh; do
+for src in .cargo/env .rye/env .local.zsh .goenv.zsh .luarocks.zsh .nvm.zsh .plenv.zsh .pyenv.zsh .travis.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done
 
