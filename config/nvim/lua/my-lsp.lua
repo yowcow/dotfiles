@@ -80,6 +80,15 @@ lspconfig.lua_ls.setup({
 		vim.fn.expand("~/.cache/lua_ls/meta/"),
 	},
 })
+lspconfig.perlnavigator.setup({
+	cmd = { "perlnavigator" },
+	settings = {
+		perlnavigator = {
+			enableWarnings = true,
+			includePaths = "$workspaceFolder",
+		},
+	},
+})
 
 --
 -- https://github.com/nvimtools/none-ls.nvim
