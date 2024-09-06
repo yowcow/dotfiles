@@ -35,7 +35,7 @@ local lspservers = {
 	"intelephense",
 	"rust_analyzer",
 	"terraformls",
-	"tsserver",
+	"ts_ls",
 	"volar",
 }
 for _, lsp in pairs(lspservers) do
