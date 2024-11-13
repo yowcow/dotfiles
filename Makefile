@@ -106,7 +106,7 @@ $(HOME)/.local/bin/buf:
 
 $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 	mkdir -p $(dir $@)
-	if which rebar3 1>/dev/null; then \
+	if command -v rebar3 1>/dev/null; then \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
@@ -168,7 +168,7 @@ update/lang/golang: GOTOOLS := \
 	golang.org/x/tools/gopls \
 	honnef.co/go/tools/cmd/staticcheck
 update/lang/golang: FORCE
-	if which go 1>/dev/null; then \
+	if command -v go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
 			go install $$mod@latest; \
 			echo "installed: $$mod"; \
@@ -177,7 +177,7 @@ update/lang/golang: FORCE
 	fi
 
 update/lang/nodejs: FORCE
-	if which npm 1>/dev/null; then \
+	if command -v npm 1>/dev/null; then \
 		npm -g install \
 			@ansible/ansible-language-server \
 			@vue/language-server \
@@ -201,14 +201,14 @@ update/lang/nodejs: FORCE
 	fi
 
 update/lang/python3: FORCE
-	if which pipx 1>/dev/null; then \
+	if command -v pipx 1>/dev/null; then \
 		for pkg in ansible qmk ninja pre-commit shandy-sqlfmt; do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done \
 	fi
 
 update/lang/rust: FORCE
-	if which rustup 1>/dev/null; then \
+	if command -v rustup 1>/dev/null; then \
 		rustup component add \
 			rust-analyzer \
 			rust-src \
@@ -216,7 +216,7 @@ update/lang/rust: FORCE
 			; \
 		rustup update; \
 	fi
-	if which cargo 1>/dev/null; then \
+	if command -v cargo 1>/dev/null; then \
 		cargo install \
 			cargo-update \
 			stylua \
