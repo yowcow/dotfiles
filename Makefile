@@ -23,6 +23,7 @@ SOURCES := \
 	config/weston.ini \
 	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
+	config/zellij/config.kdl \
 	fzf \
 	gitconfig \
 	gitignore_global \
