@@ -1,3 +1,10 @@
+TMPDIR = /tmp/dotfiles-tmp
+
+MACHINE = $(shell uname -m)
+ifeq ($(MACHINE),arm64)
+	MACHINE = aarch64
+endif
+
 SOURCES := \
 	Xmodmap \
 	Xresources \
@@ -28,6 +35,7 @@ SOURCES := \
 	local/bin/erlang_ls \
 	local/bin/mylock \
 	local/bin/vacuum \
+	local/bin/zellij \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	luarocks.zsh \
 	nvm \
@@ -110,6 +118,22 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
+
+ZELLIJ_VERSION = v0.41.1
+
+$(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+	tar -xzf $< -C $(@D)
+	touch $@
+
+$(TMPDIR)/zellij-%.tar.gz:
+ifeq ($(shell uname -s),Darwin)
+$(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz
+else
+$(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
+endif
+$(TMPDIR)/zellij-%.tar.gz:
+	mkdir -p $(@D)
+	curl -L $(URL) -o $@
 
 $(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
 	mkdir -p $(dir $@)
