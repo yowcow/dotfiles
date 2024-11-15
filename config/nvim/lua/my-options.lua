@@ -27,4 +27,4 @@ opt.writebackup = false
 opt.mouse = ""
 opt.encoding = "utf-8"
 opt.fileencodings = "utf8,iso-2022-jp,cp932,sjis,euc-jp"
-opt.clipboard:append({ "unnamedplus" })
+--opt.clipboard:append({ "unnamedplus" })
