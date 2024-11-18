@@ -12,6 +12,7 @@ SOURCES := \
 	config/alacritty-theme \
 	config/i3/config \
 	config/i3blocks/config \
+	config/lemonade.toml \
 	config/libskk \
 	config/kanshi/config \
 	config/nvim \
