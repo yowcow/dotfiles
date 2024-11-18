@@ -1,6 +1,3 @@
-import = [
-    "~/.config/alacritty-theme/themes/argonaut.toml"
-]
 
 [font]
 normal = { family = "JetBrains Mono NL" }
@@ -9,3 +6,8 @@ builtin_box_drawing = true
 
 [window]
 opacity = 0.95
+
+[general]
+import = [
+    "~/.config/alacritty-theme/themes/argonaut.toml"
+]
