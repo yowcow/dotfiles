@@ -192,6 +192,8 @@ update/lang/golang: GOTOOLS := \
 	github.com/yowcow/ezserve \
 	golang.org/x/tools/cmd/goimports \
 	golang.org/x/tools/gopls \
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+	google.golang.org/protobuf/cmd/protoc-gen-go \
 	honnef.co/go/tools/cmd/staticcheck
 update/lang/golang: FORCE
 	if command -v go 1>/dev/null; then \
