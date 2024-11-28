@@ -92,15 +92,15 @@ install: $(TARGETS)
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 $(HOME)/.config/alacritty-theme: $(ALACRITTY_THEME)
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.config/i3blocks/config: $(I3BLOCKS)
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/config/i3blocks/config $@
 
 $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/$</style.css $@
 
 $(HOME)/.fzf: $(FZF)
@@ -110,12 +110,12 @@ $(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.local/bin/buf:
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
 
 $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	if command -v rebar3 1>/dev/null; then \
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $@; \
@@ -123,8 +123,13 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 
 ZELLIJ_VERSION = v0.41.1
 
-$(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+.SECONDEXPANSION:
+$(HOME)/.local/bin/zellij: $$@-$(ZELLIJ_VERSION)
+	ln -sfn $< $@
+
+$(HOME)/.local/bin/zellij-$(ZELLIJ_VERSION): $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
+	mv $(@D)/zellij $@
 	touch $@
 
 $(TMPDIR)/zellij-%.tar.gz:
@@ -138,7 +143,7 @@ $(TMPDIR)/zellij-%.tar.gz:
 	curl -L $(URL) -o $@
 
 $(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/$</ $@
 
 $(HOME)/.nvm: $(NVM)
@@ -156,7 +161,7 @@ $(HOME)/.pyenv: $(PYENV)
 
 ifeq ($(shell uname),Darwin)
 $(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 endif
 
@@ -164,14 +169,14 @@ endif
 ## Default Fallback
 ##
 $(HOME)/.%: %
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	ln -sfn `pwd`/$* $@
 
 ##
 ## Tasks
 ##
 _modules/%:
-	mkdir -p $(dir $@)
+	mkdir -p $(@D)
 	git clone \
 		--recurse-submodules \
 		git@$$(echo $* | sed -e 's|/|:|') \
