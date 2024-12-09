@@ -23,7 +23,7 @@ case "$(uname -s)" in
         ;;
 esac
 
-ssh-agent-start() {
+function ssh-agent-start() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
             # update/create symlink so that I can find the path easily later on
@@ -46,7 +46,7 @@ ssh-agent-start() {
     fi
 }
 
-ssh-agent-stop() {
+function ssh-agent-stop() {
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
             pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
@@ -116,7 +116,7 @@ export AWS_FEDERATION_TOKEN_TTL=6h
 
 umask 022
 
-colorlist() {
+function colorlist() {
     for color in {000..015}; do
         print -nP "%F{$color}$color %f"
     done
@@ -129,7 +129,7 @@ colorlist() {
     done
 }
 
-aws-ec2() {
+function aws-ec2() {
     if [ "$AWS_PROFILE" = "" ]; then
         echo '$AWS_PROFILE is required';
         return;
@@ -149,12 +149,12 @@ aws-ec2() {
             ] | @tsv' -r
 }
 
-aws-session() {
+function aws-session() {
     aws-vault exec $AWS_PROFILE -- \
         aws ssm start-session --target $1
 }
 
-ssh-proxy() {
+function ssh-proxy() {
     if [ "$SSH_PROXY_HOST" = "" ]; then
         echo '$SSH_PROXY_HOST is required';
         return;
@@ -173,18 +173,18 @@ ssh-proxy() {
     ssh "${SSH_PROXY_OPTIONS[@]}" -t -t $SSH_REMOTE_USER@$1;
 }
 
-cert-check() {
+function cert-check() {
     echo \
         | openssl s_client -showcerts -servername $1 -connect $1:${2:-443} 2>/dev/null \
         | openssl x509 -inform pem -noout -text
 }
 
-git-url() {
+function git-url() {
     git remote get-url $1 \
         | sed 's/^.*@//; s/:/\//; s/\.git$//' \
         | while read -r url; do echo "https://${url}/commit/${2}"; done
 }
 
-pin() {
+function pin() {
     for pin in $(shuf --random-source=/dev/urandom -i0-9999 -n5); do printf '%04d\n' $pin; done
 }
