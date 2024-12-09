@@ -124,7 +124,7 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 
 TMUX_VERSION = 3.5a
 
-# ubuntu: libevent-dev bison
+# ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
 $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 	cd $< \
