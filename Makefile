@@ -36,6 +36,7 @@ SOURCES := \
 	local/bin/buf \
 	local/bin/erlang_ls \
 	local/bin/mylock \
+	local/bin/tmux \
 	local/bin/vacuum \
 	local/bin/zellij \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
@@ -121,15 +122,26 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
 
+TMUX_VERSION = 3.5a
+
+$(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
+	cd $< \
+		&& ./configure --prefix=$(HOME)/.local \
+		&& make -j4 && make install
+	touch $@
+
+$(TMPDIR)/tmux-$(TMUX_VERSION): $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+	tar -xzf $< -C $(@D)
+	touch $@
+
+$(TMPDIR)/tmux-%.tar.gz:
+	mkdir -p $(@D)
+	curl -L https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
+
 ZELLIJ_VERSION = v0.41.1
 
-.SECONDEXPANSION:
-$(HOME)/.local/bin/zellij: $$@-$(ZELLIJ_VERSION)
-	ln -sfn $< $@
-
-$(HOME)/.local/bin/zellij-$(ZELLIJ_VERSION): $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+$(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
-	mv $(@D)/zellij $@
 	touch $@
 
 $(TMPDIR)/zellij-%.tar.gz:
