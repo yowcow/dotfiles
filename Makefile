@@ -126,7 +126,9 @@ TMUX_VERSION = 3.5a
 
 $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 	cd $< \
-		&& ./configure --prefix=$(HOME)/.local \
+		&& ./configure \
+			--enable-utf8proc \
+			--prefix=$(HOME)/.local \
 		&& make -j4 && make install
 	touch $@
 
