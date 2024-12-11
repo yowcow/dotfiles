@@ -209,17 +209,18 @@ update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
 		&& git -C _modules/$* submodule update --init --recursive
 
 update/lang/golang: GOTOOLS := \
-	github.com/google/yamlfmt/cmd/yamlfmt \
-	github.com/yowcow/ezserve \
-	golang.org/x/tools/cmd/goimports \
-	golang.org/x/tools/gopls \
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-	google.golang.org/protobuf/cmd/protoc-gen-go \
-	honnef.co/go/tools/cmd/staticcheck
+	github.com/google/yamlfmt/cmd/yamlfmt@latest \
+	github.com/lemonade-command/lemonade@latest \
+	github.com/yowcow/ezserve@latest \
+	golang.org/x/tools/cmd/goimports@latest \
+	golang.org/x/tools/gopls@latest \
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest \
+	google.golang.org/protobuf/cmd/protoc-gen-go@latest \
+	honnef.co/go/tools/cmd/staticcheck@latest
 update/lang/golang: FORCE
 	if command -v go 1>/dev/null; then \
 		for mod in $(GOTOOLS); do \
-			go install $$mod@latest; \
+			go install $$mod; \
 			echo "installed: $$mod"; \
 		done; \
 		goenv rehash; \
