@@ -1,8 +1,4 @@
-for f in $HOME/.asdf/asdf.sh $HOME/.asdf/plugins/golang/set-env.zsh; do
-    if [ -f $f ]; then
-        . $f;
-    fi
-done
+. "$HOME/.asdf/asdf.sh"
 
 # append completions to fpath
 fpath=(${ASDF_DIR}/completions $fpath)
