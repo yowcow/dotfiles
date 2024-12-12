@@ -8,8 +8,6 @@ endif
 SOURCES := \
 	Xmodmap \
 	Xresources \
-	asdf \
-	asdf.zsh \
 	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
 	config/i3/config \
@@ -32,6 +30,8 @@ SOURCES := \
 	gitignore_global \
 	gnupg/gpg-agent.conf \
 	gnupg/gpg.conf \
+	goenv \
+	goenv.zsh \
 	local/bin/btvol \
 	local/bin/buf \
 	local/bin/erlang_ls \
@@ -41,7 +41,14 @@ SOURCES := \
 	local/bin/zellij \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	luarocks.zsh \
+	nvm \
+	nvm.zsh \
 	ocamlinit \
+	plenv \
+	plenv/plugins/perl-build \
+	plenv.zsh \
+	pyenv \
+	pyenv.zsh \
 	ripgreprc \
 	tmux.conf \
 	xprofile \
@@ -50,19 +57,23 @@ SOURCES := \
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
-ASDF            := _modules/github.com/asdf-vm/asdf
 ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
+GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
+NVM             := _modules/github.com/nvm-sh/nvm
 PAQ_NVIM        := _modules/github.com/savq/paq-nvim
+PLENV           := _modules/github.com/tokuhirom/plenv
+PLENV_BUILD     := _modules/github.com/tokuhirom/Perl-Build
+PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 
 GIT_MODULES := $(ALACRITTY_THEME) \
-			   $(ASDF) \
 			   $(ERLANG_LS) \
 			   $(FZF) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
+			   $(NVM) \
 			   $(PAQ_NVIM) \
 			   $(PLENV) \
 			   $(PLENV_BUILD) \
@@ -94,6 +105,9 @@ $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 	ln -sfn `pwd`/$</style.css $@
 
 $(HOME)/.fzf: $(FZF)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.local/bin/buf:
@@ -147,6 +161,19 @@ $(TMPDIR)/zellij-%.tar.gz:
 $(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$</ $@
+
+$(HOME)/.nvm: $(NVM)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.plenv: $(PLENV)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.pyenv: $(PYENV)
+	ln -sfn `pwd`/$< $@
 
 ifeq ($(shell uname),Darwin)
 $(HOME)/.gnupg/gpg-agent.conf: gnupg/gpg-agent.darwin.conf
