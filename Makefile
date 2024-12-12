@@ -39,6 +39,7 @@ SOURCES := \
 	local/bin/tmux \
 	local/bin/vacuum \
 	local/bin/zellij \
+	local/google-cloud-sdk \
 	local/share/nvim/site/pack/paqs/start/paq-nvim \
 	luarocks.zsh \
 	nvm \
@@ -121,6 +122,15 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
+
+$(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
+	tar -xzf $< -C $(HOME)/.local
+	$(HOME)/.local/google-cloud-sdk/install.sh -q
+
+$(TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
+$(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -m)" = "aarch64" ] && echo "arm" || echo "x86_64")
+$(TMPDIR)/google-cloud-cli.tar.gz:
+	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
 TMUX_VERSION = 3.5a
 
