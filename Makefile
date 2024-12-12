@@ -120,8 +120,6 @@ $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 		&& make -j4 && make install
 	touch $@
 
-.INTERMEDIATE: $(TMPDIR)/tmux-$(TMUX_VERSION) $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
-
 $(TMPDIR)/tmux-$(TMUX_VERSION): $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
