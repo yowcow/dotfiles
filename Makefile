@@ -61,12 +61,8 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(ASDF) \
 			   $(ERLANG_LS) \
 			   $(FZF) \
-			   $(GOENV) \
 			   $(I3BLOCKS) \
 			   $(PAQ_NVIM) \
-			   $(PLENV) \
-			   $(PLENV_BUILD) \
-			   $(PYENV) \
 			   $(WOFI_ARC)
 
 ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
@@ -198,7 +194,6 @@ update/lang/golang: FORCE
 			go install $$mod; \
 			echo "installed: $$mod"; \
 		done; \
-		goenv rehash; \
 	fi
 
 update/lang/nodejs: FORCE
