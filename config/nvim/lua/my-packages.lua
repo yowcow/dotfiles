@@ -18,6 +18,7 @@ require("paq")({
 	"hrsh7th/vim-vsnip",
 	"junegunn/fzf.vim",
 	"kyazdani42/nvim-web-devicons",
+	"lewis6991/gitsigns.nvim",
 	"mattn/vim-gist",
 	"mattn/vim-goimports",
 	"mattn/webapi-vim",
@@ -174,3 +175,8 @@ require("partial").setup({
 	xml = { "xmllint", "--format", "-" },
 	yaml = { "yamlfmt", "-in" },
 })
+
+--
+-- https://github.com/lewis6991/gitsigns.nvim
+--
+require("gitsigns").setup()
