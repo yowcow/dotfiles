@@ -133,6 +133,7 @@ $(TMPDIR)/google-cloud-cli.tar.gz:
 	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
 TMUX_VERSION = 3.5a
+.INTERMEDIATE: $(TMPDIR)/tmux-$(TMUX_VERSION) $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
@@ -144,7 +145,6 @@ $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 		&& make -j4 && make install
 	touch $@
 
-.INTERMEDIATE: $(TMPDIR)/tmux-$(TMUX_VERSION) $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 $(TMPDIR)/tmux-$(TMUX_VERSION): $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
@@ -154,12 +154,12 @@ $(TMPDIR)/tmux-%.tar.gz:
 	curl -L https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
 
 ZELLIJ_VERSION = v0.41.1
+.INTERMEDIATE: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 
 $(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
 
-.INTERMEDIATE: $(TMPDIR)/zellij-%.tar.gz
 $(TMPDIR)/zellij-%.tar.gz:
 ifeq ($(shell uname -s),Darwin)
 $(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz
