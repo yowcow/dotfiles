@@ -128,7 +128,7 @@ $(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
 	$(HOME)/.local/google-cloud-sdk/install.sh -q
 
 $(TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
-$(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -m)" = "aarch64" ] && echo "arm" || echo "x86_64")
+$(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
 $(TMPDIR)/google-cloud-cli.tar.gz:
 	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
@@ -144,6 +144,7 @@ $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 		&& make -j4 && make install
 	touch $@
 
+.INTERMEDIATE: $(TMPDIR)/tmux-$(TMUX_VERSION) $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 $(TMPDIR)/tmux-$(TMUX_VERSION): $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
@@ -158,6 +159,7 @@ $(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
 
+.INTERMEDIATE: $(TMPDIR)/zellij-%.tar.gz
 $(TMPDIR)/zellij-%.tar.gz:
 ifeq ($(shell uname -s),Darwin)
 $(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz

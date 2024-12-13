@@ -1,3 +1,6 @@
+umask 022
+bindkey -v
+
 # https://unix.stackexchange.com/questions/608842/zshrc-export-gpg-tty-tty-says-not-a-tty
 export GPG_TTY=$(tty)
 
@@ -22,43 +25,6 @@ case "$(uname -s)" in
         alias diff="diff --color"
         ;;
 esac
-
-function ssh-agent-start() {
-    if [ ! -z "$(which ssh-agent)" ]; then
-        if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-            # update/create symlink so that I can find the path easily later on
-            eval $(ssh-agent) && \
-                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
-        else
-            # some environment ssh-agent starts automatically
-            [ -z $SSH_AGENT_PID ] && \
-                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
-            # find the path to sock and and restore the env
-            [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
-        fi
-        for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
-            # add a key if its fingerprint is not in the agent
-            [ -f $key ] \
-            && [ -z "$(ssh-add -l | grep $(ssh-keygen -lf $key | cut -d' ' -f2))" ] \
-            && ssh-add $key; \
-        done;
-    fi
-}
-
-function ssh-agent-stop() {
-    if [ ! -z "$(which ssh-agent)" ]; then
-        if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
-            pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
-            unset SSH_AGENT_PID;
-            unset SSH_AUTH_SOCK;
-        fi
-    fi
-}
-
-ssh-agent-start
-
-bindkey -v
 
 autoload history-search-end
 zle -N history-beginning-search-backward-end history-search-end
@@ -114,7 +80,11 @@ export AWS_SESSION_TOKEN_TTL=6h
 export AWS_ASSUME_ROLE_TTL=6h
 export AWS_FEDERATION_TOKEN_TTL=6h
 
-umask 022
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f "$HOME/.local/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/.local/google-cloud-sdk/path.zsh.inc"; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f "$HOME/.local/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/.local/google-cloud-sdk/completion.zsh.inc"; fi
 
 function colorlist() {
     for color in {000..015}; do
@@ -188,3 +158,38 @@ function git-url() {
 function pin() {
     for pin in $(shuf --random-source=/dev/urandom -i0-9999 -n5); do printf '%04d\n' $pin; done
 }
+
+function ssh-agent-start() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            # update/create symlink so that I can find the path easily later on
+            eval $(ssh-agent) && \
+                ln -nsf $SSH_AUTH_SOCK /tmp/ssh-auth.sock
+        else
+            # some environment ssh-agent starts automatically
+            [ -z $SSH_AGENT_PID ] && \
+                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+            # find the path to sock and and restore the env
+            [ -L /tmp/ssh-auth.sock ] && \
+                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
+        fi
+        for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
+            # add a key if its fingerprint is not in the agent
+            [ -f $key ] \
+            && [ -z "$(ssh-add -l | grep $(ssh-keygen -lf $key | cut -d' ' -f2))" ] \
+            && ssh-add $key; \
+        done;
+    fi
+}
+
+function ssh-agent-stop() {
+    if [ ! -z "$(which ssh-agent)" ]; then
+        if [ ! -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
+            pgrep -U $(whoami) ssh-agent | xargs kill -HUP;
+            unset SSH_AGENT_PID;
+            unset SSH_AUTH_SOCK;
+        fi
+    fi
+}
+
+ssh-agent-start
