@@ -130,6 +130,7 @@ $(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
 $(TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
 $(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
 $(TMPDIR)/google-cloud-cli.tar.gz:
+	mkdir -p $(@D)
 	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
 TMUX_VERSION = 3.5a
