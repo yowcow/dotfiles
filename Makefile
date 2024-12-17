@@ -123,6 +123,8 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
 
+.INTERMEDIATE: $(TMPDIR)/google-cloud-cli.tar.gz
+
 $(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
 	tar -xzf $< -C $(HOME)/.local
 	$(HOME)/.local/google-cloud-sdk/install.sh -q
