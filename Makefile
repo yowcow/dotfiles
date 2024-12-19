@@ -127,7 +127,6 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 
 $(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
 	tar -xzf $< -C $(HOME)/.local
-	$(HOME)/.local/google-cloud-sdk/install.sh -q
 
 $(TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
 $(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
