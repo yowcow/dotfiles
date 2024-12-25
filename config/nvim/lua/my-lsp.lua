@@ -45,7 +45,7 @@ for _, lsp in pairs(lspservers) do
 		capabilities = capabilities,
 		on_attach = on_attach,
 		flags = {
-			debounce_text_changes = 150,
+			debounce_text_changes = 100,
 		},
 	})
 end
@@ -70,7 +70,7 @@ lspconfig.gopls.setup({
 	capabilities = capabilities,
 	on_attach = on_attach,
 	flags = {
-		debounce_text_changes = 150,
+		debounce_text_changes = 100,
 	},
 })
 lspconfig.lua_ls.setup({
@@ -89,6 +89,11 @@ lspconfig.perlnavigator.setup({
 			enableWarnings = true,
 			includePaths = "$workspaceFolder",
 		},
+	},
+	capabilities = capabilities,
+	on_attach = on_attach,
+	flags = {
+		debounce_text_changes = 100,
 	},
 })
 
