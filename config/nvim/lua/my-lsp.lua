@@ -33,6 +33,8 @@ local lspservers = {
 	"erlangls",
 	"eslint",
 	"intelephense",
+	"pylsp",
+	"pyright",
 	"rust_analyzer",
 	"terraformls",
 	"ts_ls",

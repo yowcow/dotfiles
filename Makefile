@@ -253,6 +253,7 @@ update/lang/nodejs: FORCE
 			npm-check-updates \
 			perlnavigator-server \
 			prettier \
+			pyright \
 			sql-formatter \
 			sql-formatter-cli \
 			tree-sitter-cli \
@@ -266,7 +267,7 @@ update/lang/nodejs: FORCE
 
 update/lang/python3: FORCE
 	if command -v pipx 1>/dev/null; then \
-		for pkg in ansible qmk ninja pre-commit shandy-sqlfmt; do \
+		for pkg in ansible qmk ninja pre-commit python-lsp-server shandy-sqlfmt; do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done \
 	fi
