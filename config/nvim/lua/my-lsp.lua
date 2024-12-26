@@ -86,8 +86,17 @@ lspconfig.perlnavigator.setup({
 	cmd = { "perlnavigator" },
 	settings = {
 		perlnavigator = {
+			perlPath = "perl",
 			enableWarnings = true,
-			includePaths = "$workspaceFolder",
+			perltidyProfile = "",
+			perlcriticProfile = "",
+			perlcriticEnabled = false,
+			includePaths = {
+				"lib",
+				"local/lib/perl5",
+				vim.fn.getcwd() .. "/lib",
+				vim.fn.getcwd() .. "/local/lib/perl5",
+			},
 		},
 	},
 	capabilities = capabilities,
