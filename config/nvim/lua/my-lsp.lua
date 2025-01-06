@@ -29,10 +29,13 @@ local capabilities = require("cmp_nvim_lsp").default_capabilities()
 local lspconfig = require("lspconfig")
 local lspservers = {
 	"ansiblels",
+	"cssls",
 	"elmls",
 	"erlangls",
 	"eslint",
+	"html",
 	"intelephense",
+	"jsonls",
 	"pylsp",
 	"pyright",
 	"rust_analyzer",
