@@ -3,6 +3,7 @@
 -- :help paq
 --
 require("paq")({
+	"CopilotC-Nvim/CopilotChat.nvim",
 	"akinsho/toggleterm.nvim",
 	"github/copilot.vim",
 	"godlygeek/tabular",
@@ -180,3 +181,14 @@ require("partial").setup({
 -- https://github.com/lewis6991/gitsigns.nvim
 --
 require("gitsigns").setup()
+
+--
+-- "github/copilot.vim",
+--
+vim.api.nvim_set_keymap("i", "<C-l>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+vim.g.copilot_no_tab_map = true
+
+--
+-- "CopilotC-Nvim/CopilotChat.nvim"
+--
+require("CopilotChat").setup()
