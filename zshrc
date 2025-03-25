@@ -45,7 +45,7 @@ export VISUAL=nvim
 export PAGER=less
 export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
-export PATH=$HOME/.cargo/bin:$HOME/.local/google-cloud-sdk/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:$PATH
+export PATH=$HOME/.cargo/bin:$HOME/.local/google-cloud-sdk/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/lib/cargo/bin:$PATH
 export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
