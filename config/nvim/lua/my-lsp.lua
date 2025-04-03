@@ -1,24 +1,6 @@
-local utils = require("my-utils")
-local bufmap = utils.bufmap
+local vim = vim
 
-local function on_attach(_, bufnr)
-	vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
-
-	--bufmap(bufnr, "i", "<C-p>", "<cmd>lua vim.lsp.buf.completion()<CR>")
-	--bufmap(bufnr, "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>")
-	--bufmap(bufnr, "n", "<space>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>")
-	--bufmap(bufnr, "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>")
-	bufmap(bufnr, "n", "<space>f", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>")
-	bufmap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>")
-	bufmap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>")
-	bufmap(bufnr, "n", "gc", "<cmd>lua vim.lsp.buf.code_action()<CR>")
-	bufmap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
-	bufmap(bufnr, "n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>")
-	bufmap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>")
-	bufmap(bufnr, "n", "gn", "<cmd>lua vim.lsp.buf.rename()<CR>")
-	bufmap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>")
-	bufmap(bufnr, "n", "gt", "<cmd>lua vim.lsp.buf.type_definition()<CR>")
-end
+vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
 
 --
 -- https://github.com/neovim/nvim-lspconfig
@@ -46,16 +28,15 @@ local lspservers = {
 for _, lsp in pairs(lspservers) do
 	lspconfig[lsp].setup({
 		capabilities = capabilities,
-		on_attach = on_attach,
 		flags = {
 			debounce_text_changes = 100,
 		},
 	})
 end
+
 -- lspconfig.erlangls.setup {
 --   cmd = {"/home/yowcow/repos/erlang_ls/_build/default/bin/erlang_ls", "-d", "/tmp/erlangls/", "-l", "debug"},
 --   capabilities = capabilities,
---   on_attach = on_attach,
 --   flags = {
 --     debounce_text_changes = 150
 --   },
@@ -71,7 +52,6 @@ lspconfig.gopls.setup({
 		},
 	},
 	capabilities = capabilities,
-	on_attach = on_attach,
 	flags = {
 		debounce_text_changes = 100,
 	},
@@ -103,7 +83,6 @@ lspconfig.perlnavigator.setup({
 		},
 	},
 	capabilities = capabilities,
-	on_attach = on_attach,
 	flags = {
 		debounce_text_changes = 100,
 	},

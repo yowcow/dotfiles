@@ -1,50 +1,42 @@
-local map = require("my-utils").map
+local vim = vim
 
---[[
-function _G.smarttab()
-  print(vim.inspect(vim.fn.pumvisible()))
-  return vim.fn.pumvisible() == 1 and t"<C-n>" or t"<Tab>"
-end
-]]
---
-
--- map("i", "<tab>", "v:lua.smarttab()", {expr = true, noremap = true})
-map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
-map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>")
-map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
-map("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
-map("n", "<Space>f", "<cmd>lua vim.lsp.buf.format()<CR>")
+-- vim.keymap.set("i", "<tab>", "v:lua.smarttab()", {expr = true, noremap = true})
+vim.keymap.set("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
+vim.keymap.set("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>")
+vim.keymap.set("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
+vim.keymap.set("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
+vim.keymap.set("n", "<Space>f", "<cmd>lua vim.lsp.buf.format()<CR>")
 
 --
 -- FZF
 -- :help fzf
 --
-map("n", "<Leader>b", ":Buffers<CR>")
-map("n", "<Leader>w", ":Windows<CR>")
-map("n", "<Leader>t", ":Files<CR>")
-map("n", "<Leader>h", ":History<CR>")
-map("n", "<Leader>r", ":Rg<CR>")
-map("n", "<Leader>gs", ":GFiles?<CR>")
-map("n", "<Leader>gl", ":Commits<CR>")
-map("n", "<Leader>gf", ":GFiles<CR>")
+vim.keymap.set("n", "<Leader>b", ":Buffers<CR>")
+vim.keymap.set("n", "<Leader>w", ":Windows<CR>")
+vim.keymap.set("n", "<Leader>t", ":Files<CR>")
+vim.keymap.set("n", "<Leader>h", ":History<CR>")
+vim.keymap.set("n", "<Leader>r", ":Rg<CR>")
+vim.keymap.set("n", "<Leader>gs", ":GFiles?<CR>")
+vim.keymap.set("n", "<Leader>gl", ":Commits<CR>")
+vim.keymap.set("n", "<Leader>gf", ":GFiles<CR>")
 
 -- tabs/buffers
-map("n", "tn", ":tabnew<space>")
-map("n", "th", ":tabprev<CR>")
-map("n", "tl", ":tabnext<CR>")
-map("n", "td", ":tabclose<CR>")
--- map("n", "tl", ":tabs<CR>")
--- map("n", "tn", ":tabedit<space>")
--- map("n", "tm", ":tabmove<space>")
--- map("n", "bl", ":buffers<CR>")
--- map("n", "bn", ":e<space>")
--- map("n", "bl", ":bnext<CR>")
--- map("n", "bh", ":bprev<CR>")
--- map("n", "bd", ":bd<CR>")
+vim.keymap.set("n", "tn", ":tabnew<space>")
+vim.keymap.set("n", "th", ":tabprev<CR>")
+vim.keymap.set("n", "tl", ":tabnext<CR>")
+vim.keymap.set("n", "td", ":tabclose<CR>")
+-- vim.keymap.set("n", "tl", ":tabs<CR>")
+-- vim.keymap.set("n", "tn", ":tabedit<space>")
+-- vim.keymap.set("n", "tm", ":tabmove<space>")
+-- vim.keymap.set("n", "bl", ":buffers<CR>")
+-- vim.keymap.set("n", "bn", ":e<space>")
+-- vim.keymap.set("n", "bl", ":bnext<CR>")
+-- vim.keymap.set("n", "bh", ":bprev<CR>")
+-- vim.keymap.set("n", "bd", ":bd<CR>")
 
 -- window/term
-map("n", "<C-\\><C-\\>", ":ToggleTerm<CR>")
-map("t", "<C-\\><C-\\>", "<C-\\><C-n>")
-map("n", "<C-w>+", "5<C-w>+")
-map("n", "<C-w>-", "5<C-w>-")
-map("n", "<C-t>", ":sp | term ")
+vim.keymap.set("n", "<C-\\><C-\\>", ":ToggleTerm<CR>")
+vim.keymap.set("t", "<C-\\><C-\\>", "<C-\\><C-n>")
+vim.keymap.set("n", "<C-w>+", "5<C-w>+")
+vim.keymap.set("n", "<C-w>-", "5<C-w>-")
+vim.keymap.set("n", "<C-t>", ":sp | term ")

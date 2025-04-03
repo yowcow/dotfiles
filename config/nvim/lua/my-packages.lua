@@ -198,11 +198,11 @@ require("gitsigns").setup()
 --
 -- "github/copilot.vim",
 --
-vim.api.nvim_set_keymap("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 vim.g.copilot_no_tab_map = true
+vim.keymap.set("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 
 --
 -- "CopilotC-Nvim/CopilotChat.nvim"
 --
 require("CopilotChat").setup()
-vim.api.nvim_set_keymap("n", "<Leader>cc", ":CopilotChatToggle<CR>", { noremap = true })
+vim.keymap.set("n", "<Leader>cc", ":CopilotChatToggle<CR>", { noremap = true })
