@@ -1,41 +1,41 @@
---
--- https://github.com/savq/paq-nvim
--- :help paq
---
-require("paq")({
-	"CopilotC-Nvim/CopilotChat.nvim",
-	"akinsho/toggleterm.nvim",
-	"github/copilot.vim",
-	"godlygeek/tabular",
-	"hashivim/vim-terraform",
-	"hashivim/vim-vagrant",
-	"hrsh7th/cmp-buffer",
-	"hrsh7th/cmp-cmdline",
-	"hrsh7th/cmp-nvim-lsp",
-	"hrsh7th/cmp-nvim-lua",
-	"hrsh7th/cmp-path",
-	"hrsh7th/cmp-vsnip",
-	"hrsh7th/nvim-cmp",
-	"hrsh7th/vim-vsnip",
-	"junegunn/fzf.vim",
-	"kyazdani42/nvim-web-devicons",
-	"lewis6991/gitsigns.nvim",
-	"mattn/vim-gist",
-	"mattn/vim-goimports",
-	"mattn/webapi-vim",
-	"neovim/nvim-lspconfig",
-	"nvim-lua/plenary.nvim",
-	"nvim-lualine/lualine.nvim",
-	"nvim-treesitter/nvim-treesitter",
-	"nvimtools/none-ls.nvim",
-	-- "nvimtools/none-ls-extras.nvim",
-	"rust-lang/rust.vim",
-	"savq/paq-nvim",
-	"tanvirtin/monokai.nvim",
-	"yowcow/partial.nvim",
-	{ "junegunn/fzf", dir = vim.fn.expand("~/.fzf/") },
-	-- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
-})
+local vim = vim
+local Plug = vim.fn['plug#']
+
+vim.call('plug#begin')
+
+Plug("CopilotC-Nvim/CopilotChat.nvim")
+Plug("akinsho/toggleterm.nvim")
+Plug("github/copilot.vim")
+Plug("godlygeek/tabular")
+Plug("hashivim/vim-terraform")
+Plug("hashivim/vim-vagrant")
+Plug("hrsh7th/cmp-buffer")
+Plug("hrsh7th/cmp-cmdline")
+Plug("hrsh7th/cmp-nvim-lsp")
+Plug("hrsh7th/cmp-nvim-lua")
+Plug("hrsh7th/cmp-path")
+Plug("hrsh7th/cmp-vsnip")
+Plug("hrsh7th/nvim-cmp")
+Plug("hrsh7th/vim-vsnip")
+Plug("junegunn/fzf.vim")
+Plug("kyazdani42/nvim-web-devicons")
+Plug("lewis6991/gitsigns.nvim")
+Plug("mattn/vim-gist")
+Plug("mattn/vim-goimports")
+Plug("mattn/webapi-vim")
+Plug("neovim/nvim-lspconfig")
+Plug("nvim-lua/plenary.nvim")
+Plug("nvim-lualine/lualine.nvim")
+Plug("nvim-treesitter/nvim-treesitter")
+Plug("nvimtools/none-ls.nvim")
+-- "nvimtools/none-ls-extras.nvim",
+Plug("rust-lang/rust.vim")
+Plug("tanvirtin/monokai.nvim")
+Plug("yowcow/partial.nvim")
+Plug("junegunn/fzf", { ['dir'] = '~/.fzf/' })
+-- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
+
+vim.call('plug#end')
 
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
 

@@ -40,7 +40,7 @@ SOURCES := \
 	local/bin/vacuum \
 	local/bin/zellij \
 	local/google-cloud-sdk \
-	local/share/nvim/site/pack/paqs/start/paq-nvim \
+	local/share/nvim/site/autoload/plug.vim \
 	luarocks.zsh \
 	nvm \
 	nvm.zsh \
@@ -60,10 +60,10 @@ TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
+VIMPLUG         := _modules/github.com/junegunn/vim-plug
 GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
 NVM             := _modules/github.com/nvm-sh/nvm
-PAQ_NVIM        := _modules/github.com/savq/paq-nvim
 PLENV           := _modules/github.com/tokuhirom/plenv
 PLENV_BUILD     := _modules/github.com/tokuhirom/Perl-Build
 PYENV           := _modules/github.com/pyenv/pyenv
@@ -75,10 +75,10 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
 			   $(NVM) \
-			   $(PAQ_NVIM) \
 			   $(PLENV) \
 			   $(PLENV_BUILD) \
 			   $(PYENV) \
+			   $(VIMPLUG) \
 			   $(WOFI_ARC)
 
 ifeq ($(shell make -v | head -1 | rev | cut -d' ' -f1 | rev | cut -d'.' -f1),3)
@@ -172,9 +172,9 @@ $(TMPDIR)/zellij-%.tar.gz:
 	mkdir -p $(@D)
 	curl -L $(URL) -o $@
 
-$(HOME)/.local/share/nvim/site/pack/paqs/start/paq-nvim: $(PAQ_NVIM)
+$(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIMPLUG)
 	mkdir -p $(@D)
-	ln -sfn `pwd`/$</ $@
+	ln -sfn `pwd`/$</plug.vim $@
 
 $(HOME)/.nvm: $(NVM)
 	ln -sfn `pwd`/$< $@
