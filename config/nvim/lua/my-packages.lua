@@ -1,10 +1,14 @@
 local vim = vim
-local Plug = vim.fn['plug#']
+local Plug = vim.fn["plug#"]
 
-vim.call('plug#begin')
+vim.call("plug#begin")
 
 Plug("CopilotC-Nvim/CopilotChat.nvim")
+Plug("HakonHarnes/img-clip.nvim")
+Plug("MeanderingProgrammer/render-markdown.nvim")
+Plug("MunifTanjim/nui.nvim")
 Plug("akinsho/toggleterm.nvim")
+Plug("echasnovski/mini.icons")
 Plug("github/copilot.vim")
 Plug("godlygeek/tabular")
 Plug("hashivim/vim-terraform")
@@ -17,6 +21,7 @@ Plug("hrsh7th/cmp-path")
 Plug("hrsh7th/cmp-vsnip")
 Plug("hrsh7th/nvim-cmp")
 Plug("hrsh7th/vim-vsnip")
+Plug("junegunn/fzf", { ["dir"] = "~/.fzf/" })
 Plug("junegunn/fzf.vim")
 Plug("kyazdani42/nvim-web-devicons")
 Plug("lewis6991/gitsigns.nvim")
@@ -28,16 +33,18 @@ Plug("nvim-lua/plenary.nvim")
 Plug("nvim-lualine/lualine.nvim")
 Plug("nvim-treesitter/nvim-treesitter")
 Plug("nvimtools/none-ls.nvim")
--- "nvimtools/none-ls-extras.nvim",
 Plug("rust-lang/rust.vim")
+Plug("stevearc/dressing.nvim")
 Plug("tanvirtin/monokai.nvim")
+Plug("yetone/avante.nvim", { ["branch"] = "main", ["do"] = "make" })
 Plug("yowcow/partial.nvim")
-Plug("junegunn/fzf", { ['dir'] = '~/.fzf/' })
--- {"prettier/vim-prettier", do = "npm install --frozen-lockfile --production"},
+Plug("zbirenbaum/copilot.lua")
 
-vim.call('plug#end')
+vim.call("plug#end")
 
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
+
+require("avante").setup()
 
 require("toggleterm").setup({
 	start_in_insert = false,
