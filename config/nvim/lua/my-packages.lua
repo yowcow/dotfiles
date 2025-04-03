@@ -1,4 +1,3 @@
-local map = require("my-utils").map
 local vim = vim
 local Plug = vim.fn["plug#"]
 
@@ -199,12 +198,11 @@ require("gitsigns").setup()
 --
 -- "github/copilot.vim",
 --
-vim.api.nvim_set_keymap("i", "<C-l>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+vim.api.nvim_set_keymap("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 vim.g.copilot_no_tab_map = true
 
 --
 -- "CopilotC-Nvim/CopilotChat.nvim"
 --
 require("CopilotChat").setup()
-
-map("n", "<Leader>cc", ":CopilotChatToggle<CR>")
+vim.api.nvim_set_keymap("n", "<Leader>cc", ":CopilotChatToggle<CR>", { noremap = true })
