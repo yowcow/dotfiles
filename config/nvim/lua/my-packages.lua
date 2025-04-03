@@ -1,3 +1,4 @@
+local map = require("my-utils").map
 local vim = vim
 local Plug = vim.fn["plug#"]
 
@@ -35,7 +36,14 @@ Plug("nvimtools/none-ls.nvim")
 Plug("rust-lang/rust.vim")
 Plug("stevearc/dressing.nvim")
 Plug("tanvirtin/monokai.nvim")
-Plug("yetone/avante.nvim", { ["branch"] = "main", ["do"] = "make" })
+Plug("yetone/avante.nvim", {
+	["branch"] = "main",
+	["do"] = "make",
+	["opts"] = {
+		["provider"] = "copilot",
+		["auto_suggestions_provider"] = "copilot",
+	},
+})
 Plug("yowcow/partial.nvim")
 Plug("zbirenbaum/copilot.lua")
 
@@ -198,3 +206,5 @@ vim.g.copilot_no_tab_map = true
 -- "CopilotC-Nvim/CopilotChat.nvim"
 --
 require("CopilotChat").setup()
+
+map("n", "<Leader>cc", ":CopilotChatToggle<CR>")
