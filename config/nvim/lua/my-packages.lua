@@ -35,14 +35,7 @@ Plug("nvimtools/none-ls.nvim")
 Plug("rust-lang/rust.vim")
 Plug("stevearc/dressing.nvim")
 Plug("tanvirtin/monokai.nvim")
-Plug("yetone/avante.nvim", {
-	["branch"] = "main",
-	["do"] = "make",
-	["opts"] = {
-		["provider"] = "copilot",
-		["auto_suggestions_provider"] = "copilot",
-	},
-})
+Plug("yetone/avante.nvim", { ["branch"] = "main", ["do"] = "make" })
 Plug("yowcow/partial.nvim")
 Plug("zbirenbaum/copilot.lua")
 
@@ -50,7 +43,10 @@ vim.call("plug#end")
 
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
 
-require("avante").setup()
+require("avante").setup({
+	provider = "copilot",
+	auto_suggestions_provider = "copilot",
+})
 
 require("toggleterm").setup({
 	start_in_insert = false,
