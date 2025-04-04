@@ -3,12 +3,12 @@ local Plug = vim.fn["plug#"]
 
 vim.call("plug#begin")
 
+-- Plug("github/copilot.vim")
 Plug("CopilotC-Nvim/CopilotChat.nvim")
 Plug("HakonHarnes/img-clip.nvim")
 Plug("MeanderingProgrammer/render-markdown.nvim")
 Plug("MunifTanjim/nui.nvim")
 Plug("akinsho/toggleterm.nvim")
-Plug("github/copilot.vim")
 Plug("godlygeek/tabular")
 Plug("hashivim/vim-terraform")
 Plug("hashivim/vim-vagrant")
@@ -42,11 +42,6 @@ Plug("zbirenbaum/copilot.lua")
 vim.call("plug#end")
 
 vim.g.fzf_history_dir = vim.fn.expand("~/.fzf-history")
-
-require("avante").setup({
-	provider = "copilot",
-	auto_suggestions_provider = "copilot",
-})
 
 require("toggleterm").setup({
 	start_in_insert = false,
@@ -194,11 +189,24 @@ require("gitsigns").setup()
 --
 -- "github/copilot.vim",
 --
-vim.g.copilot_no_tab_map = true
-vim.keymap.set("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+--vim.g.copilot_no_tab_map = true
+--vim.keymap.set("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 
 --
--- "CopilotC-Nvim/CopilotChat.nvim"
+-- https://github.com/zbirenbaum/copilot.lua
+--
+require("copilot").setup()
+
+--
+-- https://github.com/CopilotC-Nvim/CopilotChat.nvim
 --
 require("CopilotChat").setup()
 vim.keymap.set("n", "<Leader>cc", ":CopilotChatToggle<CR>", { noremap = true })
+
+--
+-- https://github.com/yetone/avante.nvim
+--
+require("avante").setup({
+	provider = "copilot",
+	auto_suggestions_provider = "copilot",
+})
