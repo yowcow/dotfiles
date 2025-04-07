@@ -5,7 +5,7 @@ vim.keymap.set("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>")
 vim.keymap.set("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>")
 vim.keymap.set("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>")
 vim.keymap.set("n", "gq", "<cmd>lua vim.diagnostic.setloclist()<CR>")
-vim.keymap.set("n", "<Space>f", "<cmd>lua vim.lsp.buf.format()<CR>")
+vim.keymap.set("n", "<space>f", "<cmd>lua vim.lsp.buf.format()<CR>")
 
 --
 -- FZF

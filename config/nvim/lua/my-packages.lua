@@ -185,6 +185,7 @@ require("partial").setup({
 -- https://github.com/lewis6991/gitsigns.nvim
 --
 require("gitsigns").setup()
+vim.keymap.set("n", "<Leader>gb", ":Gitsigns blame<CR>", { noremap = true })
 
 --
 -- "github/copilot.vim",
@@ -195,7 +196,25 @@ require("gitsigns").setup()
 --
 -- https://github.com/zbirenbaum/copilot.lua
 --
-require("copilot").setup()
+require("copilot").setup({
+	panel = {
+		auto_refresh = false,
+		layout = {
+			position = "bottom",
+			ratio = 0.3,
+		},
+	},
+	suggestion = {
+		auto_trigger = true,
+		keymap = {
+			accept = "<C-g>",
+			next = "<C-j>",
+			prev = "<C-k>",
+			dismiss = "<C-h>",
+		},
+	},
+})
+vim.keymap.set("n", "<Leader>cp", ":Copilot panel<CR>", { noremap = true })
 
 --
 -- https://github.com/CopilotC-Nvim/CopilotChat.nvim
