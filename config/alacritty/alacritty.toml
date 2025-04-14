@@ -1,11 +1,11 @@
 
 [font]
-normal = { family = "JetBrains Mono NL" }
-size = 9.5
+normal = { family = "0xProto Nerd Font Mono" }
+size = 10
 builtin_box_drawing = true
 
 [window]
-opacity = 0.95
+opacity = 0.90
 
 [general]
 import = [
