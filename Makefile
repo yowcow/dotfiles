@@ -244,6 +244,7 @@ update/lang/nodejs: FORCE
 	if command -v npm 1>/dev/null; then \
 		npm -g install \
 			@ansible/ansible-language-server \
+			@google/gemini-cli \
 			@vue/language-server \
 			aws-cdk \
 			eslint \
