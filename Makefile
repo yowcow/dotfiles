@@ -252,6 +252,7 @@ update/lang/nodejs: FORCE
 			neovim \
 			npm \
 			npm-check-updates \
+			opencode-ai \
 			perlnavigator-server \
 			prettier \
 			pyright \
