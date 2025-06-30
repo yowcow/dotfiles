@@ -187,11 +187,16 @@ require("partial").setup({
 require("gitsigns").setup()
 vim.keymap.set("n", "<Leader>gb", ":Gitsigns blame<CR>", { noremap = true })
 
---
--- "github/copilot.vim",
---
+----
+---- "github/copilot.vim",
+----
 --vim.g.copilot_no_tab_map = true
 --vim.keymap.set("i", "<C-g>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+
+--
+-- https://github.com/MeanderingProgrammer/render-markdown.nvim
+--
+require("render-markdown").setup({})
 
 --
 -- https://github.com/zbirenbaum/copilot.lua
@@ -226,6 +231,20 @@ vim.keymap.set("n", "<Leader>cc", ":CopilotChatToggle<CR>", { noremap = true })
 -- https://github.com/yetone/avante.nvim
 --
 require("avante").setup({
-	provider = "copilot",
-	auto_suggestions_provider = "copilot",
+	provider = "gemini",
+	mode = "agentic",
+	auto_suggestions_provider = "gemini",
+	providers = {
+		gemini = {
+			model = "gemini-2.5-flash",
+		},
+	},
+	behavior = {
+		auto_suggestions = true,
+		auto_set_hilight_group = true,
+		auto_set_keymaps = true,
+		auto_apply_diff_after_generation = false,
+		support_paste_from_clipboard = false,
+		minimize_diff = false,
+	},
 })
