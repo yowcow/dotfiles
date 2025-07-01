@@ -37,6 +37,9 @@ return {
           model = "gemini-2.5-flash",
         },
       },
+      web_search_engine = {
+        provider = "google",
+      },
       -- auto_suggestions_provider = "copilot",
       behaviour = {
         auto_suggestions = true,
