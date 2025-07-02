@@ -50,13 +50,13 @@ return {
       },
       windows = {
         position = "right",
-        width = 30,
+        width = 35,
         sidebar_header = {
           align = "center",
           rounded = false,
         },
         ask = {
-          floating = true,
+          floating = false,
           start_insert = true,
           border = "rounded",
         },
