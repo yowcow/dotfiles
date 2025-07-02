@@ -107,32 +107,4 @@ return {
       go = { "goimports" },
     },
   } },
-  {
-    "zbirenbaum/copilot.lua",
-    enabled = true,
-    opts = {
-      panel = {
-        auto_refresh = false,
-        layout = {
-          position = "bottom",
-          ratio = 0.3,
-        },
-      },
-      suggestion = {
-        auto_trigger = true,
-        debounce = 75,
-        keymap = {
-          accept = "<C-l>",
-          accept_word = false,
-          accept_line = false,
-          next = "<C-j>",
-          prev = "<C-k>",
-          dismiss = "<C-c>",
-        },
-      },
-      filetypes = {
-        ["*"] = true,
-      },
-    },
-  },
 }
