@@ -34,15 +34,17 @@ return {
         --   },
         -- },
         gemini = {
-          model = "gemini-2.5-flash",
+          model = "gemini-2.5-flash-lite-preview-06-17",
         },
+        copilot = {},
       },
       web_search_engine = {
         provider = "google",
       },
       -- auto_suggestions_provider = "copilot",
       behaviour = {
-        auto_suggestions = true,
+        auto_focus_sidebar = true,
+        auto_suggestions = false,
         auto_set_highlight_group = true,
         auto_set_keymaps = true,
         auto_apply_diff_after_generation = true,
@@ -102,6 +104,27 @@ return {
     },
   },
   {
+    "zbirenbaum/copilot.lua",
+    opts = {
+      panel = {
+        auto_refresh = true,
+        layout = {
+          position = "bottom",
+          ratio = 0.3,
+        },
+      },
+      suggestion = {
+        auto_trigger = true,
+        keymap = {
+          accept = "<C-g>",
+          next = "<C-j>",
+          prev = "<C-k>",
+          dismiss = "<C-h>",
+        },
+      },
+    },
+  },
+  {
     "yowcow/partial.nvim",
     opts = {
       json = { "jq", "." },
@@ -116,4 +139,5 @@ return {
       go = { "goimports" },
     },
   } },
+  { "echasnovski/mini.pairs", enabled = false },
 }
