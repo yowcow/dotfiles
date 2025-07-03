@@ -9,3 +9,4 @@ vim.opt.clipboard = ""
 vim.opt.laststatus = 3
 vim.opt.listchars = "tab:>-,trail:^"
 vim.opt.mouse = ""
+vim.opt.relativenumber = false

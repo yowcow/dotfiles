@@ -1,4 +1,5 @@
 return {
+  { "echasnovski/mini.pairs", enabled = false },
   { "junegunn/fzf" },
   { "junegunn/fzf.vim" },
   {
@@ -34,7 +35,8 @@ return {
         --   },
         -- },
         gemini = {
-          model = "gemini-2.5-flash-lite-preview-06-17",
+          -- model = "gemini-2.5-flash-lite-preview-06-17",
+          model = "gemini-2.5-flash",
         },
         copilot = {},
       },
@@ -139,5 +141,6 @@ return {
       go = { "goimports" },
     },
   } },
-  { "echasnovski/mini.pairs", enabled = false },
+  { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+  { "LazyVim/LazyVim", opts = { colorscheme = "catppuccin" } },
 }
