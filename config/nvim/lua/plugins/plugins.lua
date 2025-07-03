@@ -141,6 +141,18 @@ return {
       go = { "goimports" },
     },
   } },
-  { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+
+  -- colorschemes
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    priority = 1000,
+    opts = {
+      transparent_background = false,
+      dim_inactive = {
+        enabled = true,
+      },
+    },
+  },
   { "LazyVim/LazyVim", opts = { colorscheme = "catppuccin" } },
 }
