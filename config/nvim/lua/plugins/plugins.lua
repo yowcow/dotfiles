@@ -152,6 +152,11 @@ return {
       dim_inactive = {
         enabled = true,
       },
+      color_overrides = {
+        mocha = {
+          base = "#0a0a0f",
+        },
+      },
     },
   },
   { "LazyVim/LazyVim", opts = { colorscheme = "catppuccin" } },
