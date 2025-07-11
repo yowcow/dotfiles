@@ -288,7 +288,6 @@ update/lang/rust: FORCE
 		cargo install \
 			cargo-update \
 			efmt \
-			starship \
 			stylua \
 			; \
 		cargo install-update -a; \
