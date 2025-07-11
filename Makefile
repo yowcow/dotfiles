@@ -287,6 +287,8 @@ update/lang/rust: FORCE
 	if command -v cargo 1>/dev/null; then \
 		cargo install \
 			cargo-update \
+			efmt \
+			starship \
 			stylua \
 			; \
 		cargo install-update -a; \
