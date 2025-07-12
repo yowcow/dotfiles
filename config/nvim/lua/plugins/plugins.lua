@@ -74,6 +74,7 @@ return {
       "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
       "ibhagwan/fzf-lua", -- for file_selector provider fzf
       "stevearc/dressing.nvim", -- for input provider dressing
+      "folke/todo-comments.nvim",
       "folke/snacks.nvim", -- for input provider snacks
       "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
       {
