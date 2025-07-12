@@ -43,7 +43,7 @@ return {
       web_search_engine = {
         provider = "google",
       },
-      -- auto_suggestions_provider = "copilot",
+      auto_suggestions_provider = "copilot",
       behaviour = {
         auto_focus_sidebar = true,
         auto_suggestions = false,
@@ -77,7 +77,27 @@ return {
       "stevearc/dressing.nvim", -- for input provider dressing
       "folke/snacks.nvim", -- for input provider snacks
       "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-      "zbirenbaum/copilot.lua", -- for providers='copilot'
+      {
+        "zbirenbaum/copilot.lua",
+        opts = {
+          panel = {
+            auto_refresh = true,
+            layout = {
+              position = "bottom",
+              ratio = 0.3,
+            },
+          },
+          suggestion = {
+            auto_trigger = true,
+            keymap = {
+              accept = "<C-g>",
+              next = "<C-j>",
+              prev = "<C-k>",
+              dismiss = "<C-h>",
+            },
+          },
+        },
+      }, -- for providers='copilot'
       {
         -- support for image pasting
         "HakonHarnes/img-clip.nvim",
@@ -102,27 +122,6 @@ return {
           file_types = { "markdown", "Avante" },
         },
         ft = { "markdown", "Avante" },
-      },
-    },
-  },
-  {
-    "zbirenbaum/copilot.lua",
-    opts = {
-      panel = {
-        auto_refresh = true,
-        layout = {
-          position = "bottom",
-          ratio = 0.3,
-        },
-      },
-      suggestion = {
-        auto_trigger = true,
-        keymap = {
-          accept = "<C-g>",
-          next = "<C-j>",
-          prev = "<C-k>",
-          dismiss = "<C-h>",
-        },
       },
     },
   },
