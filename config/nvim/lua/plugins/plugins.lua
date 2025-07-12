@@ -23,7 +23,7 @@ return {
     opts = {
       -- add any opts here
       -- for example
-      provider = "gemini",
+      provider = "copilot",
       providers = {
         -- claude = {
         --   endpoint = "https://api.anthropic.com",
@@ -35,7 +35,6 @@ return {
         --   },
         -- },
         gemini = {
-          -- model = "gemini-2.5-flash-lite-preview-06-17",
           model = "gemini-2.5-flash",
         },
         copilot = {},
@@ -90,10 +89,10 @@ return {
           suggestion = {
             auto_trigger = true,
             keymap = {
-              accept = "<C-l>",
+              accept = "<CR>",
               next = "<C-n>",
               prev = "<C-p>",
-              dismiss = "<C-h>",
+              dismiss = "<C-e>",
             },
           },
         },
@@ -101,6 +100,7 @@ return {
       {
         -- support for image pasting
         "HakonHarnes/img-clip.nvim",
+        enabled = false,
         event = "VeryLazy",
         opts = {
           -- recommended settings
