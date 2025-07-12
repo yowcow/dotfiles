@@ -1,4 +1,4 @@
-TMPDIR = /tmp/dotfiles-tmp
+DOTFILES_TMPDIR = /tmp/dotfiles-tmp
 
 MACHINE = $(shell uname -m)
 ifeq ($(MACHINE),arm64)
@@ -123,23 +123,23 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
 
-.INTERMEDIATE: $(TMPDIR)/google-cloud-cli.tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz
 
-$(HOME)/.local/google-cloud-sdk: $(TMPDIR)/google-cloud-cli.tar.gz
+$(HOME)/.local/google-cloud-sdk: $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz
 	tar -xzf $< -C $(HOME)/.local
 
-$(TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
-$(TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
-$(TMPDIR)/google-cloud-cli.tar.gz:
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz:
 	mkdir -p $(@D)
 	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
 TMUX_VERSION = 3.5a
-.INTERMEDIATE: $(TMPDIR)/tmux-$(TMUX_VERSION) $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
-$(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
+$(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 	cd $< \
 		&& ./configure \
 			--enable-utf8proc \
@@ -147,28 +147,28 @@ $(HOME)/.local/bin/tmux: $(TMPDIR)/tmux-$(TMUX_VERSION)
 		&& make -j4 && make install
 	touch $@
 
-$(TMPDIR)/tmux-$(TMUX_VERSION): $(TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+$(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
 
-$(TMPDIR)/tmux-%.tar.gz:
+$(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
 	curl -L https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
 
 ZELLIJ_VERSION = v0.41.1
-.INTERMEDIATE: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 
-$(HOME)/.local/bin/zellij: $(TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+$(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
 
-$(TMPDIR)/zellij-%.tar.gz:
+$(DOTFILES_TMPDIR)/zellij-%.tar.gz:
 ifeq ($(shell uname -s),Darwin)
-$(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz
+$(DOTFILES_TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz
 else
-$(TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
+$(DOTFILES_TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
 endif
-$(TMPDIR)/zellij-%.tar.gz:
+$(DOTFILES_TMPDIR)/zellij-%.tar.gz:
 	mkdir -p $(@D)
 	curl -L $(URL) -o $@
 
