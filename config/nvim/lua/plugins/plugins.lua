@@ -37,7 +37,9 @@ return {
         gemini = {
           model = "gemini-2.5-flash",
         },
-        copilot = {},
+        copilot = {
+          model = "claude-sonnet-4",
+        },
       },
       web_search_engine = {
         provider = "google",
@@ -53,7 +55,7 @@ return {
       },
       windows = {
         position = "right",
-        width = 35,
+        width = 45,
         sidebar_header = {
           align = "center",
           rounded = false,
