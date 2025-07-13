@@ -35,16 +35,21 @@ return {
         --   },
         -- },
         gemini = {
-          model = "gemini-2.5-flash",
+          model = "gemini-2.5-pro",
         },
         copilot = {
-          model = "claude-sonnet-4",
+          -- model = "claude-sonnet-4",
+          model = "gpt-4.1",
         },
       },
       web_search_engine = {
         provider = "google",
       },
       auto_suggestions_provider = "copilot",
+      suggestion = {
+        debounce = 1000,
+        throttle = 1000,
+      },
       behaviour = {
         auto_focus_sidebar = true,
         auto_suggestions = false,
@@ -92,7 +97,7 @@ return {
           suggestion = {
             auto_trigger = true,
             keymap = {
-              accept = "<CR>",
+              accept = "<C-g>",
               next = "<C-n>",
               prev = "<C-p>",
               dismiss = "<C-e>",
