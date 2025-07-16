@@ -35,8 +35,9 @@ SOURCES := \
 	local/bin/aws-vault \
 	local/bin/btvol \
 	local/bin/buf \
-	local/bin/erlang_ls \
 	local/bin/kerl \
+	local/bin/rebar3 \
+	local/bin/erlang_ls \
 	local/bin/mylock \
 	local/bin/tmux \
 	local/bin/vacuum \
@@ -134,7 +135,7 @@ $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell uname -s | tr '[A-Z]' '
 ifeq ($(MACHINE),aarch64)
 $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = arm
 else ifeq ($(MACHINE),amd64)
-$(HOME)/.local/bin/aws-vault: ARCH = x86_64
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = x86_64
 else
 $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell uname -p)
 endif
@@ -157,14 +158,22 @@ $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
 	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
-	chmod +x $@
+	chmod a+x $@
 
 ##
 ## kerl
 ##
-
 $(HOME)/.local/bin/kerl:
 	curl -L https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
+	chmod a+x $@
+
+##
+## https://github.com/erlang/rebar3/releases
+##
+REBAR3_VERSION = 3.25.0
+
+$(HOME)/.local/bin/rebar3:
+	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
 	chmod a+x $@
 
 ##
