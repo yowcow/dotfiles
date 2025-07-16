@@ -1,8 +1,8 @@
 DOTFILES_TMPDIR = /tmp/dotfiles-tmp
 
-MACHINE = $(shell uname -m)
+MACHINE := $(shell uname -m)
 ifeq ($(MACHINE),arm64)
-	MACHINE = aarch64
+MACHINE = aarch64
 endif
 
 SOURCES := \
@@ -32,6 +32,7 @@ SOURCES := \
 	gnupg/gpg.conf \
 	goenv \
 	goenv.zsh \
+	local/bin/aws-vault \
 	local/bin/btvol \
 	local/bin/buf \
 	local/bin/erlang_ls \
@@ -128,12 +129,38 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 $(HOME)/.local/google-cloud-sdk: $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz
 	tar -xzf $< -C $(HOME)/.local
 
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell [ "$$(uname -s)" = "Darwin" ] && echo "darwin" || echo "linux")
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell [ "$$(uname -p)" = "aarch64" ] && echo "arm" || uname -p)
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
+ifeq ($(MACHINE),aarch64)
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = arm
+else ifeq ($(MACHINE),amd64)
+$(HOME)/.local/bin/aws-vault: ARCH = x86_64
+else
+$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell uname -p)
+endif
 $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz:
 	mkdir -p $(@D)
 	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
+##
+## https://github.com/ByteNess/aws-vault/releases
+##
+AWS_VAULT_VERSION = v7.5.3
+
+$(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
+ifeq ($(MACHINE),aarch64)
+$(HOME)/.local/bin/aws-vault: ARCH = arm64
+else ifeq ($(MACHINE),x86_64)
+$(HOME)/.local/bin/aws-vault: ARCH = amd64
+else
+$(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
+endif
+$(HOME)/.local/bin/aws-vault:
+	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
+	chmod +x $@
+
+##
+## https://github.com/tmux/tmux/releases
+##
 TMUX_VERSION = 3.5a
 .INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
@@ -155,7 +182,10 @@ $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
 	curl -L https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
 
-ZELLIJ_VERSION = v0.41.1
+##
+## https://github.com/zellij-org/zellij/releases
+##
+ZELLIJ_VERSION = v0.42.2
 .INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 
 $(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
