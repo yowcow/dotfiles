@@ -36,6 +36,7 @@ SOURCES := \
 	local/bin/btvol \
 	local/bin/buf \
 	local/bin/erlang_ls \
+	local/bin/kerl \
 	local/bin/mylock \
 	local/bin/tmux \
 	local/bin/vacuum \
@@ -157,6 +158,14 @@ endif
 $(HOME)/.local/bin/aws-vault:
 	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
 	chmod +x $@
+
+##
+## kerl
+##
+
+$(HOME)/.local/bin/kerl:
+	curl -L https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
+	chmod a+x $@
 
 ##
 ## https://github.com/tmux/tmux/releases
