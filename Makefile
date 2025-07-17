@@ -43,7 +43,6 @@ SOURCES := \
 	local/bin/update-env \
 	local/bin/vacuum \
 	local/bin/zellij \
-	local/google-cloud-sdk \
 	local/share/nvim/site/autoload/plug.vim \
 	luarocks.zsh \
 	nvm \
@@ -126,23 +125,6 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 		$(MAKE) -C $< && \
 		cp $</_build/default/bin/erlang_ls $@; \
 	fi
-
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz
-
-$(HOME)/.local/google-cloud-sdk: $(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz
-	tar -xzf $< -C $(HOME)/.local
-
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
-ifeq ($(MACHINE),aarch64)
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = arm
-else ifeq ($(MACHINE),amd64)
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = x86_64
-else
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz: ARCH = $(shell uname -p)
-endif
-$(DOTFILES_TMPDIR)/google-cloud-cli.tar.gz:
-	mkdir -p $(@D)
-	curl -L https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$(OS)-$(ARCH).tar.gz -o $@
 
 ##
 ## https://github.com/ByteNess/aws-vault/releases

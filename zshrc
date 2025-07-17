@@ -45,7 +45,7 @@ export VISUAL=nvim
 export PAGER=less
 export LC_ALL=en_US.UTF-8
 export LANG="en_US.UTF-8"
-export PATH=$HOME/.cargo/bin:$HOME/.local/google-cloud-sdk/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/lib/cargo/bin:$PATH
+export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/lib/cargo/bin:$PATH
 export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
@@ -79,12 +79,6 @@ export AWS_VAULT_PASS_PREFIX=aws-vault
 export AWS_SESSION_TOKEN_TTL=6h
 export AWS_ASSUME_ROLE_TTL=6h
 export AWS_FEDERATION_TOKEN_TTL=6h
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f "$HOME/.local/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/.local/google-cloud-sdk/path.zsh.inc"; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f "$HOME/.local/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/.local/google-cloud-sdk/completion.zsh.inc"; fi
 
 function colorlist() {
     for color in {000..015}; do
