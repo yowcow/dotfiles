@@ -40,6 +40,7 @@ SOURCES := \
 	local/bin/erlang_ls \
 	local/bin/mylock \
 	local/bin/tmux \
+	local/bin/update-env \
 	local/bin/vacuum \
 	local/bin/zellij \
 	local/google-cloud-sdk \

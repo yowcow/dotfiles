@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ "$(uname -s)" = "Linux" ]; then
+	sudo apt update &&
+		sudo apt -y full-upgrade &&
+		sudo apt -y autoremove &&
+		sudo apt -y autoclean
+	sudo snap refresh
+elif [ "$(uname -s)" = "Darwin" ]; then
+	brew update &&
+		brew upgrade &&
+		brew cleanup
+else
+	echo "Unsupported OS"
+	exit 1
+fi
