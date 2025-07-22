@@ -319,7 +319,7 @@ update/lang/nodejs: FORCE
 
 update/lang/python3: FORCE
 	if command -v pipx 1>/dev/null; then \
-		for pkg in ansible qmk ninja pre-commit python-lsp-server pylint shandy-sqlfmt llama-stack; do \
+		for pkg in ansible qmk ninja pre-commit python-lsp-server pylint shandy-sqlfmt uv llama-stack; do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done \
 	fi
