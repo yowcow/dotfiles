@@ -25,6 +25,7 @@ SOURCES := \
 	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
 	config/zellij/config.kdl \
+	docker/cli-plugins/docker-mcp \
 	fzf \
 	gitconfig \
 	gitignore_global \
@@ -142,6 +143,23 @@ endif
 $(HOME)/.local/bin/aws-vault:
 	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
+
+##
+## https://github.com/docker/mcp-gateway/releases
+##
+DOCKER_MCP_VERSION = v0.11.0
+
+$(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
+ifeq ($(MACHINE),aarch64)
+$(HOME)/.docker/cli-plugins/docker-mcp: ARCH = arm64
+else ifeq ($(MACHINE),x86_64)
+$(HOME)/.docker/cli-plugins/docker-mcp: ARCH = amd64
+else
+$(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
+endif
+$(HOME)/.docker/cli-plugins/docker-mcp:
+	mkdir -p $(@D)
+	curl -L "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
 
 ##
 ## kerl
