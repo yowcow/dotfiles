@@ -14,3 +14,5 @@ else
 	echo "Unsupported OS"
 	exit 1
 fi
+
+make -C $HOME/dotfiles install update
