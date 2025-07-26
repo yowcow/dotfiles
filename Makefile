@@ -295,6 +295,7 @@ update/lang/nodejs: FORCE
 			@ansible/ansible-language-server \
 			@anthropic-ai/claude-code \
 			@google/gemini-cli \
+			@modelcontextprotocol/inspector \
 			@vue/language-server \
 			aws-cdk \
 			eslint \
