@@ -49,9 +49,6 @@ SOURCES := \
 	nvm \
 	nvm.zsh \
 	ocamlinit \
-	plenv \
-	plenv/plugins/perl-build \
-	plenv.zsh \
 	pyenv \
 	pyenv.zsh \
 	ripgreprc \
@@ -68,8 +65,6 @@ VIMPLUG         := _modules/github.com/junegunn/vim-plug
 GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
 NVM             := _modules/github.com/nvm-sh/nvm
-PLENV           := _modules/github.com/tokuhirom/plenv
-PLENV_BUILD     := _modules/github.com/tokuhirom/Perl-Build
 PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 
@@ -79,7 +74,6 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
 			   $(NVM) \
-			   $(PLENV) \
 			   $(PLENV_BUILD) \
 			   $(PYENV) \
 			   $(VIMPLUG) \
@@ -226,13 +220,6 @@ $(HOME)/.local/share/nvim/site/autoload/plug.vim: $(VIMPLUG)
 	ln -sfn `pwd`/$</plug.vim $@
 
 $(HOME)/.nvm: $(NVM)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.plenv: $(PLENV)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.plenv/plugins/perl-build: $(PLENV_BUILD) $(HOME)/.plenv
-	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.pyenv: $(PYENV)
