@@ -175,7 +175,7 @@ $(HOME)/.local/bin/rebar3:
 ## https://github.com/tmux/tmux/releases
 ##
 TMUX_VERSION = 3.5a
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
