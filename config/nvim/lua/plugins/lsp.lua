@@ -22,4 +22,28 @@ return {
       },
     },
   },
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        perlnavigator = {
+          settings = {
+            perlnavigator = {
+              perlPath = "perl",
+              enableWarnings = true,
+              perltidyProfile = "",
+              perlcriticProfile = "",
+              perlcriticEnabled = false,
+              includePaths = {
+                "lib",
+                "local/lib/perl5",
+                vim.fn.getcwd() .. "/lib",
+                vim.fn.getcwd() .. "/local/lib/perl5",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 }
