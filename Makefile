@@ -124,7 +124,7 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 ##
 ## https://github.com/ByteNess/aws-vault/releases
 ##
-AWS_VAULT_VERSION = v7.5.3
+AWS_VAULT_VERSION = v7.5.5
 
 $(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -141,7 +141,7 @@ $(HOME)/.local/bin/aws-vault:
 ##
 ## https://github.com/docker/mcp-gateway/releases
 ##
-DOCKER_MCP_VERSION = v0.11.0
+DOCKER_MCP_VERSION = v0.13.0
 
 $(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -165,7 +165,7 @@ $(HOME)/.local/bin/kerl:
 ##
 ## https://github.com/erlang/rebar3/releases
 ##
-REBAR3_VERSION = 3.25.0
+REBAR3_VERSION = 3.25.1
 
 $(HOME)/.local/bin/rebar3:
 	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
@@ -175,7 +175,7 @@ $(HOME)/.local/bin/rebar3:
 ## https://github.com/tmux/tmux/releases
 ##
 TMUX_VERSION = 3.5a
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
@@ -184,7 +184,7 @@ $(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 		&& ./configure \
 			--enable-utf8proc \
 			--prefix=$(HOME)/.local \
-		&& make -j4 && make install
+		&& $(MAKE) && $(MAKE) install
 	touch $@
 
 $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
@@ -329,6 +329,14 @@ update/lang/rust: FORCE
 			; \
 		cargo install-update -a; \
 	fi
+
+clean/versioned: FORCE
+	rm -f \
+		$(HOME)/.docker/cli-plugins/docker-mcp \
+		$(HOME)/.local/bin/aws-vault \
+		$(HOME)/.local/bin/kerl \
+		$(HOME)/.local/bin/tmux \
+		$(HOME)/.local/bin/zellij
 
 clean:
 	rm -f $(TARGETS)
