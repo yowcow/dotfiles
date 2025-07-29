@@ -1,25 +1,25 @@
 return {
-  {
-    "zbirenbaum/copilot.lua",
-    opts = {
-      panel = {
-        auto_refresh = true,
-        layout = {
-          position = "bottom",
-          ratio = 0.3,
-        },
-      },
-      suggestion = {
-        auto_trigger = true,
-        keymap = {
-          accept = "<C-g>",
-          next = "<C-n>",
-          prev = "<C-p>",
-          dismiss = "<C-e>",
-        },
-      },
-    },
-  },
+  -- {
+  --   "zbirenbaum/copilot.lua",
+  --   opts = {
+  --     panel = {
+  --       auto_refresh = true,
+  --       layout = {
+  --         position = "bottom",
+  --         ratio = 0.3,
+  --       },
+  --     },
+  --     suggestion = {
+  --       auto_trigger = true,
+  --       keymap = {
+  --         accept = "<C-g>",
+  --         next = "<C-n>",
+  --         prev = "<C-p>",
+  --         dismiss = "<C-e>",
+  --       },
+  --     },
+  --   },
+  -- },
   -- {
   --   "yetone/avante.nvim",
   --   enabled = true,
