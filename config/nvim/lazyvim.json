@@ -2,6 +2,7 @@
   "extras": [
     "lazyvim.plugins.extras.ai.copilot",
     "lazyvim.plugins.extras.ai.copilot-chat",
+    "lazyvim.plugins.extras.coding.luasnip",
     "lazyvim.plugins.extras.formatting.prettier",
     "lazyvim.plugins.extras.lang.ansible",
     "lazyvim.plugins.extras.lang.docker",
@@ -13,6 +14,7 @@
     "lazyvim.plugins.extras.lang.php",
     "lazyvim.plugins.extras.lang.sql",
     "lazyvim.plugins.extras.lang.terraform",
+    "lazyvim.plugins.extras.lang.toml",
     "lazyvim.plugins.extras.lang.typescript",
     "lazyvim.plugins.extras.lang.yaml",
     "lazyvim.plugins.extras.linting.eslint"
