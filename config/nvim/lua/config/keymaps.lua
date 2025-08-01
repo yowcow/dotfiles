@@ -26,3 +26,5 @@ vim.keymap.set("n", ";gl", ":Commits<CR>")
 vim.keymap.set("n", ";gf", ":GFiles<CR>")
 
 vim.keymap.set("n", ";gb", ":Gitsigns blame<CR>")
+
+vim.keymap.set("n", ";rn", ":IncRename ")
