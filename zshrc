@@ -56,10 +56,6 @@ _cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' 
 
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .plenv.zsh .pyenv.zsh .travis.zsh .local.zsh; do
-    [ -f $HOME/$src ] && source $HOME/$src;
-done
-
 # brew install coreutils
 GNUBIN=/opt/homebrew/opt/coreutils/libexec/gnubin
 if [ -d $GNUBIN ]; then
@@ -194,3 +190,7 @@ function ssh-agent-stop() {
 }
 
 ssh-agent-start
+
+for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .plenv.zsh .pyenv.zsh .travis.zsh .local.zsh; do
+    [ -f $HOME/$src ] && source $HOME/$src;
+done
