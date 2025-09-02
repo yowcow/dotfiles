@@ -12,7 +12,7 @@ return {
                 -- compositeLiteralTypes = false,
                 -- constantValues = false,
                 -- functionTypeParameters = false,
-                -- parameterNames = false,
+                parameterNames = false,
                 -- rangeVariableTypes = false,
               },
               usePlaceholders = false, -- this annoys me as ####
