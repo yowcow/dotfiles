@@ -165,7 +165,7 @@ $(HOME)/.local/bin/kerl:
 ##
 ## https://github.com/erlang/rebar3/releases
 ##
-REBAR3_VERSION = 3.25.1
+REBAR3_VERSION = 3.24.0
 
 $(HOME)/.local/bin/rebar3:
 	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
