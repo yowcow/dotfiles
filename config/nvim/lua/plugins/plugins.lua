@@ -3,6 +3,10 @@ return {
   { "junegunn/fzf" },
   { "junegunn/fzf.vim" },
   {
+    "nvim-treesitter/nvim-treesitter",
+    opts = { ensure_installed = {} },
+  },
+  {
     "yowcow/partial.nvim",
     opts = {
       json = { "jq", "." },
@@ -10,6 +14,15 @@ return {
       sqlfmt = { "vacuum", "--", "sqlfmt", "--no-jinjafmt", "--quiet", "--safe", "-" },
       xml = { "xmllint", "--format", "-" },
       yaml = { "yamlfmt", "-in" },
+    },
+  },
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = {
+        perl = { "perltidy" },
+        sql = { "sqlfmt" },
+      },
     },
   },
 }
