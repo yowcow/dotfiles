@@ -8,6 +8,7 @@ endif
 SOURCES := \
 	Xmodmap \
 	Xresources \
+	claude/CLAUDE.md \
 	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
 	config/i3/config \
@@ -27,6 +28,7 @@ SOURCES := \
 	config/zellij/config.kdl \
 	docker/cli-plugins/docker-mcp \
 	fzf \
+	gemini/GEMINI.md \
 	gitconfig \
 	gitignore_global \
 	gnupg/gpg-agent.conf \
