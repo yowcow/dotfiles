@@ -51,6 +51,7 @@ SOURCES := \
 	nvm \
 	nvm.zsh \
 	ocamlinit \
+	perltidyrc \
 	pyenv \
 	pyenv.zsh \
 	ripgreprc \
