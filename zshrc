@@ -33,8 +33,8 @@ bindkey "^P" history-beginning-search-backward-end
 bindkey "^N" history-beginning-search-forward-end
 
 HISTFILE=~/.zsh_histfile
-HISTSIZE=1000000
-SAVEHIST=1000000
+HISTSIZE=100000
+SAVEHIST=100000
 
 setopt hist_ignore_dups
 setopt share_history
