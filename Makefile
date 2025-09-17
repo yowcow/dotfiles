@@ -127,7 +127,7 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 ##
 ## https://github.com/ByteNess/aws-vault/releases
 ##
-AWS_VAULT_VERSION = v7.5.5
+AWS_VAULT_VERSION = v7.6.4
 
 $(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -144,7 +144,7 @@ $(HOME)/.local/bin/aws-vault:
 ##
 ## https://github.com/docker/mcp-gateway/releases
 ##
-DOCKER_MCP_VERSION = v0.13.0
+DOCKER_MCP_VERSION = v0.20.0
 
 $(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -201,7 +201,7 @@ $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 ##
 ## https://github.com/zellij-org/zellij/releases
 ##
-ZELLIJ_VERSION = v0.42.2
+ZELLIJ_VERSION = v0.43.1
 .INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
 
 $(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
