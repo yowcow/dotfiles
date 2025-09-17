@@ -184,6 +184,7 @@ TMUX_VERSION = 3.5a
 # macOS: libevent pkg-config
 $(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 	cd $< \
+		&& autoreconf -f -i \
 		&& ./configure \
 			--enable-utf8proc \
 			--prefix=$(HOME)/.local \
@@ -333,13 +334,18 @@ update/lang/rust: FORCE
 		cargo install-update -a; \
 	fi
 
-clean/versioned: FORCE
-	rm -f \
-		$(HOME)/.docker/cli-plugins/docker-mcp \
+VERSIONED_TARGETS := $(HOME)/.docker/cli-plugins/docker-mcp \
 		$(HOME)/.local/bin/aws-vault \
+		$(HOME)/.local/bin/rebar3 \
 		$(HOME)/.local/bin/kerl \
 		$(HOME)/.local/bin/tmux \
 		$(HOME)/.local/bin/zellij
+
+clean/versioned: FORCE
+	rm -f $(VERSIONED_TARGETS) $(HOME)/.local/bin/erlang_ls
+
+install/versioned: $(VERSIONED_TARGETS)
+	$(MAKE) $(HOME)/.local/bin/erlang_ls
 
 clean:
 	rm -f $(TARGETS)
@@ -349,4 +355,5 @@ realclean: clean
 
 FORCE:
 
-.PHONY: all install update clean realclean
+.PHONY: all install update clean realclean install/versioned clean/versioned \
+		update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust
