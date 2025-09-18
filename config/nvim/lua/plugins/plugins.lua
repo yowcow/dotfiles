@@ -1,5 +1,5 @@
 return {
-  { "echasnovski/mini.pairs", enabled = false },
+  { "nvim-mini/mini.pairs", enabled = false },
   { "junegunn/fzf" },
   { "junegunn/fzf.vim" },
   {
