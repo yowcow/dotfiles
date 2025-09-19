@@ -4,7 +4,8 @@ return {
   { "junegunn/fzf.vim" },
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = {} },
+    enabled = false,
+    opts = {},
   },
   {
     "yowcow/partial.nvim",
