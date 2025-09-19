@@ -14,4 +14,17 @@ vim.opt.relativenumber = false
 vim.opt.wrap = true
 
 vim.g.snacks_animate = false
+
 vim.cmd("command! Todo TodoQuickFix")
+
+-- disable treesitter indentation for specific languages
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = {
+    "erlang",
+    "perl",
+  },
+  callback = function()
+    vim.opt_local.indentkeys = ""
+    vim.opt_local.indentexpr = ""
+  end,
+})

@@ -4,7 +4,6 @@ return {
   { "junegunn/fzf.vim" },
   {
     "nvim-treesitter/nvim-treesitter",
-    enabled = false,
     opts = {},
   },
   {
