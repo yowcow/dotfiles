@@ -159,7 +159,7 @@ $(HOME)/.docker/cli-plugins/docker-mcp:
 	curl -L "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
 
 ##
-## kerl
+## https://github.com/kerl/kerl/releases
 ##
 $(HOME)/.local/bin/kerl:
 	curl -L https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
