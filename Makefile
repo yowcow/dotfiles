@@ -265,6 +265,7 @@ update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
 update/lang/golang: GOTOOLS := \
 	github.com/google/yamlfmt/cmd/yamlfmt@latest \
 	github.com/lemonade-command/lemonade@latest \
+	github.com/suzuki-shunsuke/pinact/cmd/pinact@latest \
 	github.com/yowcow/ezserve@latest \
 	golang.org/x/tools/cmd/goimports@latest \
 	golang.org/x/tools/gopls@latest \
