@@ -26,6 +26,7 @@ SOURCES := \
 	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
 	config/zellij/config.kdl \
+	docker/cli-plugins/docker-buildx \
 	docker/cli-plugins/docker-mcp \
 	fzf \
 	gemini/GEMINI.md \
@@ -139,6 +140,24 @@ $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
 	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
+	chmod a+x $@
+
+##
+## https://github.com/docker/buildx/releases
+##
+DOCKER_BUILDX_VERSION = v0.29.1
+
+$(HOME)/.docker/cli-plugins/docker-buildx: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
+ifeq ($(MACHINE),aarch64)
+$(HOME)/.docker/cli-plugins/docker-buildx: ARCH = arm64
+else ifeq ($(MACHINE),x86_64)
+$(HOME)/.docker/cli-plugins/docker-buildx: ARCH = amd64
+else
+$(HOME)/.docker/cli-plugins/docker-buildx: ARCH = $(shell uname -p)
+endif
+$(HOME)/.docker/cli-plugins/docker-buildx:
+	mkdir -p $(@D)
+	curl -L "https://github.com/docker/buildx/releases/download/$(DOCKER_BUILDX_VERSION)/buildx-$(DOCKER_BUILDX_VERSION).$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
 
 ##
@@ -335,7 +354,9 @@ update/lang/rust: FORCE
 		cargo install-update -a; \
 	fi
 
-VERSIONED_TARGETS := $(HOME)/.docker/cli-plugins/docker-mcp \
+VERSIONED_TARGETS := \
+		$(HOME)/.docker/cli-plugins/docker-buildx \
+		$(HOME)/.docker/cli-plugins/docker-mcp \
 		$(HOME)/.local/bin/aws-vault \
 		$(HOME)/.local/bin/rebar3 \
 		$(HOME)/.local/bin/kerl \
