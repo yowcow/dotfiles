@@ -38,7 +38,7 @@ SOURCES := \
 	goenv.zsh \
 	local/bin/aws-vault \
 	local/bin/btvol \
-	local/bin/buf \
+	local/bin/buf.pl \
 	local/bin/kerl \
 	local/bin/rebar3 \
 	local/bin/erlang_ls \
@@ -110,7 +110,7 @@ $(HOME)/.fzf: $(FZF)
 $(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
 
-$(HOME)/.local/bin/buf:
+$(HOME)/.local/bin/buf.pl:
 	mkdir -p $(@D)
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
