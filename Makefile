@@ -267,6 +267,7 @@ _modules/%:
 update:
 	$(MAKE) $(addprefix update/,$(GIT_MODULES))
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
+	$(MAKE) update/docker
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
@@ -362,6 +363,20 @@ clean/versioned: FORCE
 install/versioned: $(VERSIONED_TARGETS)
 	$(MAKE) $(HOME)/.local/bin/erlang_ls
 
+update/docker:
+	if command -v docker 1>/dev/null; then \
+		for image in \
+				mcp/aws-documentation \
+				mcp/fetch \
+				mcp/github \
+				mcp/time \
+				mcp/wikipedia-mcp \
+		; do \
+			docker pull $$image; \
+		done; \
+	fi
+
+
 clean:
 	rm -f $(TARGETS)
 
@@ -371,4 +386,5 @@ realclean: clean
 FORCE:
 
 .PHONY: all install update clean realclean install/versioned clean/versioned \
-		update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust
+		update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust \
+		update/docker
