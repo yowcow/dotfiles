@@ -128,7 +128,7 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 ##
 ## https://github.com/ByteNess/aws-vault/releases
 ##
-AWS_VAULT_VERSION = v7.7.0
+AWS_VAULT_VERSION = v7.7.4
 
 $(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -163,7 +163,7 @@ $(HOME)/.docker/cli-plugins/docker-buildx:
 ##
 ## https://github.com/docker/mcp-gateway/releases
 ##
-DOCKER_MCP_VERSION = v0.21.0
+DOCKER_MCP_VERSION = v0.22.0
 
 $(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
