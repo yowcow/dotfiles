@@ -22,7 +22,7 @@ return {
       formatters_by_ft = {
         perl = { "perltidy" },
         php = { "pint", "phpcbf" },
-        sql = { "sqlfmt" },
+        -- sql = { "sqlfmt" },
       },
     },
   },
