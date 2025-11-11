@@ -10,6 +10,7 @@
 vim.keymap.set("n", "th", ":bprev<CR>")
 vim.keymap.set("n", "tl", ":bnext<CR>")
 vim.keymap.set("n", "td", ":bdelete<CR>")
+vim.keymap.set("n", "tn", ":tabnew<CR>")
 
 vim.keymap.set("t", "<C-\\><C-\\>", "<C-\\><C-n>")
 vim.keymap.set("n", "<C-w>+", "5<C-w>+")
