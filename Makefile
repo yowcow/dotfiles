@@ -299,6 +299,7 @@ update/lang/nodejs: FORCE
 		npm -g install \
 			@ansible/ansible-language-server \
 			@anthropic-ai/claude-code \
+			@github/copilot \
 			@google/gemini-cli \
 			@modelcontextprotocol/inspector \
 			@vue/language-server \
