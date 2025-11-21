@@ -11,3 +11,5 @@
 - Always use OpenAPI Schema MCP server when available.
 - Ask me for a GPG key authentication cache when signing fails, especially for
   Git commit signing.
+- `rg` and `fd` commands are (most likely) available.
+- Always plan first, then move onto implementation.
