@@ -12,4 +12,3 @@
 - Ask me for a GPG key authentication cache when signing fails, especially for
   Git commit signing.
 - `gh`, `rg` and `fd` commands are (most likely) available.
-- Always plan first, then move onto implementation.
