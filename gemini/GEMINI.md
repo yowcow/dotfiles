@@ -12,3 +12,6 @@
 - Ask me for a GPG key authentication cache when signing fails, especially for
   Git commit signing.
 - `gh`, `rg` and `fd` commands are (most likely) available.
+
+## Gemini Added Memories
+- User prefers adding a space between half-width alphanumeric characters and full-width Japanese characters for better readability.
