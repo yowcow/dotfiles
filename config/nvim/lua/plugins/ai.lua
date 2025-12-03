@@ -87,13 +87,27 @@ return {
       },
     },
   },
+  -- {
+  --   "coder/claudecode.nvim",
+  --   dependencies = { "folke/snacks.nvim" },
+  --   opts = {
+  --     terminal = {
+  --       split_width_percentage = 0.45,
+  --     },
+  --   },
+  -- },
   {
-    "coder/claudecode.nvim",
-    dependencies = { "folke/snacks.nvim" },
-    opts = {
-      terminal = {
-        split_width_percentage = 0.45,
-      },
+    "marcinjahn/gemini-cli.nvim",
+    cmd = "Gemini",
+    -- Example key mappings for common actions:
+    keys = {
+      { "<leader>a/", "<cmd>Gemini toggle<cr>", desc = "Toggle Gemini CLI" },
+      { "<leader>aa", "<cmd>Gemini ask<cr>", desc = "Ask Gemini", mode = { "n", "v" } },
+      { "<leader>af", "<cmd>Gemini add_file<cr>", desc = "Add File to Gemini" },
     },
+    dependencies = {
+      "folke/snacks.nvim",
+    },
+    config = true,
   },
 }
