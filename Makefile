@@ -125,7 +125,7 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 ##
 ## https://github.com/ByteNess/aws-vault/releases
 ##
-AWS_VAULT_VERSION = v7.7.4
+AWS_VAULT_VERSION = v7.8.2
 
 $(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -142,7 +142,7 @@ $(HOME)/.local/bin/aws-vault:
 ##
 ## https://github.com/docker/buildx/releases
 ##
-DOCKER_BUILDX_VERSION = v0.29.1
+DOCKER_BUILDX_VERSION = v0.30.1
 
 $(HOME)/.docker/cli-plugins/docker-buildx: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -160,7 +160,7 @@ $(HOME)/.docker/cli-plugins/docker-buildx:
 ##
 ## https://github.com/docker/mcp-gateway/releases
 ##
-DOCKER_MCP_VERSION = v0.22.0
+DOCKER_MCP_VERSION = v0.32.0
 
 $(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
@@ -193,7 +193,7 @@ $(HOME)/.local/bin/rebar3:
 ##
 ## https://github.com/tmux/tmux/releases
 ##
-TMUX_VERSION = 3.5a
+TMUX_VERSION = 3.6a
 .INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
