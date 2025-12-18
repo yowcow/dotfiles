@@ -276,6 +276,7 @@ update/_modules/%: FORCE $(HOME)/.gitconfig _modules/%
 		&& git -C _modules/$* submodule update --init --recursive
 
 update/lang/golang: GOTOOLS := \
+	github.com/bufbuild/buf/cmd/buf@latest \
 	github.com/google/yamlfmt/cmd/yamlfmt@latest \
 	github.com/lemonade-command/lemonade@latest \
 	github.com/suzuki-shunsuke/pinact/cmd/pinact@latest \
