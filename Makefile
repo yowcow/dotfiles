@@ -298,36 +298,24 @@ update/lang/golang: FORCE
 update/lang/nodejs: FORCE
 	if command -v npm 1>/dev/null; then \
 		npm -g install \
-			@ansible/ansible-language-server \
 			@anthropic-ai/claude-code \
-			@github/copilot \
 			@google/gemini-cli \
 			@modelcontextprotocol/inspector \
-			@vue/language-server \
 			aws-cdk \
-			eslint \
-			intelephense \
 			neovim \
 			npm \
 			npm-check-updates \
-			opencode-ai \
-			perlnavigator-server \
 			prettier \
-			pyright \
 			sql-formatter \
 			sql-formatter-cli \
-			tree-sitter-cli \
 			typescript \
-			typescript-language-server \
-			vls \
-			vscode-langservers-extracted \
 			yarn \
 			; \
 	fi
 
 update/lang/python3: FORCE
 	if command -v pipx 1>/dev/null; then \
-		for pkg in ansible qmk ninja pre-commit python-lsp-server pylint shandy-sqlfmt uv llama-stack; do \
+		for pkg in ansible qmk ninja pre-commit shandy-sqlfmt uv; do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done \
 	fi
