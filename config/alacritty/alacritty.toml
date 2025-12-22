@@ -1,6 +1,6 @@
 
 [font]
-normal = { family = "JetBrainsMonoNL Nerd Font Mono" }
+normal = { family = "JetBrainsMono Nerd Font Mono" }
 size = 9.5
 builtin_box_drawing = true
 
@@ -8,6 +8,4 @@ builtin_box_drawing = true
 opacity = 0.95
 
 [general]
-import = [
-    "~/.config/alacritty-theme/themes/argonaut.toml"
-]
+import = ["~/.config/alacritty-theme/themes/argonaut.toml"]
