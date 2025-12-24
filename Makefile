@@ -287,54 +287,63 @@ update/lang/golang: GOTOOLS := \
 	google.golang.org/protobuf/cmd/protoc-gen-go@latest \
 	honnef.co/go/tools/cmd/staticcheck@latest
 update/lang/golang: FORCE
-	if command -v go 1>/dev/null; then \
-		for mod in $(GOTOOLS); do \
-			go install $$mod; \
-			echo "installed: $$mod"; \
-		done; \
-		goenv rehash; \
+	@if command -v go >/dev/null; then \
+		echo "Updating Go tools..."; \
+		go install $(GOTOOLS); \
+		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
+update/lang/nodejs: NPMPKGS := \
+	@anthropic-ai/claude-code \
+	@google/gemini-cli \
+	@modelcontextprotocol/inspector \
+	aws-cdk \
+	neovim \
+	npm \
+	npm-check-updates \
+	prettier \
+	sql-formatter \
+	sql-formatter-cli \
+	typescript \
+	yarn
 update/lang/nodejs: FORCE
-	if command -v npm 1>/dev/null; then \
-		npm -g install \
-			@anthropic-ai/claude-code \
-			@google/gemini-cli \
-			@modelcontextprotocol/inspector \
-			aws-cdk \
-			neovim \
-			npm \
-			npm-check-updates \
-			prettier \
-			sql-formatter \
-			sql-formatter-cli \
-			typescript \
-			yarn \
-			; \
+	@if command -v npm >/dev/null; then \
+		echo "Updating Node.js packages..."; \
+		npm install -g $(NPMPKGS); \
 	fi
 
+update/lang/python3: PIPXPKGS := \
+	ansible \
+	ninja \
+	pre-commit \
+	qmk \
+	shandy-sqlfmt \
+	uv
 update/lang/python3: FORCE
-	if command -v pipx 1>/dev/null; then \
-		for pkg in ansible qmk ninja pre-commit shandy-sqlfmt uv; do \
+	@if command -v pipx >/dev/null; then \
+		echo "Updating Python tools..."; \
+		for pkg in $(PIPXPKGS); do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
-		done \
+		done; \
 	fi
 
+update/lang/rust: RUSTUP_COMPONENTS := \
+	rust-analyzer \
+	rust-src \
+	rustfmt
+update/lang/rust: CARGO_PKGS := \
+	cargo-update \
+	efmt \
+	stylua
 update/lang/rust: FORCE
-	if command -v rustup 1>/dev/null; then \
+	@if command -v rustup >/dev/null; then \
+		echo "Updating Rust toolchain..."; \
 		rustup update; \
-		rustup component add \
-			rust-analyzer \
-			rust-src \
-			rustfmt \
-			; \
+		rustup component add $(RUSTUP_COMPONENTS); \
 	fi
-	if command -v cargo 1>/dev/null; then \
-		cargo install \
-			cargo-update \
-			efmt \
-			stylua \
-			; \
+	@if command -v cargo >/dev/null; then \
+		echo "Updating Cargo packages..."; \
+		cargo install $(CARGO_PKGS); \
 		cargo install-update -a; \
 	fi
 
@@ -353,15 +362,16 @@ clean/versioned: FORCE
 install/versioned: $(VERSIONED_TARGETS)
 	$(MAKE) $(HOME)/.local/bin/erlang_ls
 
-update/docker:
-	if command -v docker 1>/dev/null; then \
-		for image in \
-				mcp/aws-documentation \
-				mcp/fetch \
-				mcp/github \
-				mcp/time \
-				mcp/wikipedia-mcp \
-		; do \
+update/docker: DOCKER_IMAGES := \
+	mcp/aws-documentation \
+	mcp/fetch \
+	mcp/github \
+	mcp/time \
+	mcp/wikipedia-mcp
+update/docker: FORCE
+	@if command -v docker >/dev/null; then \
+		echo "Pulling Docker images..."; \
+		for image in $(DOCKER_IMAGES); do \
 			docker pull $$image; \
 		done; \
 	fi
