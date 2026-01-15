@@ -21,7 +21,7 @@ return {
     opts = {
       formatters_by_ft = {
         perl = { "perltidy" },
-        php = { "pint", "phpcbf" },
+        php = { "phpcbf" },
         -- sql = { "sqlfmt" },
       },
     },
