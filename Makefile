@@ -294,7 +294,6 @@ update/lang/golang: FORCE
 	fi
 
 update/lang/nodejs: NPMPKGS := \
-	@anthropic-ai/claude-code \
 	@google/gemini-cli \
 	@modelcontextprotocol/inspector \
 	aws-cdk \
