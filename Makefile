@@ -376,7 +376,7 @@ update/docker: FORCE
 			docker pull $$image; \
 		done; \
 		echo "Cleaning up Docker..."; \
-		yes | docker system prune -a --volumes; \
+		docker system prune -f --volumes; \
 	fi
 
 
