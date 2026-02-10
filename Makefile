@@ -290,6 +290,7 @@ update/lang/golang: FORCE
 	@if command -v go >/dev/null; then \
 		echo "Updating Go tools..."; \
 		go install $(GOTOOLS); \
+		go clean -cache; \
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
@@ -309,6 +310,7 @@ update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
 		npm install -g $(NPMPKGS); \
+		npm cache clean --force; \
 	fi
 
 update/lang/python3: PIPXPKGS := \
@@ -373,6 +375,8 @@ update/docker: FORCE
 		for image in $(DOCKER_IMAGES); do \
 			docker pull $$image; \
 		done; \
+		echo "Cleaning up Docker..."; \
+		yes | docker system prune -a --volumes; \
 	fi
 
 
