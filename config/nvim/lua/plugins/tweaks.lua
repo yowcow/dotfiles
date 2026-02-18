@@ -22,6 +22,14 @@ return {
     },
   },
   {
+    "akinsho/bufferline.nvim",
+    opts = {
+      options = {
+        always_show_bufferline = true,
+      },
+    },
+  },
+  {
     "nvim-lualine/lualine.nvim",
     opts = function(_, opts)
       opts.sections.lualine_c[4] = { "filename", path = 1 }
