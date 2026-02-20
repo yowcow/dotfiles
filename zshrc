@@ -6,6 +6,7 @@ export GPG_TTY=$(tty)
 
 alias vi="nvim"
 alias vim="nvim"
+alias less="less -R"
 alias realpath="readlink"
 alias bt="bluetoothctl"
 alias cal="ncal -C"
