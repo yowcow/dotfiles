@@ -8,4 +8,14 @@ builtin_box_drawing = true
 opacity = 0.95
 
 [general]
-import = ["~/.config/alacritty-theme/themes/argonaut.toml"]
+import = ["~/.config/alacritty-theme/themes/challenger_deep.toml"]
+
+[colors.cursor]
+cursor = "#ccff00"
+text = "#000000"
+
+[cursor]
+blink_interval = 250
+
+[cursor.style]
+blinking = "always"
