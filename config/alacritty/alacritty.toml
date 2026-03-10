@@ -11,8 +11,8 @@ opacity = 0.95
 import = ["~/.config/alacritty-theme/themes/challenger_deep.toml"]
 
 [colors.cursor]
-cursor = "#ccff00"
-text = "#000000"
+cursor = "#ff1111"
+text = "#ffff00"
 
 [cursor]
 blink_interval = 250
