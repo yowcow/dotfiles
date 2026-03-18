@@ -37,7 +37,10 @@ HISTFILE=~/.zsh_histfile
 HISTSIZE=100000
 SAVEHIST=100000
 
-setopt hist_ignore_dups
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
 setopt share_history
 setopt magic_equal_subst
 
