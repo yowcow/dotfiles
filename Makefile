@@ -289,7 +289,7 @@ update/lang/golang: GOTOOLS := \
 update/lang/golang: FORCE
 	@if command -v go >/dev/null; then \
 		echo "Updating Go tools..."; \
-		go install $(GOTOOLS); \
+		for p in $(GOTOOLS); do go install $$p; done; \
 		go clean -cache; \
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
