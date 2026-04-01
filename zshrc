@@ -114,8 +114,39 @@ function aws-ec2() {
 }
 
 function aws-session() {
+    if [ "$AWS_PROFILE" = "" ]
+    then
+        echo '$AWS_PROFILE is required'
+        return
+    fi
+
     aws-vault exec $AWS_PROFILE -- \
         aws ssm start-session --target $1
+}
+
+function aws-exec () {
+    if [ "$AWS_PROFILE" = "" ]
+    then
+        echo '$AWS_PROFILE is required'
+        return
+    fi
+
+    # 引数チェック: インスタンスIDと実行コマンドが必要
+    if [ $# -lt 2 ]; then
+        echo "Usage: aws-exec <instance-id> <command>"
+        echo "Example: aws-exec i-xxxxxx 'vmstat 1 5'"
+        return
+    fi
+
+    local target=$1
+    shift
+    local cmd="$*"
+
+    # SSMの非対話実行（AWS-StartInteractiveCommand）を利用
+    aws-vault exec $AWS_PROFILE -- aws ssm start-session \
+        --target "$target" \
+        --document-name AWS-StartInteractiveCommand \
+        --parameters "command=[\"$cmd\"]"
 }
 
 function ssh-proxy() {
