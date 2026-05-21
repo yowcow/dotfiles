@@ -73,6 +73,9 @@ autoload -U +X bashcompinit && bashcompinit
 # start starship if available
 which starship 1>/dev/null && eval "$(starship init zsh)"
 
+# enable direnv if available
+which direnv 1>/dev/null && eval "$(direnv hook zsh)"
+
 export AWS_REGION=ap-northeast-1
 export AWS_VAULT_BACKEND=pass
 export AWS_VAULT_PASS_PREFIX=aws-vault
