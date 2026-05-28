@@ -86,6 +86,32 @@ else
 MAKE := make -j4 -O
 endif
 
+github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": "\([^"]*\)".*/\1/')
+
+ifndef AWS_VAULT_VERSION
+AWS_VAULT_VERSION := $(call github-latest,ByteNess/aws-vault)
+endif
+
+ifndef DOCKER_BUILDX_VERSION
+DOCKER_BUILDX_VERSION := $(call github-latest,docker/buildx)
+endif
+
+ifndef DOCKER_MCP_VERSION
+DOCKER_MCP_VERSION := $(call github-latest,docker/mcp-gateway)
+endif
+
+ifndef REBAR3_VERSION
+REBAR3_VERSION := $(call github-latest,erlang/rebar3)
+endif
+
+ifndef TMUX_VERSION
+TMUX_VERSION := $(call github-latest,tmux/tmux)
+endif
+
+ifndef ZELLIJ_VERSION
+ZELLIJ_VERSION := $(call github-latest,zellij-org/zellij)
+endif
+
 all:
 	$(MAKE) install
 
@@ -134,14 +160,12 @@ else
 $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
-	curl -L "https://github.com/ByteNess/aws-vault/releases/latest/download/aws-vault-$(OS)-$(ARCH)" -o $@
+	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
 
 ##
 ## https://github.com/docker/buildx/releases
 ##
-DOCKER_BUILDX_VERSION = v0.34.1
-
 $(HOME)/.docker/cli-plugins/docker-buildx: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
 $(HOME)/.docker/cli-plugins/docker-buildx: ARCH = arm64
@@ -168,7 +192,7 @@ $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
 	mkdir -p $(@D)
-	curl -L "https://github.com/docker/mcp-gateway/releases/latest/download/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
+	curl -L "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
 
 ##
 ## https://github.com/kerl/kerl/releases
@@ -181,13 +205,12 @@ $(HOME)/.local/bin/kerl:
 ## https://github.com/erlang/rebar3/releases
 ##
 $(HOME)/.local/bin/rebar3:
-	curl -L https://github.com/erlang/rebar3/releases/latest/download/rebar3 -o $@
+	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
 	chmod a+x $@
 
 ##
 ## https://github.com/tmux/tmux/releases
 ##
-TMUX_VERSION = 3.6b
 .INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
@@ -219,9 +242,9 @@ $(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij.tar.gz
 	touch $@
 
 ifeq ($(shell uname -s),Darwin)
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(MACHINE)-apple-darwin.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$(ZELLIJ_VERSION)/zellij-$(MACHINE)-apple-darwin.tar.gz
 else
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$(ZELLIJ_VERSION)/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
 endif
 $(DOTFILES_TMPDIR)/zellij.tar.gz:
 	mkdir -p $(@D)
