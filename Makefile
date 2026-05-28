@@ -260,7 +260,7 @@ $(HOME)/.%: %
 ##
 _modules/%:
 	mkdir -p $(@D)
-	git clone \
+	[ -d $@ ] || git clone \
 		--recurse-submodules \
 		git@$$(echo $* | sed -e 's|/|:|') \
 		$@
