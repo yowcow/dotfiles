@@ -125,8 +125,6 @@ $(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
 ##
 ## https://github.com/ByteNess/aws-vault/releases
 ##
-AWS_VAULT_VERSION = v7.10.8
-
 $(HOME)/.local/bin/aws-vault: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
 $(HOME)/.local/bin/aws-vault: ARCH = arm64
@@ -136,7 +134,7 @@ else
 $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
-	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
+	curl -L "https://github.com/ByteNess/aws-vault/releases/latest/download/aws-vault-$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
 
 ##
@@ -160,8 +158,6 @@ $(HOME)/.docker/cli-plugins/docker-buildx:
 ##
 ## https://github.com/docker/mcp-gateway/releases
 ##
-DOCKER_MCP_VERSION = v0.42.1
-
 $(HOME)/.docker/cli-plugins/docker-mcp: OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 ifeq ($(MACHINE),aarch64)
 $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = arm64
@@ -172,7 +168,7 @@ $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
 	mkdir -p $(@D)
-	curl -L "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
+	curl -L "https://github.com/docker/mcp-gateway/releases/latest/download/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
 
 ##
 ## https://github.com/kerl/kerl/releases
@@ -184,10 +180,8 @@ $(HOME)/.local/bin/kerl:
 ##
 ## https://github.com/erlang/rebar3/releases
 ##
-REBAR3_VERSION = 3.27.0
-
 $(HOME)/.local/bin/rebar3:
-	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
+	curl -L https://github.com/erlang/rebar3/releases/latest/download/rebar3 -o $@
 	chmod a+x $@
 
 ##
@@ -218,20 +212,18 @@ $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 ##
 ## https://github.com/zellij-org/zellij/releases
 ##
-ZELLIJ_VERSION = v0.43.1
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij.tar.gz
 
-$(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij-$(ZELLIJ_VERSION).tar.gz
+$(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij.tar.gz
 	tar -xzf $< -C $(@D)
 	touch $@
 
-$(DOTFILES_TMPDIR)/zellij-%.tar.gz:
 ifeq ($(shell uname -s),Darwin)
-$(DOTFILES_TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-apple-darwin.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(MACHINE)-apple-darwin.tar.gz
 else
-$(DOTFILES_TMPDIR)/zellij-%.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$*/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
 endif
-$(DOTFILES_TMPDIR)/zellij-%.tar.gz:
+$(DOTFILES_TMPDIR)/zellij.tar.gz:
 	mkdir -p $(@D)
 	curl -L $(URL) -o $@
 
