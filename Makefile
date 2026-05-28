@@ -88,28 +88,14 @@ endif
 
 github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": "\([^"]*\)".*/\1/')
 
-ifndef AWS_VAULT_VERSION
-AWS_VAULT_VERSION := $(call github-latest,ByteNess/aws-vault)
-endif
-
-ifndef DOCKER_BUILDX_VERSION
-DOCKER_BUILDX_VERSION := $(call github-latest,docker/buildx)
-endif
-
-ifndef DOCKER_MCP_VERSION
-DOCKER_MCP_VERSION := $(call github-latest,docker/mcp-gateway)
-endif
-
-ifndef REBAR3_VERSION
-REBAR3_VERSION := $(call github-latest,erlang/rebar3)
-endif
+AWS_VAULT_VERSION     ?= $(call github-latest,ByteNess/aws-vault)
+DOCKER_BUILDX_VERSION ?= $(call github-latest,docker/buildx)
+DOCKER_MCP_VERSION    ?= $(call github-latest,docker/mcp-gateway)
+REBAR3_VERSION        ?= $(call github-latest,erlang/rebar3)
+ZELLIJ_VERSION        ?= $(call github-latest,zellij-org/zellij)
 
 ifndef TMUX_VERSION
 TMUX_VERSION := $(call github-latest,tmux/tmux)
-endif
-
-ifndef ZELLIJ_VERSION
-ZELLIJ_VERSION := $(call github-latest,zellij-org/zellij)
 endif
 
 all:
