@@ -86,7 +86,7 @@ else
 MAKE := make -j4 -O
 endif
 
-github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": "\([^"]*\)".*/\1/')
+github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | jq -r '.[0].tag_name')
 
 AWS_VAULT_VERSION     ?= $(call github-latest,ByteNess/aws-vault)
 DOCKER_BUILDX_VERSION ?= $(call github-latest,docker/buildx)
