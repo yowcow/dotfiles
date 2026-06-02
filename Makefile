@@ -41,7 +41,6 @@ SOURCES := \
 	local/bin/buf.pl \
 	local/bin/kerl \
 	local/bin/rebar3 \
-	local/bin/erlang_ls \
 	local/bin/mylock \
 	local/bin/tmux \
 	local/bin/update-env \
@@ -62,7 +61,6 @@ SOURCES := \
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
-ERLANG_LS       := _modules/github.com/erlang-ls/erlang_ls
 FZF             := _modules/github.com/junegunn/fzf
 GOENV           := _modules/github.com/go-nv/goenv
 I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
@@ -71,7 +69,6 @@ PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 
 GIT_MODULES := $(ALACRITTY_THEME) \
-			   $(ERLANG_LS) \
 			   $(FZF) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \

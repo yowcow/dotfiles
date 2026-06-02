@@ -8,22 +8,14 @@ VERSIONED_TARGETS := \
 		$(HOME)/.local/bin/zellij
 
 install/versioned: $(VERSIONED_TARGETS)
-	$(MAKE) $(HOME)/.local/bin/erlang_ls
 
 clean/versioned: FORCE
-	rm -f $(VERSIONED_TARGETS) $(HOME)/.local/bin/erlang_ls
+	rm -f $(VERSIONED_TARGETS)
 
 $(HOME)/.local/bin/buf.pl:
 	mkdir -p $(@D)
 	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
-
-$(HOME)/.local/bin/erlang_ls: $(ERLANG_LS) FORCE
-	mkdir -p $(@D)
-	if command -v rebar3 1>/dev/null; then \
-		$(MAKE) -C $< && \
-		cp $</_build/default/bin/erlang_ls $@; \
-	fi
 
 ##
 ## https://github.com/ByteNess/aws-vault/releases
