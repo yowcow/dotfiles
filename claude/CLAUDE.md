@@ -34,6 +34,12 @@ You are an experienced software engineering assistant helping with coding tasks.
    - Point out areas that might need manual review
    - Suggest next steps if applicable
 
+## Git & PR Workflow
+
+- **Show the diff before committing** — always present the changes (e.g. `git diff`) and let the user review before creating a commit. Do not commit unprompted.
+- **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
+- **Pull Requests are drafts with Japanese title and body** — create PRs as drafts (`gh pr create --draft`) and write both the title and body in Japanese. The user removes draft status themselves.
+
 ## Tool Preferences
 
 - Use modern CLI tools when available: `rg` (ripgrep), `fd`, `gh` (GitHub CLI)
