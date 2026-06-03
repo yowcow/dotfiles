@@ -8,7 +8,6 @@ endif
 SOURCES := \
 	Xmodmap \
 	Xresources \
-	claude/CLAUDE.md \
 	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
 	config/i3/config \
@@ -29,7 +28,6 @@ SOURCES := \
 	docker/cli-plugins/docker-buildx \
 	docker/cli-plugins/docker-mcp \
 	fzf \
-	gemini/GEMINI.md \
 	gitconfig \
 	gitignore_global \
 	gnupg/gpg-agent.conf \
@@ -58,7 +56,11 @@ SOURCES := \
 	xprofile \
 	zshrc
 
-TARGETS := $(addprefix $(HOME)/.,$(SOURCES))
+# Shared AI assistant guidelines — one source file, multiple symlink targets
+AI_GUIDELINES := ai/GUIDELINES.md
+AI_TARGETS    := $(HOME)/.claude/CLAUDE.md $(HOME)/.gemini/GEMINI.md
+
+TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 FZF             := _modules/github.com/junegunn/fzf
@@ -121,6 +123,10 @@ realclean: clean
 ##
 ## Symlink rules
 ##
+$(AI_TARGETS): $(AI_GUIDELINES)
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
 $(HOME)/.config/alacritty-theme: $(ALACRITTY_THEME)
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
