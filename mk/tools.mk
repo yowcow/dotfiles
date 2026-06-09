@@ -80,7 +80,7 @@ $(HOME)/.local/bin/rebar3:
 ##
 ## https://github.com/tmux/tmux/releases
 ##
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION) $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
@@ -91,6 +91,7 @@ $(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 			--enable-utf8proc \
 			--prefix=$(HOME)/.local \
 		&& $(MAKE) && $(MAKE) install
+	rm -rf $<
 	touch $@
 
 $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
