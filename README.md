@@ -18,7 +18,6 @@ Before you begin, ensure you have the following installed:
 *   `git`: Required for cloning the repository and managing submodules.
 *   `curl`: Used by some installation scripts for downloading tools.
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
-*   `rebar3` (for Erlang Language Server): Specifically required if you use Erlang and its language server.
 
 ## Installation
 
@@ -28,8 +27,8 @@ Before you begin, ensure you have the following installed:
 2.  **Clone the repository:**
 
     ```bash
-    git clone --recurse-submodules https://github.com/your-username/dotfiles.git ~/.dotfiles
-    cd ~/.dotfiles
+    git clone --recurse-submodules https://github.com/yowcow/dotfiles.git ~/dotfiles
+    cd ~/dotfiles
     ```
 
 3.  **Install the dotfiles:**
@@ -62,7 +61,8 @@ make update
 
 ## Structure
 
-*   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`), text editors (`nvim`), window managers (`sway`), and more.
+*   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`, `i3`), and more.
+*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md` on install.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains Git submodules for third-party tools and plugins, such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
 *   `Makefile`: The central script that orchestrates the entire dotfile management process, handling installation, updates, and cleanup operations.

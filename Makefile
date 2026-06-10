@@ -75,7 +75,6 @@ GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(GOENV) \
 			   $(I3BLOCKS) \
 			   $(NVM) \
-			   $(PLENV_BUILD) \
 			   $(PYENV) \
 			   $(WOFI_ARC)
 
