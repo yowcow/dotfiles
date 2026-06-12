@@ -40,7 +40,7 @@ You are an experienced software engineering assistant helping with coding tasks.
 - **Show the diff before committing** — always present the changes (e.g. `git diff`) and let the user review before creating a commit. Do not commit unprompted.
 - **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
-- **Pull Requests are drafts with Japanese title and body** — create PRs as drafts (`gh pr create --draft`) and write both the title and body in Japanese. The user removes draft status themselves.
+- **Pull Requests are drafts with Japanese title and body** — create PRs as drafts (`gh pr create --draft`) and write the title, body, and all PR comments in Kansai dialect (関西弁). The user removes draft status themselves.
 
 
 ## Tool Preferences
