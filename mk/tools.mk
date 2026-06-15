@@ -29,7 +29,7 @@ else
 $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
-	curl -fL "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
+	curl -fL "$(call github-asset-url,ByteNess/aws-vault,aws-vault-$(OS)-$(ARCH),)" -o $@
 	chmod a+x $@
 
 ##
@@ -45,7 +45,7 @@ $(HOME)/.docker/cli-plugins/docker-buildx: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-buildx:
 	mkdir -p $(@D)
-	curl -fL "https://github.com/docker/buildx/releases/download/$(DOCKER_BUILDX_VERSION)/buildx-$(DOCKER_BUILDX_VERSION).$(OS)-$(ARCH)" -o $@
+	curl -fL "$(call github-asset-url,docker/buildx,buildx-,.$(OS)-$(ARCH))" -o $@
 	chmod a+x $@
 
 ##
@@ -61,7 +61,7 @@ $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
 	mkdir -p $(@D)
-	curl -fL "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
+	curl -fL "$(call github-prerelease-asset-url,docker/mcp-gateway,docker-mcp-$(OS)-$(ARCH),.tar.gz)" | tar -xz -C $(@D)
 
 ##
 ## https://github.com/kerl/kerl/releases
@@ -74,7 +74,7 @@ $(HOME)/.local/bin/kerl:
 ## https://github.com/erlang/rebar3/releases
 ##
 $(HOME)/.local/bin/rebar3:
-	curl -fL https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
+	curl -fL "$(call github-asset-url,erlang/rebar3,rebar3,)" -o $@
 	chmod a+x $@
 
 ##
@@ -100,7 +100,7 @@ $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 
 $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
-	curl -fL https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
+	curl -fL "$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)" -o $@
 
 ##
 ## https://github.com/zellij-org/zellij/releases
@@ -112,12 +112,12 @@ $(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij.tar.gz
 	touch $@
 
 ifeq ($(shell uname -s),Darwin)
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$(ZELLIJ_VERSION)/zellij-$(MACHINE)-apple-darwin.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-apple-darwin,.tar.gz)
 else
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/releases/download/$(ZELLIJ_VERSION)/zellij-$(MACHINE)-unknown-linux-musl.tar.gz
+$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-unknown-linux-musl,.tar.gz)
 endif
 $(DOTFILES_TMPDIR)/zellij.tar.gz:
 	mkdir -p $(@D)
-	curl -fL $(URL) -o $@
+	curl -fL "$(URL)" -o $@
 
 .PHONY: install/versioned clean/versioned

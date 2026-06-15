@@ -84,13 +84,16 @@ else
 MAKE := make -j4 -O
 endif
 
+# Latest non-prerelease tag of a repo (used where we need the version string itself).
 github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases/latest" | jq -r '.tag_name')
 
-AWS_VAULT_VERSION     ?= $(call github-latest,ByteNess/aws-vault)
-DOCKER_BUILDX_VERSION ?= $(call github-latest,docker/buildx)
-DOCKER_MCP_VERSION    ?= $(call github-latest,docker/mcp-gateway)
-REBAR3_VERSION        ?= $(call github-latest,erlang/rebar3)
-ZELLIJ_VERSION        ?= $(call github-latest,zellij-org/zellij)
+# Resolve a release asset's real download URL straight from the GitHub API, instead of
+# hand-building URLs that break when a project's tag/asset naming drifts.
+#   $(1)=owner/repo  $(2)=asset-name prefix  $(3)=asset-name suffix
+github-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases/latest" | jq -r '[.assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url')
+
+# Same, but for repos that publish only pre-releases (no /releases/latest), e.g. docker/mcp-gateway.
+github-prerelease-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | jq -r '[.[0].assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url')
 
 ifndef TMUX_VERSION
 TMUX_VERSION := $(call github-latest,tmux/tmux)
