@@ -80,7 +80,7 @@ $(HOME)/.local/bin/rebar3:
 ##
 ## https://github.com/tmux/tmux/releases
 ##
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION).tar.gz $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
