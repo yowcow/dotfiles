@@ -14,7 +14,7 @@ clean/versioned: FORCE
 
 $(HOME)/.local/bin/buf.pl:
 	mkdir -p $(@D)
-	curl -L https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
+	curl -fL https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
 		&& chmod +x $@
 
 ##
@@ -29,7 +29,7 @@ else
 $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
-	curl -L "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
+	curl -fL "https://github.com/ByteNess/aws-vault/releases/download/$(AWS_VAULT_VERSION)/aws-vault-$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
 
 ##
@@ -45,7 +45,7 @@ $(HOME)/.docker/cli-plugins/docker-buildx: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-buildx:
 	mkdir -p $(@D)
-	curl -L "https://github.com/docker/buildx/releases/download/$(DOCKER_BUILDX_VERSION)/buildx-$(DOCKER_BUILDX_VERSION).$(OS)-$(ARCH)" -o $@
+	curl -fL "https://github.com/docker/buildx/releases/download/$(DOCKER_BUILDX_VERSION)/buildx-$(DOCKER_BUILDX_VERSION).$(OS)-$(ARCH)" -o $@
 	chmod a+x $@
 
 ##
@@ -61,20 +61,20 @@ $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
 	mkdir -p $(@D)
-	curl -L "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
+	curl -fL "https://github.com/docker/mcp-gateway/releases/download/$(DOCKER_MCP_VERSION)/docker-mcp-$(OS)-$(ARCH).tar.gz" | tar -xz -C $(@D)
 
 ##
 ## https://github.com/kerl/kerl/releases
 ##
 $(HOME)/.local/bin/kerl:
-	curl -L https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
+	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
 	chmod a+x $@
 
 ##
 ## https://github.com/erlang/rebar3/releases
 ##
 $(HOME)/.local/bin/rebar3:
-	curl -L https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
+	curl -fL https://github.com/erlang/rebar3/releases/download/$(REBAR3_VERSION)/rebar3 -o $@
 	chmod a+x $@
 
 ##
@@ -100,7 +100,7 @@ $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 
 $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
-	curl -L https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
+	curl -fL https://github.com/tmux/tmux/releases/download/$*/tmux-$*.tar.gz -o $@
 
 ##
 ## https://github.com/zellij-org/zellij/releases
@@ -118,6 +118,6 @@ $(DOTFILES_TMPDIR)/zellij.tar.gz: URL = https://github.com/zellij-org/zellij/rel
 endif
 $(DOTFILES_TMPDIR)/zellij.tar.gz:
 	mkdir -p $(@D)
-	curl -L $(URL) -o $@
+	curl -fL $(URL) -o $@
 
 .PHONY: install/versioned clean/versioned
