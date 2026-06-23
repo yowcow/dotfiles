@@ -120,4 +120,8 @@ $(DOTFILES_TMPDIR)/zellij.tar.gz:
 	mkdir -p $(@D)
 	curl -fL "$(URL)" -o $@
 
-.PHONY: install/versioned clean/versioned
+update/versioned: FORCE
+	$(MAKE) clean/versioned
+	$(MAKE) install/versioned
+
+.PHONY: install/versioned clean/versioned update/versioned

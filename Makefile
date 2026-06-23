@@ -108,6 +108,7 @@ all:
 	$(MAKE) install
 
 install: $(TARGETS)
+	$(MAKE) install/versioned
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 update:
