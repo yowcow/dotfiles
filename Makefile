@@ -6,12 +6,8 @@ MACHINE = aarch64
 endif
 
 SOURCES := \
-	Xmodmap \
-	Xresources \
 	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
-	config/i3/config \
-	config/i3blocks/config \
 	config/lemonade.toml \
 	config/libskk \
 	config/kanshi/config \
@@ -39,7 +35,6 @@ SOURCES := \
 	local/bin/buf.pl \
 	local/bin/kerl \
 	local/bin/rebar3 \
-	local/bin/mylock \
 	local/bin/tmux \
 	local/bin/update-env \
 	local/bin/vacuum \
@@ -53,7 +48,6 @@ SOURCES := \
 	pyenv.zsh \
 	ripgreprc \
 	tmux.conf \
-	xprofile \
 	zshrc
 
 # Shared AI assistant guidelines — one source file, multiple symlink targets
@@ -65,7 +59,6 @@ TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 FZF             := _modules/github.com/junegunn/fzf
 GOENV           := _modules/github.com/go-nv/goenv
-I3BLOCKS        := _modules/github.com/vivien/i3blocks-contrib
 NVM             := _modules/github.com/nvm-sh/nvm
 PYENV           := _modules/github.com/pyenv/pyenv
 WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
@@ -73,7 +66,6 @@ WOFI_ARC        := _modules/github.com/sachahjkl/wofi-arc-dark
 GIT_MODULES := $(ALACRITTY_THEME) \
 			   $(FZF) \
 			   $(GOENV) \
-			   $(I3BLOCKS) \
 			   $(NVM) \
 			   $(PYENV) \
 			   $(WOFI_ARC)
@@ -133,10 +125,6 @@ $(AI_TARGETS): $(AI_GUIDELINES)
 $(HOME)/.config/alacritty-theme: $(ALACRITTY_THEME)
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
-
-$(HOME)/.config/i3blocks/config: $(I3BLOCKS)
-	mkdir -p $(@D)
-	ln -sfn `pwd`/config/i3blocks/config $@
 
 $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 	mkdir -p $(@D)

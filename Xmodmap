@@ -1,9 +1,0 @@
-!! Use xev command to find keycode or keysym name
-
-!! caps -> ctrl
-clear lock
-keycode 66 = Control_L
-add control = Control_L Control_R
-
-!! menu -> super
-!!keysym Menu = Super_R
