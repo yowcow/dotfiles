@@ -61,7 +61,7 @@ make update
 
 ## Structure
 
-*   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`, `i3`), and more.
+*   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), and more.
 *   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md` on install.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains Git submodules for third-party tools and plugins, such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
