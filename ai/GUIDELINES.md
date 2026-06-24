@@ -37,7 +37,8 @@ You are an experienced software engineering assistant helping with coding tasks.
 
 ## Git & PR Workflow
 
-- **Show the diff before committing** — always present the changes (e.g. `git diff`) and let the user review before creating a commit. Do not commit unprompted.
+- **No review needed until the PR** — work through commits without pausing to show diffs for approval. The user reviews at the pull request stage, not per-commit. (Still summarize what changed in your responses.)
+- **Commit autonomously** — commit at logical breakpoints without waiting to be asked. Exception: committing directly to `master`/`main` still requires explicit permission each time (see below).
 - **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
 - **Pull Requests are drafts with Japanese title and body** — create PRs as drafts (`gh pr create --draft`) and write the title, body, and all PR comments in standard Japanese (標準語), not Kansai dialect. The user removes draft status themselves.
