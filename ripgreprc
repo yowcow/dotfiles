@@ -1,4 +1,3 @@
---column
 --follow
 --glob=!.DS_Store
 --glob=!.git
