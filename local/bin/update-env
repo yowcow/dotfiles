@@ -7,8 +7,8 @@ if [ "$(uname -s)" = "Linux" ]; then
 		sudo apt -y autoclean
 	sudo snap refresh
 elif [ "$(uname -s)" = "Darwin" ]; then
-	NONINTERACTIVE=1 brew update &&
-		NONINTERACTIVE=1 brew upgrade &&
+	brew update &&
+		brew upgrade -y &&
 		brew cleanup
 else
 	echo "Unsupported OS"
