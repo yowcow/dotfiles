@@ -41,6 +41,8 @@ setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt HIST_FIND_NO_DUPS
 setopt share_history
 setopt magic_equal_subst
 
@@ -53,7 +55,10 @@ export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/us
 export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
-_cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
+# Guard against large known_hosts files slowing down shell startup
+if [[ -f ~/.ssh/known_hosts ]] && (( $(wc -l < ~/.ssh/known_hosts) < 200 )); then
+    _cache_hosts=($(cut -d',' -f1 ~/.ssh/known_hosts))
+fi
 
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
