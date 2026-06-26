@@ -41,6 +41,8 @@ setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt HIST_FIND_NO_DUPS
 setopt share_history
 setopt magic_equal_subst
 
@@ -53,7 +55,9 @@ export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/us
 export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
-_cache_hosts=($([ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts | cut -d',' -f1))
+# Load up to 200 hosts for SSH tab-completion in a single awk pass
+[[ -f ~/.ssh/known_hosts ]] && \
+    _cache_hosts=("${(f)$(awk -F'[, ]' 'NR<=200{print $1}' ~/.ssh/known_hosts)}")
 
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

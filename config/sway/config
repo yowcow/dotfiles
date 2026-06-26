@@ -153,6 +153,10 @@ set $menu wofi --allow-images --allow-markup --show drun --style ~/.config/wofi/
     # Suspend
     bindsym $mod+ctrl+s exec systemctl suspend
 
+    # Screenshot (requires grim and slurp)
+    bindsym $mod+Print exec grim ~/Pictures/screenshot-$(date +%F_%H%M%S).png
+    bindsym $mod+Shift+Print exec bash -c 'geo=$(slurp) && grim -g "$geo" ~/Pictures/screenshot-$(date +%F_%H%M%S).png'
+
     # Audio Volume
     bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +2%
     bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -2%

@@ -84,7 +84,8 @@ update/docker: FORCE
 			docker pull $$image; \
 		done; \
 		echo "Cleaning up Docker..."; \
-		docker system prune -f --volumes; \
+		docker system prune -f; \
+		docker volume prune -f; \
 	fi
 
 .PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker
