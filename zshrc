@@ -55,10 +55,9 @@ export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/us
 export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 
 # .ssh/config to have `HashKnownHosts no` will help
-# Guard against large known_hosts files slowing down shell startup
-if [[ -f ~/.ssh/known_hosts ]] && (( $(wc -l < ~/.ssh/known_hosts) < 200 )); then
-    _cache_hosts=($(cut -d',' -f1 ~/.ssh/known_hosts))
-fi
+# Load up to 200 hosts for SSH tab-completion in a single awk pass
+[[ -f ~/.ssh/known_hosts ]] && \
+    _cache_hosts=("${(f)$(awk -F'[, ]' 'NR<=200{print $1}' ~/.ssh/known_hosts)}")
 
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
