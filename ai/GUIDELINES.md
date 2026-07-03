@@ -41,8 +41,9 @@ Use applicable `superpowers:*` skills by default. Check the current environment'
 
 4. **Verify and communicate**
    - Use `superpowers:verification-before-completion` before claiming work is complete, fixed, or passing
-   - Run the available simplification workflow first (`/simplify` when available; otherwise do an explicit simplification pass) and address actionable cleanup before review
-   - After simplification is complete, use `superpowers:requesting-code-review`, follow that skill's review workflow, and address its findings until there are no more actionable suggestions
+   - Before review, run `/simplify` when available; otherwise perform an explicit simplification/self-review pass and address actionable cleanup
+   - After simplification is complete, use `superpowers:verification-before-completion` to verify the resulting state
+   - Then use `superpowers:requesting-code-review`, follow that skill's review workflow, and address its findings until there are no more actionable suggestions
    - Use `superpowers:receiving-code-review` before applying external review feedback
    - Complete simplification before starting code review to avoid ping-pong between improvement passes
    - Explain what was changed and why
