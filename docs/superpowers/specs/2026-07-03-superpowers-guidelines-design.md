@@ -64,6 +64,8 @@ The new shared guidelines will use these sections:
 5. `Git & PR Workflow`
    - Preserve autonomous commits at logical breakpoints.
    - Preserve the exception that commits to `master`/`main` require explicit permission.
+   - Clarify that "no review needed until the PR" means no step-by-step human review is required, not that the agent should skip self-review.
+   - Require the agent to self-review diffs before commits and use AI/code-review workflows when useful for non-trivial changes.
    - Preserve no force-push.
    - Preserve draft PR creation with standard Japanese title and body.
    - Preserve standard Japanese for GitHub comments.
@@ -83,6 +85,7 @@ The new shared guidelines will use these sections:
 - The guidelines must be explicit that superpowers usage is mandatory when an applicable skill is available.
 - The guidelines must not weaken current GitHub language/register rules.
 - The guidelines must not permit direct commits to `master`/`main` without explicit user permission.
+- The guidelines must distinguish human review gates from agent self-review: do not pause for user review at each step, but do perform appropriate self-review and AI-agent review before PR-ready work.
 - The guidelines must not imply bypassing MFA, GPG passphrases, sandbox approvals, or other authentication/security gates.
 - The rewritten document should remain concise enough to be used as a shared instruction source.
 - The rewritten document must not encode symlink targets or filesystem layout assumptions.
