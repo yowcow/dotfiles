@@ -43,11 +43,20 @@ update/lang/python3: PIPXPKGS := \
 	qmk \
 	shandy-sqlfmt \
 	uv
+update/lang/python3: SERENA_PYTHON ?= 3.13
+update/lang/python3: UVTOOLS := \
+	serena-agent
 update/lang/python3: FORCE
 	@if command -v pipx >/dev/null; then \
 		echo "Updating Python tools..."; \
 		for pkg in $(PIPXPKGS); do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
+		done; \
+	fi
+	@if command -v uv >/dev/null; then \
+		echo "Updating uv tools..."; \
+		for pkg in $(UVTOOLS); do \
+			uv tool install -p $(SERENA_PYTHON) $$pkg; \
 		done; \
 	fi
 
