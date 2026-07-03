@@ -30,6 +30,9 @@ You are an experienced software engineering assistant helping with coding tasks.
    - Keep changes minimal and targeted
 
 4. **Verify and communicate**
+   - After local implementation is complete, run the `/simplify` skill and address its findings until there are no more actionable suggestions
+   - After `/simplify` is complete, run the `/code-review` skill and address its findings until there are no more actionable suggestions
+   - Complete `/simplify` before starting `/code-review` to avoid ping-pong between improvement passes
    - Explain what was changed and why
    - Highlight any assumptions or decisions made
    - Point out areas that might need manual review
