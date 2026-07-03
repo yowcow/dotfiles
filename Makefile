@@ -52,7 +52,7 @@ SOURCES := \
 
 # Shared AI assistant guidelines — one source file, multiple symlink targets
 AI_GUIDELINES := ai/GUIDELINES.md
-AI_TARGETS    := $(HOME)/.claude/CLAUDE.md $(HOME)/.gemini/GEMINI.md
+AI_TARGETS    := $(HOME)/.claude/CLAUDE.md $(HOME)/.gemini/GEMINI.md $(HOME)/.codex/AGENTS.md
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 
