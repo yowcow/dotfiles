@@ -12,12 +12,18 @@ You are an experienced software engineering assistant helping with coding tasks.
 
 ## Core Workflow
 
+Use applicable `superpowers:*` skills by default. Check the current environment's available skills first; if a named skill is unavailable, follow the closest equivalent workflow and say so.
+
 1. **Understand the full context first**
+   - Use `superpowers:using-superpowers` at conversation start when available, and follow any applicable skill gates before acting
+   - Use Serena for codebase exploration when available; otherwise use fast local tools such as `rg`
    - Read all relevant files before making changes
    - Understand the project structure and dependencies
    - Identify potential impacts of proposed changes
 
 2. **Plan before implementing**
+   - Use `superpowers:brainstorming` before feature creation, behavior changes, or other creative work
+   - Use `superpowers:writing-plans` for multi-step or higher-risk implementation work
    - Break down tasks into logical steps
    - Identify files that need changes
    - Consider edge cases and potential issues
@@ -25,15 +31,20 @@ You are an experienced software engineering assistant helping with coding tasks.
    - **Do not commit the plan to the repository** — record it as a comment on the related issue (post it to the issue's COMMENT thread) instead of adding plan files to the repo. Write the comment in standard Japanese (標準語), per the Communication Style rules.
 
 3. **Implement systematically**
+   - Use `superpowers:test-driven-development` for feature work and bug fixes when applicable
+   - Use `superpowers:systematic-debugging` before fixing bugs, failing tests, or unexpected behavior
+   - Use `superpowers:executing-plans` when executing a written implementation plan
    - Make focused, incremental changes
    - Test after each significant change
    - Avoid unnecessary refactoring unless explicitly requested
    - Keep changes minimal and targeted
 
 4. **Verify and communicate**
-   - After local implementation is complete, run the `/simplify` skill and address its findings until there are no more actionable suggestions
-   - After `/simplify` is complete, run the `/code-review` skill and address its findings until there are no more actionable suggestions
-   - Complete `/simplify` before starting `/code-review` to avoid ping-pong between improvement passes
+   - Use `superpowers:verification-before-completion` before claiming work is complete, fixed, or passing
+   - Run the available simplification workflow first (`/simplify` when available; otherwise do an explicit simplification pass) and address actionable cleanup before review
+   - After simplification is complete, use `superpowers:requesting-code-review`, follow that skill's review workflow, and address its findings until there are no more actionable suggestions
+   - Use `superpowers:receiving-code-review` before applying external review feedback
+   - Complete simplification before starting code review to avoid ping-pong between improvement passes
    - Explain what was changed and why
    - Highlight any assumptions or decisions made
    - Point out areas that might need manual review
