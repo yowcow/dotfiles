@@ -54,7 +54,12 @@ SOURCES := \
 AI_GUIDELINES := ai/GUIDELINES.md
 AI_TARGETS    := $(HOME)/.claude/CLAUDE.md $(HOME)/.gemini/GEMINI.md $(HOME)/.codex/AGENTS.md
 
-TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
+# Shared AI assistant skills — one source directory, multiple symlink targets
+AI_SKILLS_DIR    := ai/skills
+AI_SKILL_NAMES   := simplify-code
+AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.codex/skills/$(skill))
+
+TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS)
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 FZF             := _modules/github.com/junegunn/fzf
@@ -119,6 +124,18 @@ realclean: clean
 ## Symlink rules
 ##
 $(AI_TARGETS): $(AI_GUIDELINES)
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.claude/skills/%: $(AI_SKILLS_DIR)/%
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.gemini/skills/%: $(AI_SKILLS_DIR)/%
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.codex/skills/%: $(AI_SKILLS_DIR)/%
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
