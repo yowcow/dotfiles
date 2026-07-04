@@ -45,16 +45,17 @@ When these guidelines say a workflow must be clean, use this concrete definition
 2. **Plan before implementing**
    - Use `superpowers:brainstorming` before feature creation, behavior changes, or other creative work
    - Use `superpowers:writing-plans` for multi-step or higher-risk implementation work
+   - Use `superpowers:writing-skills` when creating, editing, or verifying `superpowers:*` skills or skill-like workflow files
    - Break down tasks into logical steps
    - Identify files that need changes
    - Consider edge cases and potential issues
    - Communicate the plan clearly before starting
-   - **Do not commit the plan to the repository** — this rule overrides any generic skill instruction to save or commit plan files. If there is a related issue, record the plan as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present the plan in chat and do not add a plan file to the repo unless the user explicitly asks for one.
+   - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
 
 3. **Implement systematically**
    - Use `superpowers:test-driven-development` for feature work and bug fixes when applicable
    - Use `superpowers:systematic-debugging` before fixing bugs, failing tests, CI failures, or unexpected behavior
-   - Use `superpowers:executing-plans` when executing a written implementation plan
+   - Use `superpowers:executing-plans` when executing a written implementation plan from an issue comment, chat message, or user-approved repo document
    - Use `superpowers:subagent-driven-development` when executing a task-by-task plan with subagents, if subagents are available and permitted in the current environment
    - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if subagents are available and permitted in the current environment
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
@@ -111,7 +112,7 @@ After pushing the branch and opening a Draft PR, continue the cleanup loop inste
 
 1. Wait for CI to finish. If CI fails, use `superpowers:systematic-debugging` when available: inspect the failing checks and logs, isolate the symptom, reproduce locally when practical, add or update a focused regression test when practical, fix the cause, push again, and repeat until CI is clean.
 2. Check the current repository's supported way to request AI reviewers. Do not assume the mechanism is universal; inspect repo documentation, PR template, GitHub UI conventions, available `gh` commands or GitHub API capabilities, and existing PRs as needed. The check is complete when you know the repository-supported reviewer request mechanism or can state that it is not available.
-3. Request reviews from both Claude and Copilot when the repository supports them.
+3. Request reviews from both Claude and Copilot when the repository supports them. If only one is supported, request the supported reviewer and report why the other could not be requested.
 4. Read review comments carefully. Use `superpowers:receiving-code-review` before applying review feedback when available.
 5. For each actionable review thread, either make the needed change or explain why no code change is appropriate. Use `superpowers:test-driven-development` for feedback-driven bug fixes when practical. Reply in GitHub using standard Japanese or English, then resolve the thread when addressed.
 6. After any review-driven code change, rerun the pre-PR quality gate as needed, push the update, wait for CI again, and request re-review when appropriate.
