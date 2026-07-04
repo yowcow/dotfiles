@@ -85,6 +85,15 @@ Use Claude's `/simplify` command or the `simplify-code` skill when available. In
 - Apply actionable cleanup, then re-run the relevant verification.
 - Repeat until the simplification pass is clean: no remaining actionable cleanup that improves the diff without changing behavior.
 
+### Subagent simplification
+
+When the user explicitly asks to run `simplify-code` as a subagent or agent:
+
+- **Codex**: use an available subagent/worker mechanism and pass the canonical prompt from `ai/agents/simplify-code/prompt.md`. If custom agent registration is unavailable, use the built-in worker subagent with that prompt.
+- **Antigravity**: use the `simplify_code` custom agent when available. If it is unavailable, use the `simplify-code` skill in the main agent and report that the custom agent was not available.
+- **Claude**: prefer Claude's `/simplify` or official code-simplifier agent when available; otherwise use `simplify-code`.
+- The main agent remains responsible for reviewing the subagent's changes, running verification, and reporting the final result.
+
 ### Pre-PR quality gate
 
 Before pushing a branch or creating a PR, complete this loop in order:
