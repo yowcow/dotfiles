@@ -76,8 +76,9 @@ When these guidelines say a workflow must be clean, use this concrete definition
 
 ### Simplification pass
 
-Use Claude's `/simplify` command or simplify skill when available. In Codex, Gemini, or any environment without that exact command, perform the same pass manually:
+Use Claude's `/simplify` command or the `simplify-code` skill when available. In Codex, Gemini, or any environment without that exact command or skill, perform the same pass manually:
 
+- When `simplify-code` is available, treat it as the canonical implementation of this pass.
 - Preserve behavior. Do not expand scope or change product semantics during simplification.
 - Review the diff for unnecessary files, broad rewrites, dead code, repeated logic, avoidable abstractions, unclear names, over-complicated conditionals, noisy formatting churn, and tests that can be clearer or more focused.
 - Prefer the smallest maintainable diff that satisfies the request and keeps the existing project style.
@@ -89,7 +90,7 @@ Use Claude's `/simplify` command or simplify skill when available. In Codex, Gem
 Before pushing a branch or creating a PR, complete this loop in order:
 
 1. Run `superpowers:verification-before-completion` or the equivalent verification workflow. Identify relevant commands from README files, Makefiles, package scripts, CI configuration, and existing project docs; run concrete checks and fix issues until verification is clean.
-2. Run `/simplify`, the simplify skill, or the manual simplification pass above. Fix actionable cleanup until the simplification pass is clean.
+2. Run `/simplify`, the `simplify-code` skill, or the manual simplification pass above. Fix actionable cleanup until the simplification pass is clean.
 3. Run `superpowers:verification-before-completion` again after simplification. Fix issues until verification is clean.
 4. Run `superpowers:requesting-code-review` or the equivalent review workflow. Review the diff, address actionable findings, and repeat until review is clean.
 5. Only after verification, simplification, and code review are all clean should you push and create a Draft PR.
