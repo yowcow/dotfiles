@@ -57,14 +57,14 @@ AI_TARGETS    := $(HOME)/.claude/CLAUDE.md $(HOME)/.gemini/GEMINI.md $(HOME)/.co
 # Shared AI assistant skills — one source directory, multiple symlink targets
 AI_SKILLS_DIR    := ai/skills
 AI_SKILL_NAMES   := simplify-code
-AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.codex/skills/$(skill))
+AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill))
 
 # Shared AI assistant agents — prompts and custom agent definitions
 AI_AGENTS_DIR                  := ai/agents
 AI_AGENT_NAMES                 := simplify-code
-AI_CODEX_AGENT_PROMPT_TARGETS  := $(foreach agent,$(AI_AGENT_NAMES),$(HOME)/.codex/agents/$(agent)/prompt.md)
+AI_CODEX_AGENT_TARGETS         := $(foreach agent,$(AI_AGENT_NAMES),$(HOME)/.codex/agents/$(agent).toml)
 AI_ANTIGRAVITY_AGENT_TARGETS   := $(foreach agent,$(AI_AGENT_NAMES),$(HOME)/.gemini/antigravity-cli/.agents/agents/$(subst -,_,$(agent))/agent.json)
-AI_AGENT_TARGETS               := $(AI_CODEX_AGENT_PROMPT_TARGETS) $(AI_ANTIGRAVITY_AGENT_TARGETS)
+AI_AGENT_TARGETS               := $(AI_CODEX_AGENT_TARGETS) $(AI_ANTIGRAVITY_AGENT_TARGETS)
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS) $(AI_AGENT_TARGETS)
 
@@ -142,11 +142,15 @@ $(HOME)/.gemini/skills/%: $(AI_SKILLS_DIR)/%
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
+$(HOME)/.agents/skills/%: $(AI_SKILLS_DIR)/%
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
 $(HOME)/.codex/skills/%: $(AI_SKILLS_DIR)/%
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
-$(HOME)/.codex/agents/%/prompt.md: $(AI_AGENTS_DIR)/%/prompt.md
+$(HOME)/.codex/agents/%.toml: $(AI_AGENTS_DIR)/%/codex.toml
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
