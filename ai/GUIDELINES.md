@@ -33,7 +33,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
 
 - Verification is clean: the relevant test, lint, build, smoke test, or manual check has passed with current changes.
 - Simplification is clean: no remaining actionable cleanup improves the diff without changing behavior.
-- Review is clean: no unresolved Critical or Important findings remain from `superpowers:requesting-code-review` or an equivalent review.
+- Review is clean: no unresolved blocking findings (the Critical/Important tier of `superpowers:requesting-code-review`, or the equivalent in another review workflow) remain.
 - CI is clean: required checks on the PR are green, or any unavailable/non-applicable checks are explicitly noted.
 - PR feedback is clean: no unresolved actionable review threads remain.
 
@@ -69,8 +69,8 @@ When these guidelines say a workflow must be clean, use this concrete definition
 
 4. **Verify and communicate**
    - Never claim implementation work is complete without `superpowers:verification-before-completion`
-   - When heading to a PR, run the full **Pre-PR quality gate** (below) — which begins and ends with that verification — and create a Draft PR
-   - After the PR is open, follow the **After opening a Draft PR** loop (below) through CI and review — including using `superpowers:receiving-code-review` before applying review feedback — until CI and reviewer feedback are clean
+   - When heading to a PR, run the full **Pre-PR quality gate** (below) — it re-runs that verification after simplification and review, and ends by creating a Draft PR
+   - After the PR is open, follow the **After opening a Draft PR** loop (below) through CI and review — including using `superpowers:receiving-code-review` before applying review feedback — until CI and PR feedback are clean
    - In the final response, report the concrete verification commands/checks that were run and any checks that could not be run
    - Explain what was changed and why
    - Highlight any assumptions or decisions made
@@ -108,7 +108,7 @@ Before pushing a branch or creating a PR, complete this loop in order:
 
 - **No review needed until the PR** — work through commits without pausing to show diffs for approval. The user reviews at the pull request stage, not per-commit. (Still summarize what changed in your responses.)
 - **Commit autonomously** — commit at logical breakpoints without waiting to be asked. Exception: committing directly to `master`/`main` still requires explicit permission each time (see below).
-- **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
+- **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, then check out (or create) your intended feature branch and commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
 - **Use `superpowers:using-git-worktrees` before creating a work branch** when available. If that skill is unavailable, still create isolated work with `git worktree` unless the repository or task makes that impractical.
 - **Pull Requests are created as drafts** — use `gh pr create --draft`; the user removes draft status themselves. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above.
@@ -125,7 +125,7 @@ After pushing the branch and opening a Draft PR, continue the cleanup loop inste
 4. Read review comments carefully. Use `superpowers:receiving-code-review` before applying review feedback when available.
 5. For each actionable review thread, either make the needed change or explain why no code change is appropriate. Use `superpowers:test-driven-development` for feedback-driven bug fixes when practical. Reply in GitHub using standard Japanese or English, then resolve the thread when addressed.
 6. After any review-driven code change, rerun the Pre-PR quality gate as needed, push the update, wait for CI again, and request re-review when appropriate.
-7. Repeat until CI and AI reviewer feedback are clean. If final branch cleanup, merge strategy, or ready-for-review decisions are needed, use `superpowers:finishing-a-development-branch` when available, but do not mark the PR ready, merge it, delete branches, or perform other finalizing actions unless the user explicitly asks. Leave the PR as Draft unless the user explicitly asks to mark it ready.
+7. Repeat until CI and PR feedback are clean. If final branch cleanup, merge strategy, or ready-for-review decisions are needed, use `superpowers:finishing-a-development-branch` when available, but do not mark the PR ready, merge it, delete branches, or perform other finalizing actions unless the user explicitly asks. Leave the PR as Draft unless the user explicitly asks to mark it ready.
 
 ## Tool Preferences
 
