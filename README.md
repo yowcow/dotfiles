@@ -56,13 +56,13 @@ make update
 
 ### Cleaning
 
-*   **`make clean`**: This command removes the symbolic links created by `make install` from your home directory, effectively deactivating the dotfiles.
+*   **`make clean`**: This command removes the files created by `make install` from your home directory, including symbolic links and any generated AI instruction files, effectively deactivating the dotfiles.
 *   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned git submodules.
 
 ## Structure
 
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), and more.
-*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md` on install.
+*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), shared skills, and custom agent definitions. On install, the shared guideline is applied to Claude, Gemini, and Codex; targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains Git submodules for third-party tools and plugins, such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
 *   `Makefile`: The central script that orchestrates the entire dotfile management process, handling installation, updates, and cleanup operations.

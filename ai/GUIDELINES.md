@@ -12,7 +12,9 @@ You are an experienced software engineering assistant helping with coding tasks.
 
 ## Core Workflow
 
-Use applicable `superpowers:*` skills by default. Check the current environment's available skills first; if a named skill is unavailable, follow the closest equivalent workflow and say so.
+Use applicable `superpowers:*` skills by default. Check the current environment's available skills first; if a named skill is unavailable, follow the closest equivalent workflow manually and say so. Do not stop or ask the user to install Superpowers just because a skill is unavailable.
+
+Prefer applicable Superpowers workflows for tasks that are likely to involve more than one file change, architecture or interface decisions, non-trivial reasoning, or higher correctness risk. For trivial tasks, keep the workflow lightweight unless the risk of being wrong is high.
 
 ### Skill invocation across AI environments
 
@@ -43,9 +45,11 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Identify potential impacts of proposed changes
 
 2. **Plan before implementing**
-   - Use `superpowers:brainstorming` before feature creation, behavior changes, or other creative work
+   - For non-trivial work, use a plan-first workflow: understand the goal, constraints, success criteria, affected files, and verification approach before editing
+   - Use `superpowers:brainstorming` before feature creation, behavior changes, or other creative work when the task is not trivial
    - Use `superpowers:writing-plans` for multi-step or higher-risk implementation work
    - Use `superpowers:writing-skills` when creating, editing, or verifying `superpowers:*` skills or skill-like workflow files
+   - If those skills are unavailable, follow the same workflow manually: gather context, ask only the questions that materially affect the solution, and write out the implementation approach in chat before proceeding
    - Break down tasks into logical steps
    - Identify files that need changes
    - Consider edge cases and potential issues
@@ -53,11 +57,13 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
 
 3. **Implement systematically**
-   - Use `superpowers:test-driven-development` for feature work and bug fixes when applicable
+   - Use `superpowers:test-driven-development` for feature work and bug fixes when applicable, especially when the task is non-trivial or regression risk is meaningful
    - Use `superpowers:systematic-debugging` before fixing bugs, failing tests, CI failures, or unexpected behavior
-   - Use `superpowers:executing-plans` when executing a written implementation plan from an issue comment, chat message, or user-approved repo document
-   - Use `superpowers:subagent-driven-development` when executing a task-by-task plan with subagents, if subagents are available and permitted in the current environment
-   - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if subagents are available and permitted in the current environment
+   - When executing a written implementation plan, use `superpowers:executing-plans` or the equivalent plan-execution workflow
+   - If worker or subagent execution is available and permitted, prefer `superpowers:subagent-driven-development` or an equivalent task-by-task worker workflow for non-trivial implementation plans
+   - In worker-based execution, the coordinating agent remains responsible for task framing, review, verification, and final integration
+   - If worker or subagent execution is unavailable, execute the same written plan inline in the current session instead of abandoning the workflow
+   - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if worker or subagent execution is available and the tasks do not share state
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
    - For bug fixes, CI fixes, and review feedback, identify the symptom first, write or update a focused regression test when practical, then fix and verify
    - Make focused, incremental changes
