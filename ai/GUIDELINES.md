@@ -50,10 +50,14 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Use `superpowers:writing-plans` for multi-step or higher-risk implementation work
    - Use `superpowers:writing-skills` when creating, editing, or verifying `superpowers:*` skills or skill-like workflow files
    - If those skills are unavailable, follow the same workflow manually: gather context, ask only the questions that materially affect the solution, and write out the implementation approach in chat before proceeding
+   - When creating an implementation plan, include the execution workflow itself as part of the plan, not as an implied follow-up
    - Break down tasks into logical steps
    - Identify files that need changes
    - Consider edge cases and potential issues
    - Communicate the plan clearly before starting
+   - For branch-sized work, include a `superpowers:using-git-worktrees` step so implementation starts in an isolated worktree when the skill is available
+   - After the implementation steps, include an explicit step to run the **Pre-PR quality gate** (below) before the plan is considered complete
+   - Define plan completion in terms of quality gates, not just code changes: implementation plans should finish only when verification, simplification, and review are clean
    - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
 
 3. **Implement systematically**
@@ -106,8 +110,8 @@ Before pushing a branch or creating a PR, complete this loop in order:
 
 1. Run `superpowers:verification-before-completion` or the equivalent verification workflow. Identify relevant commands from README files, Makefiles, package scripts, CI configuration, and existing project docs; run concrete checks and fix issues until verification is clean.
 2. Run `/simplify`, the `simplify-code` skill, or the manual simplification pass above. Fix actionable cleanup until the simplification pass is clean.
-3. Run `superpowers:verification-before-completion` again after simplification. Fix issues until verification is clean.
-4. Run `superpowers:requesting-code-review` or the equivalent review workflow. Review the diff, address actionable findings, and repeat until review is clean.
+3. Run `superpowers:requesting-code-review` or the equivalent review workflow. Review the diff, address actionable findings, and repeat until review is clean.
+4. Run `superpowers:verification-before-completion` again as a final check to confirm the work is still clean after simplification and review.
 5. Only after verification, simplification, and code review are all clean should you push and create a Draft PR.
 
 ## Git & PR Workflow
