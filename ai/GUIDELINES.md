@@ -14,7 +14,7 @@ You are an experienced software engineering assistant helping with coding tasks.
 
 Use applicable `superpowers:*` skills by default. Check the current environment's available skills first; if a named skill is unavailable, follow the closest equivalent workflow manually and say so. Do not stop or ask the user to install Superpowers just because a skill is unavailable.
 
-Prefer applicable Superpowers workflows for tasks that are likely to involve more than one file change, architecture or interface decisions, non-trivial reasoning, or higher correctness risk. For trivial tasks, keep the workflow lightweight unless the risk of being wrong is high.
+When a Superpowers workflow applies, using it is required, not optional — the only judgment is whether it applies. Treat a task as non-trivial (and the workflow as applying) when it is likely to involve more than one file change, architecture or interface decisions, non-trivial reasoning, or higher correctness risk; use these same criteria wherever this document says "non-trivial". For trivial tasks, keep the workflow lightweight unless the risk of being wrong is high.
 
 ### Skill invocation across AI environments
 
@@ -55,7 +55,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Identify files that need changes
    - Consider edge cases and potential issues
    - Communicate the plan clearly before starting
-   - For branch-sized work, include a `superpowers:using-git-worktrees` step so implementation starts in an isolated worktree when the skill is available
+   - For non-trivial work that gets its own branch, include a `superpowers:using-git-worktrees` step so implementation starts in an isolated worktree when the skill is available
    - After the implementation steps, include an explicit step to run the **Pre-PR quality gate** (below) before the plan is considered complete
    - Define plan completion in terms of quality gates, not just code changes: implementation plans should finish only when verification, simplification, and review are clean
    - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
@@ -76,7 +76,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Keep changes minimal and targeted
 
 4. **Verify and communicate**
-   - Use the pre-PR quality gate below before claiming implementation work is complete or opening a PR
+   - Before claiming implementation work is complete, run `superpowers:verification-before-completion`; before opening a PR, run the full Pre-PR quality gate below
    - Use `superpowers:receiving-code-review` before applying external review feedback
    - In the final response, report the concrete verification commands/checks that were run and any checks that could not be run
    - Explain what was changed and why
@@ -93,7 +93,7 @@ Use Claude's `/simplify` command or the `simplify-code` skill when available. In
 - Review the diff for unnecessary files, broad rewrites, dead code, repeated logic, avoidable abstractions, unclear names, over-complicated conditionals, noisy formatting churn, and tests that can be clearer or more focused.
 - Prefer the smallest maintainable diff that satisfies the request and keeps the existing project style.
 - Apply actionable cleanup, then re-run the relevant verification.
-- Repeat until the simplification pass is clean: no remaining actionable cleanup that improves the diff without changing behavior.
+- Repeat until the simplification pass is clean (see the Definition of clean above).
 
 ### Subagent simplification
 
@@ -121,8 +121,7 @@ Before pushing a branch or creating a PR, complete this loop in order:
 - **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
 - **Use `superpowers:using-git-worktrees` before creating a work branch** when available. If that skill is unavailable, still create isolated work with `git worktree` unless the repository or task makes that impractical.
-- **Pull Requests are drafts with Japanese title and body** — create PRs as drafts (`gh pr create --draft`) and write the title and body in standard Japanese (標準語), not Kansai dialect. The user removes draft status themselves.
-- **PR/issue comments can be frank and casual — but in standard Japanese** — the conversational back-and-forth on GitHub (review replies, follow-up comments, etc.) doesn't need stiff formality, but write it in standard Japanese (標準語), not Kansai dialect (関西弁). Casual tone is fine, Japanese or English. This isn't a company that does formal, stiff exchanges. (PR/issue *titles and bodies* stay standard Japanese as documentation.)
+- **Pull Requests are created as drafts** — use `gh pr create --draft`; the user removes draft status themselves. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above (all GitHub text is standard Japanese, never Kansai; comments may still be frank and casual, just not stiff).
 - **Qualify cross-repo issue/PR references** — whenever you write an issue or PR reference (`#NNN`) in GitHub-posted text (PR titles/bodies, comments, **and commit messages**), stop and judge whether it needs a repository qualifier. A bare `#NNN` resolves against the repo the text lives in, so a reference to an issue in another repo silently links to the wrong place. When the target lives elsewhere (e.g. a planning issue in `voyagegroup/fluct_programmatic` referenced from a `voyagegroup/fluct_dlv` PR), write it fully as `owner/repo#NNN` (e.g. `voyagegroup/fluct_programmatic#731`). Same-repo references may stay bare.
 - **Prefix the PR's target issue with `resolves`/`fixes`/`closes` — even cross-repo** — in the PR body, mark the issue the PR completes with a closing keyword (e.g. `resolves voyagegroup/fluct_programmatic#731`), and keep the prefix even when that issue lives in another repository, to document intent and link the two. (GitHub only auto-closes issues in the *same* repo as the PR, so a cross-repo target still needs manual closing on merge — the keyword is for intent/linking there.)
 
@@ -135,14 +134,13 @@ After pushing the branch and opening a Draft PR, continue the cleanup loop inste
 3. Request reviews from both Claude and Copilot when the repository supports them. If only one is supported, request the supported reviewer and report why the other could not be requested.
 4. Read review comments carefully. Use `superpowers:receiving-code-review` before applying review feedback when available.
 5. For each actionable review thread, either make the needed change or explain why no code change is appropriate. Use `superpowers:test-driven-development` for feedback-driven bug fixes when practical. Reply in GitHub using standard Japanese or English, then resolve the thread when addressed.
-6. After any review-driven code change, rerun the pre-PR quality gate as needed, push the update, wait for CI again, and request re-review when appropriate.
+6. After any review-driven code change, rerun the Pre-PR quality gate as needed, push the update, wait for CI again, and request re-review when appropriate.
 7. Repeat until CI and AI reviewer feedback are clean. If final branch cleanup, merge strategy, or ready-for-review decisions are needed, use `superpowers:finishing-a-development-branch` when available, but do not mark the PR ready, merge it, delete branches, or perform other finalizing actions unless the user explicitly asks. Leave the PR as Draft unless the user explicitly asks to mark it ready.
 
 ## Tool Preferences
 
 - Use modern CLI tools when available: `rg` (ripgrep), `fd`, `gh` (GitHub CLI)
 - Prefer MCP tools for Git and GitHub operations when available
-- When creating a git branch for work, use `git worktree`.
 - If Serena MCP is available, use Serena first for exploration; if it is unavailable or insufficient, fall back to standard tools.
 - **IMPORTANT**: Never attempt to bypass MFA or GPG passphrases
   - Always prompt the user to enter MFA codes or GPG passphrases manually
