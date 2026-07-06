@@ -76,8 +76,9 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Keep changes minimal and targeted
 
 4. **Verify and communicate**
-   - Before claiming implementation work is complete, run `superpowers:verification-before-completion`; before opening a PR, run the full Pre-PR quality gate below
-   - Use `superpowers:receiving-code-review` before applying external review feedback
+   - Never claim implementation work is complete without `superpowers:verification-before-completion`
+   - When heading to a PR, run the full **Pre-PR quality gate** (below) — which begins and ends with that verification — and create a Draft PR
+   - After the PR is open, follow the **After opening a Draft PR** loop (below) through CI and review — including using `superpowers:receiving-code-review` before applying review feedback — until CI and reviewer feedback are clean
    - In the final response, report the concrete verification commands/checks that were run and any checks that could not be run
    - Explain what was changed and why
    - Highlight any assumptions or decisions made
