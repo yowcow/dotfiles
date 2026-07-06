@@ -51,13 +51,8 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Use `superpowers:writing-skills` when creating, editing, or verifying `superpowers:*` skills or skill-like workflow files
    - If those skills are unavailable, follow the same workflow manually: gather context, ask only the questions that materially affect the solution, and write out the implementation approach in chat before proceeding
    - When creating an implementation plan, include the execution workflow itself as part of the plan, not as an implied follow-up
-   - Break down tasks into logical steps
-   - Identify files that need changes
    - Consider edge cases and potential issues
-   - Communicate the plan clearly before starting
-   - For non-trivial work that gets its own branch, include a `superpowers:using-git-worktrees` step so implementation starts in an isolated worktree when the skill is available
-   - After the implementation steps, include an explicit step to run the **Pre-PR quality gate** (below) before the plan is considered complete
-   - Define plan completion in terms of quality gates, not just code changes: implementation plans should finish only when verification, simplification, and review are clean
+   - Include an explicit **Pre-PR quality gate** (below) step after the implementation steps, and treat the plan as complete only when that gate — verification, simplification, and review — is clean
    - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
 
 3. **Implement systematically**
@@ -69,11 +64,8 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - If worker or subagent execution is unavailable, execute the same written plan inline in the current session instead of abandoning the workflow
    - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if worker or subagent execution is available and the tasks do not share state
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
-   - For bug fixes, CI fixes, and review feedback, identify the symptom first, write or update a focused regression test when practical, then fix and verify
-   - Make focused, incremental changes
-   - Test after each significant change
-   - Avoid unnecessary refactoring unless explicitly requested
-   - Keep changes minimal and targeted
+   - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern in the **After opening a Draft PR** loop below)
+   - Make focused, incremental changes, testing as you go; avoid unnecessary refactoring unless explicitly requested
 
 4. **Verify and communicate**
    - Never claim implementation work is complete without `superpowers:verification-before-completion`
@@ -87,18 +79,15 @@ When these guidelines say a workflow must be clean, use this concrete definition
 
 ### Simplification pass
 
-Use Claude's `/simplify` command or the `simplify-code` skill when available. In Codex, Gemini, or any environment without that exact command or skill, perform the same pass manually:
+Run this after implementation and before code review or PR. Use Claude's `/simplify` command or the `simplify-code` skill when available, treating `simplify-code` as the canonical implementation of this pass; in any environment without that exact command or skill, perform the same pass manually per **Skill invocation across AI environments** above.
 
-- When `simplify-code` is available, treat it as the canonical implementation of this pass.
 - Preserve behavior. Do not expand scope or change product semantics during simplification.
 - Review the diff for unnecessary files, broad rewrites, dead code, repeated logic, avoidable abstractions, unclear names, over-complicated conditionals, noisy formatting churn, and tests that can be clearer or more focused.
 - Prefer the smallest maintainable diff that satisfies the request and keeps the existing project style.
 - Apply actionable cleanup, then re-run the relevant verification.
 - Repeat until the simplification pass is clean (see the Definition of clean above).
 
-### Subagent simplification
-
-When the user explicitly asks to run `simplify-code` as a subagent or agent:
+**When run as a subagent** — only when the user explicitly asks to run `simplify-code` as a subagent or agent:
 
 - **Codex**: prefer the `simplify-code` custom agent from `ai/agents/simplify-code/codex.toml`. If custom agent registration is unavailable, use the built-in worker subagent and pass the `simplify-code` skill instructions from `ai/skills/simplify-code/SKILL.md`.
 - **Antigravity**: use the `simplify_code` custom agent when available. If it is unavailable, use the `simplify-code` skill in the main agent and report that the custom agent was not available.
@@ -122,7 +111,7 @@ Before pushing a branch or creating a PR, complete this loop in order:
 - **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, switch to the dev branch, then commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
 - **Use `superpowers:using-git-worktrees` before creating a work branch** when available. If that skill is unavailable, still create isolated work with `git worktree` unless the repository or task makes that impractical.
-- **Pull Requests are created as drafts** — use `gh pr create --draft`; the user removes draft status themselves. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above (all GitHub text is standard Japanese, never Kansai; comments may still be frank and casual, just not stiff).
+- **Pull Requests are created as drafts** — use `gh pr create --draft`; the user removes draft status themselves. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above.
 - **Qualify cross-repo issue/PR references** — whenever you write an issue or PR reference (`#NNN`) in GitHub-posted text (PR titles/bodies, comments, **and commit messages**), stop and judge whether it needs a repository qualifier. A bare `#NNN` resolves against the repo the text lives in, so a reference to an issue in another repo silently links to the wrong place. When the target lives elsewhere (e.g. a planning issue in `voyagegroup/fluct_programmatic` referenced from a `voyagegroup/fluct_dlv` PR), write it fully as `owner/repo#NNN` (e.g. `voyagegroup/fluct_programmatic#731`). Same-repo references may stay bare.
 - **Prefix the PR's target issue with `resolves`/`fixes`/`closes` — even cross-repo** — in the PR body, mark the issue the PR completes with a closing keyword (e.g. `resolves voyagegroup/fluct_programmatic#731`), and keep the prefix even when that issue lives in another repository, to document intent and link the two. (GitHub only auto-closes issues in the *same* repo as the PR, so a cross-repo target still needs manual closing on merge — the keyword is for intent/linking there.)
 
@@ -141,8 +130,7 @@ After pushing the branch and opening a Draft PR, continue the cleanup loop inste
 ## Tool Preferences
 
 - Use modern CLI tools when available: `rg` (ripgrep), `fd`, `gh` (GitHub CLI)
-- Prefer MCP tools for Git and GitHub operations when available
-- If Serena MCP is available, use Serena first for exploration; if it is unavailable or insufficient, fall back to standard tools.
+- Prefer MCP tools for Git and GitHub operations when available (Serena for codebase exploration — see step 1 under Core Workflow)
 - **IMPORTANT**: Never attempt to bypass MFA or GPG passphrases
   - Always prompt the user to enter MFA codes or GPG passphrases manually
   - Wait for user input before proceeding with operations requiring authentication
