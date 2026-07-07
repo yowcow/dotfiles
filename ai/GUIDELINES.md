@@ -40,6 +40,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
 1. **Understand the full context first**
    - Use `superpowers:using-superpowers` at conversation start when available, and follow any applicable skill gates before acting
    - Use Serena for codebase exploration when available; otherwise use fast local tools such as `rg`
+   - For file or code exploration, search within the active workspace or project root by default and narrow to a relevant subdirectory whenever possible; do not start filesystem-wide searches from `/` unless the user explicitly asks for that scope
    - Read all relevant files before making changes
    - Understand the project structure and dependencies
    - Identify potential impacts of proposed changes
@@ -131,6 +132,8 @@ After pushing the branch and opening a Draft PR, continue the cleanup loop inste
 
 - Use modern CLI tools when available: `rg` (ripgrep), `fd`, `gh` (GitHub CLI)
 - Prefer MCP tools for Git and GitHub operations when available (Serena for codebase exploration — see step 1 under Core Workflow)
+- For filesystem search in general, do not start from `/` unless the user explicitly asks for that scope; start from the active workspace or project root, or a more specific path within it, instead
+- Exclude dependency, generated, vendored, cache, and other build-artifact directories from normal searches by default (for example `node_modules` or `_build`) unless the user explicitly asks to search them
 - **IMPORTANT**: Never attempt to bypass MFA or GPG passphrases
   - Always prompt the user to enter MFA codes or GPG passphrases manually
   - Wait for user input before proceeding with operations requiring authentication
