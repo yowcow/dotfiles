@@ -34,8 +34,6 @@ When these guidelines say a workflow must be clean, use this concrete definition
 - Verification is clean: the relevant test, lint, build, smoke test, or manual check has passed with current changes.
 - Simplification is clean: no remaining actionable cleanup improves the diff without changing behavior.
 - Review is clean: no unresolved blocking findings (the Critical/Important tier of `superpowers:requesting-code-review`, or the equivalent in another review workflow) remain.
-- CI is clean: required checks on the PR are green, or any unavailable/non-applicable checks are explicitly noted.
-- PR feedback is clean: no unresolved actionable review threads remain.
 
 1. **Understand the full context first**
    - Use `superpowers:using-superpowers` at conversation start when available, and follow any applicable skill gates before acting
@@ -53,7 +51,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - If those skills are unavailable, follow the same workflow manually: gather context, ask only the questions that materially affect the solution, and write out the implementation approach in chat before proceeding
    - When creating an implementation plan, include the execution workflow itself as part of the plan, not as an implied follow-up
    - Consider edge cases and potential issues
-   - Include an explicit **Pre-PR quality gate** (below) step after the implementation steps, and treat the plan as complete only when that gate — verification, simplification, and review — is clean
+   - Include an explicit **Completion gate** (below) step after the implementation steps, and treat the plan as complete only when that gate — verification, simplification, and review — is clean
    - **Do not add or commit planning artifacts to the repository by default** — this rule overrides any generic skill instruction to save or commit plan, spec, design, or brainstorming files. If there is a related issue, record the plan/spec/design as a comment on the issue's COMMENT thread in standard Japanese (標準語). If there is no related issue, present it in chat and do not add a planning artifact to the repo unless the user explicitly asks for one.
 
 3. **Implement systematically**
@@ -65,13 +63,13 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - If worker or subagent execution is unavailable, execute the same written plan inline in the current session instead of abandoning the workflow
    - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if worker or subagent execution is available and the tasks do not share state
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
-   - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern in the **After opening a Draft PR** loop below)
+   - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern once `/pr-to-ready` takes over after the Completion gate below)
    - Make focused, incremental changes, testing as you go; avoid unnecessary refactoring unless explicitly requested
 
 4. **Verify and communicate**
    - Never claim implementation work is complete without `superpowers:verification-before-completion`
-   - When heading to a PR, run the full **Pre-PR quality gate** (below) — it re-runs that verification after simplification and review, and ends by creating a Draft PR
-   - After the PR is open, follow the **After opening a Draft PR** loop (below) through CI and review — including using `superpowers:receiving-code-review` before applying review feedback — until CI and PR feedback are clean
+   - Run the full **Completion gate** (below) — it re-runs that verification after simplification and review. Once it is clean, the work is complete
+   - Draft PR creation, CI, and GitHub review are handled next by the `/pr-to-ready` skill (or the equivalent workflow if unavailable) — it owns that loop, including using `superpowers:receiving-code-review` before applying review feedback, through to clean CI and PR feedback
    - In the final response, report the concrete verification commands/checks that were run and any checks that could not be run
    - Explain what was changed and why
    - Highlight any assumptions or decisions made
@@ -95,15 +93,15 @@ Run this after implementation and before code review or PR. Use Claude's `/simpl
 - **Claude**: prefer Claude's `/simplify` or official code-simplifier agent when available; otherwise use `simplify-code`.
 - The main agent remains responsible for reviewing the subagent's changes, running verification, and reporting the final result.
 
-### Pre-PR quality gate
+### Completion gate
 
-Before pushing a branch or creating a PR, complete this loop in order:
+Before considering implementation work done, complete this loop in order:
 
 1. Run `superpowers:verification-before-completion` or the equivalent verification workflow. Identify relevant commands from README files, Makefiles, package scripts, CI configuration, and existing project docs; run concrete checks and fix issues until verification is clean.
 2. Run `/simplify`, the `simplify-code` skill, or the manual simplification pass above. Fix actionable cleanup until the simplification pass is clean.
 3. Run `superpowers:requesting-code-review` or the equivalent review workflow. Review the diff, address actionable findings, and repeat until review is clean.
 4. Run `superpowers:verification-before-completion` again as a final check to confirm the work is still clean after simplification and review.
-5. Only after verification, simplification, and code review are all clean should you push and create a Draft PR.
+5. Once verification, simplification, and code review are all clean, the work is complete. Continue automatically into `/pr-to-ready` (or the equivalent workflow if unavailable) to push, create the Draft PR, and drive it through CI and GitHub review — see that skill for the full procedure.
 
 ## Git & PR Workflow
 
@@ -112,27 +110,17 @@ Before pushing a branch or creating a PR, complete this loop in order:
 - **Never force-push** — if history needs adjusting, prefer a gentle `git reset` on the local branch, then check out (or create) your intended feature branch and commit the diff there. Do not use `git push --force`.
 - **Never commit directly to `master` or `main` branches** — always create a new feature branch for your work, unless the user explicitly requests a direct commit to these branches.
 - **Use `superpowers:using-git-worktrees` before creating a work branch** when available. If that skill is unavailable, still create isolated work with `git worktree` unless the repository or task makes that impractical.
-- **Pull Requests are created as drafts** — use `gh pr create --draft`; the user removes draft status themselves. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above.
+- **Pull Requests are created as drafts** — draft PR creation and the draft→ready transition are handled by the `/pr-to-ready` skill per the user's up-front choice, not decided ad hoc mid-workflow. Titles, bodies, and PR/issue comments follow the Japanese-register rule in Communication Style above.
 - **Qualify cross-repo issue/PR references** — whenever you write an issue or PR reference (`#NNN`) in GitHub-posted text (PR titles/bodies, comments, **and commit messages**), stop and judge whether it needs a repository qualifier. A bare `#NNN` resolves against the repo the text lives in, so a reference to an issue in another repo silently links to the wrong place. When the target lives elsewhere (e.g. a planning issue in `voyagegroup/fluct_programmatic` referenced from a `voyagegroup/fluct_dlv` PR), write it fully as `owner/repo#NNN` (e.g. `voyagegroup/fluct_programmatic#731`). Same-repo references may stay bare.
 - **Prefix the PR's target issue with `resolves`/`fixes`/`closes` — even cross-repo** — in the PR body, mark the issue the PR completes with a closing keyword (e.g. `resolves voyagegroup/fluct_programmatic#731`), and keep the prefix even when that issue lives in another repository, to document intent and link the two. (GitHub only auto-closes issues in the *same* repo as the PR, so a cross-repo target still needs manual closing on merge — the keyword is for intent/linking there.)
-
-### After opening a Draft PR
-
-After pushing the branch and opening a Draft PR, continue the cleanup loop instead of stopping at PR creation:
-
-1. Wait for CI to finish. If CI fails, use `superpowers:systematic-debugging` when available: inspect the failing checks and logs, isolate the symptom, reproduce locally when practical, add or update a focused regression test when practical, fix the cause, push again, and repeat until CI is clean.
-2. Check the current repository's supported way to request AI reviewers. Do not assume the mechanism is universal; inspect repo documentation, PR template, GitHub UI conventions, available `gh` commands or GitHub API capabilities, and existing PRs as needed. The check is complete when you know the repository-supported reviewer request mechanism or can state that it is not available.
-3. Request reviews from both Claude and Copilot when the repository supports them. If only one is supported, request the supported reviewer and report why the other could not be requested.
-4. Read review comments carefully. Use `superpowers:receiving-code-review` before applying review feedback when available.
-5. For each actionable review thread, either make the needed change or explain why no code change is appropriate. Use `superpowers:test-driven-development` for feedback-driven bug fixes when practical. Reply in GitHub using standard Japanese or English, then resolve the thread when addressed.
-6. After any review-driven code change, rerun the Pre-PR quality gate as needed, push the update, wait for CI again, and request re-review when appropriate.
-7. Repeat until CI and PR feedback are clean. If final branch cleanup, merge strategy, or ready-for-review decisions are needed, use `superpowers:finishing-a-development-branch` when available, but do not mark the PR ready, merge it, delete branches, or perform other finalizing actions unless the user explicitly asks. Leave the PR as Draft unless the user explicitly asks to mark it ready.
 
 ## Tool Preferences
 
 - Use modern CLI tools when available: `rg` (ripgrep), `fd`, `gh` (GitHub CLI)
 - Prefer MCP tools for Git and GitHub operations when available (Serena for codebase exploration — see step 1 under Core Workflow)
 - For filesystem search in general, do not start from `/` unless the user explicitly asks for that scope; start from the active workspace or project root, or a more specific path within it, instead
+- **Subagents don't reliably inherit the rule above from context.** When dispatching any subagent (Agent tool, non-fork), restate it explicitly in the prompt itself, e.g.: "Never run `find`/`fd`/`grep`/`rg` from `/` or unscoped; confine searches to `<path>`. To check whether a binary is installed, use `command -v <name>`, not a filesystem search."
+- **When a subagent prompt references a skill by name** (e.g. "apply superpowers:receiving-code-review"), don't assume it will locate and read that skill's file correctly — a fresh subagent has been observed searching the whole filesystem for it (`find / -name '*SKILL.md'`) instead of invoking the `Skill` tool. Either explicitly instruct it to invoke the `Skill` tool with that exact name, or inline the essential guidance directly in the prompt so no file lookup is needed.
 - Exclude dependency, generated, vendored, cache, and other build-artifact directories from normal searches by default (for example `node_modules` or `_build`) unless the user explicitly asks to search them
 - **IMPORTANT**: Never attempt to bypass MFA or GPG passphrases
   - Always prompt the user to enter MFA codes or GPG passphrases manually
