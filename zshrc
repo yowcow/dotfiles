@@ -187,6 +187,65 @@ function git-url() {
         | while read -r url; do echo "https://${url}/commit/${2}"; done
 }
 
+function git-worktree-clean() {
+  git fetch --prune
+
+  local main_wt
+  main_wt="$(git rev-parse --show-toplevel)"
+
+  git worktree list --porcelain |
+    awk '
+      /^worktree / {
+        wt=$2
+        branch=""
+        locked=0
+        detached=0
+      }
+
+      /^branch refs\/heads\// {
+        branch=$2
+        sub(/^refs\/heads\//, "", branch)
+      }
+
+      /^detached/ { detached=1 }
+      /^locked/ { locked=1 }
+
+      /^$/ {
+        if (locked == 0) {
+          if (branch != "") {
+            print "branch\t" branch "\t" wt
+          } else if (detached == 1) {
+            print "detached\t-\t" wt
+          }
+        }
+      }
+    ' |
+    while IFS=$'\t' read -r kind branch wt_path; do
+      [[ "$wt_path" == "$main_wt" ]] && continue
+
+      if [[ "$kind" == "branch" ]]; then
+        local remote="origin/$branch"
+
+        git show-ref --verify --quiet "refs/remotes/$remote" || continue
+        git merge-base --is-ancestor "$branch" "$remote" || continue
+      fi
+
+      local status_output
+      if ! status_output="$(git -C "$wt_path" status --porcelain --ignore-submodules=none)"; then
+        echo "Skip: cannot read status: $wt_path"
+        continue
+      fi
+
+      [[ -z "$status_output" ]] || continue
+
+      echo "Removing $wt_path ($kind $branch)"
+      git worktree remove --force --force "$wt_path" || {
+        echo "Skip: failed to remove: $wt_path"
+        continue
+      }
+    done
+}
+
 function pin() {
     for pin in $(shuf --random-source=/dev/urandom -i0-9999 -n5); do printf '%04d\n' $pin; done
 }
