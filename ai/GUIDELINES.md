@@ -77,7 +77,7 @@ When instructions mention a specific skill name, treat it as a required workflow
 
 When these guidelines say a workflow must be clean, use this concrete definition:
 
-- Verification is clean: the relevant test, lint, build, smoke test, or manual check has passed with current changes.
+- Verification is clean: the relevant test, lint, build, typecheck, smoke test, or manual check has passed with current changes.
 - Simplification is clean: no remaining actionable cleanup improves the diff without changing behavior.
 - Review is clean: no unresolved blocking findings (the Critical/Important tier of `superpowers:requesting-code-review`, or the equivalent in another review workflow) remain.
 
@@ -110,7 +110,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if worker or subagent execution is available and the tasks do not share state — see **Parallel Work & Worker Safety** below for how to scope each worker
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
    - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern once `/pr-to-ready` takes over after the Completion gate below)
-   - Make focused, incremental changes, testing as you go; avoid unnecessary refactoring unless explicitly requested
+   - Test as you go; avoid unnecessary refactoring unless explicitly requested (see **Core Principles** above for the focused-diff rule)
 
 4. **Verify and communicate**
    - Never claim implementation work is complete without `superpowers:verification-before-completion`
@@ -152,7 +152,7 @@ Before considering implementation work done, complete this loop in order:
 
 ## Parallel Work & Worker Safety
 
-When multiple independent tasks exist (investigating unrelated components, reviewing multiple files, independent implementations, documentation updates, parallel verification), perform them concurrently whenever the runtime supports independent workers — see `superpowers:dispatching-parallel-agents` above. Keep each worker narrowly scoped and avoid overlapping responsibilities between workers.
+When multiple independent tasks exist (investigating unrelated components, reviewing multiple files, independent implementations, documentation updates, parallel verification), perform them concurrently whenever the runtime supports independent workers, subject to the permission-gating rule in Core Workflow step 3 — see `superpowers:dispatching-parallel-agents` above. Keep each worker narrowly scoped and avoid overlapping responsibilities between workers.
 
 Each worker should receive:
 
@@ -195,5 +195,4 @@ Worker safety — apply this whenever dispatching any subagent or worker:
 - Languages: Go, Perl, PHP, Erlang, TypeScript/JavaScript
 - Editor: neovim/lazyvim
 - Environment: Linux (zsh, tmux)
-- Focus on practical, maintainable solutions over trendy approaches
 - Prioritize business value over technical perfection
