@@ -153,7 +153,7 @@ Before considering implementation work done, complete this loop in order:
 
 ## Escalation
 
-When uncertainty becomes high, requirements conflict, or multiple viable designs exist, stop execution and return to planning (see **Plan before implementing** above).
+When uncertainty becomes high, requirements conflict, or multiple viable designs exist, stop execution and return to planning before continuing implementation.
 
 Do not continue implementation by making arbitrary architectural decisions.
 
