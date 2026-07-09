@@ -97,8 +97,14 @@ update/docker: FORCE
 		docker volume prune -f; \
 	fi
 
-update/codex: FORCE
+.INTERMEDIATE: $(DOTFILES_TMPDIR)/codex-install.sh
+
+update/codex: FORCE $(DOTFILES_TMPDIR)/codex-install.sh
 	@echo "Updating Codex CLI..."
-	curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+	CODEX_NON_INTERACTIVE=1 sh $(DOTFILES_TMPDIR)/codex-install.sh
+
+$(DOTFILES_TMPDIR)/codex-install.sh:
+	mkdir -p $(@D)
+	curl -fsSL https://chatgpt.com/codex/install.sh -o $@
 
 .PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex
