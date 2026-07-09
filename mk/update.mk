@@ -97,4 +97,8 @@ update/docker: FORCE
 		docker volume prune -f; \
 	fi
 
-.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker
+update/codex: FORCE
+	@echo "Updating Codex CLI..."
+	curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+
+.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex
