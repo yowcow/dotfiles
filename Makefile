@@ -129,6 +129,7 @@ install: $(TARGETS)
 
 update:
 	$(MAKE) $(addprefix update/,$(GIT_MODULES))
+	$(MAKE) update/versioned
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
