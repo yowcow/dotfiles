@@ -49,6 +49,7 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
 *   Updates language-specific tools and package managers for Go, Node.js, Python, and Rust, ensuring you have the latest versions of your development tools.
+*   Installs/updates the Codex CLI via the official installer.
 
 To run the update:
 
