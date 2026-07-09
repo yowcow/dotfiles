@@ -111,6 +111,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
    - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern once `/pr-to-ready` takes over after the Completion gate below)
    - Test as you go; avoid unnecessary refactoring unless explicitly requested (see **Core Principles** above for the focused-diff rule)
+   - If uncertainty becomes high, requirements conflict, or multiple viable designs emerge mid-implementation, stop and follow **Escalation** (below) instead of improvising an architectural decision
 
 4. **Verify and communicate**
    - Never claim implementation work is complete without `superpowers:verification-before-completion`
@@ -149,6 +150,19 @@ Before considering implementation work done, complete this loop in order:
 3. Run `superpowers:requesting-code-review` or the equivalent review workflow. Review the diff, address actionable findings, and repeat until review is clean.
 4. Run `superpowers:verification-before-completion` again as a final check to confirm the work is still clean after simplification and review.
 5. Once verification, simplification, and code review are all clean, the work is complete. Continue automatically into `/pr-to-ready` (or the equivalent workflow if unavailable) to push, create the Draft PR, and drive it through CI and GitHub review — see that skill for the full procedure.
+
+## Escalation
+
+When uncertainty becomes high, requirements conflict, or multiple viable designs exist, stop execution and return to planning (see **Plan before implementing** above).
+
+Do not continue implementation by making arbitrary architectural decisions.
+
+Report:
+
+- what is uncertain
+- what options exist
+- the trade-offs
+- the recommended next step
 
 ## Parallel Work & Worker Safety
 
