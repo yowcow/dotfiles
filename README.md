@@ -56,7 +56,7 @@ To run the update:
 make update
 ```
 
-Versioned tools (e.g. tmux, zellij, aws-vault) are **not** refreshed by `make update` — re-fetching them re-builds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
+Versioned tools (e.g. tmux, zellij, aws-vault) are **not** refreshed by `make update` — because refreshing them rebuilds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
 
 ```bash
 make update/versioned
