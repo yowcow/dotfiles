@@ -19,7 +19,7 @@ Before you begin, ensure you have the following installed:
 *   **SSH access to GitHub**: `_modules/` dependencies (e.g. `fzf`, `nvm`, `pyenv`, `goenv`) are cloned via `git@github.com:...`, so your SSH key must already be registered with GitHub.
 *   `curl` and `jq`: Used to resolve and download the latest release assets for versioned tools (e.g. tmux, zellij, aws-vault). `jq` in particular is required just to parse the GitHub API responses.
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
-*   tmux build dependencies (tmux is built from source): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `libevent pkg-config`.
+*   tmux build dependencies (tmux is built from source via `autoreconf` + `./configure --enable-utf8proc`): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `autoconf automake pkg-config libevent utf8proc`.
 
 ## Installation
 
