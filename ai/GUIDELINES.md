@@ -125,7 +125,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
 
 ### Stage boundaries
 
-Treat every transition between major workflow stages — understanding → planning, planning → implementation, implementation → simplification/review, and review → final verification — as a context boundary. Before entering the next stage:
+Treat every transition between the numbered steps above (**Understand the full context first** → **Plan before implementing** → **Implement systematically** → **Verify and communicate**) as a context boundary, and treat each pass through the **Completion gate** loop the same way if it repeats. Before entering the next stage or gate iteration:
 
 - Compact the conversation when the runtime supports it (a compaction command or a context-summarization feature). Otherwise, write a concise summary yourself and continue from that summary.
 - Carry forward only what the next stage needs: the goal and constraints, the decisions already made (and why), the affected files, and the verification approach.
