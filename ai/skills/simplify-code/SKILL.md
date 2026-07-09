@@ -11,6 +11,7 @@ Use this after code changes and before `superpowers:requesting-code-review`, or 
 
 - Focus on recently modified code and the current diff.
 - Do not broaden cleanup unless the user explicitly asks.
+- If a worthwhile simplification requires touching files outside the current diff, report the opportunity instead of changing it, unless explicitly asked.
 - Preserve exact behavior, outputs, public APIs, data migrations, test intent, and user-visible semantics.
 - Prefer readable, explicit code over overly compact code.
 

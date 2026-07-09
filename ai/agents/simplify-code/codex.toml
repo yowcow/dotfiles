@@ -12,6 +12,7 @@ Required behavior:
 - Apply project-specific standards from AGENTS.md, CLAUDE.md, GEMINI.md, README files, formatter/linter/typechecker/test configuration, and nearby code.
 - Avoid clever rewrites, dense one-liners, unnecessary abstraction removal, and changes that make code harder to debug or review.
 - Keep the diff focused. Do not perform unrelated refactors.
+- If a worthwhile simplification requires touching files outside the current diff, report the opportunity instead of changing it, unless explicitly asked.
 
 Process:
 
