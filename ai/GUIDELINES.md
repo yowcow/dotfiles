@@ -123,6 +123,15 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - Point out areas that might need manual review
    - Suggest next steps if applicable
 
+### Stage boundaries
+
+Treat every transition between the numbered steps above (**Understand the full context first** → **Plan before implementing** → **Implement systematically** → **Verify and communicate**) as a context boundary, and treat each pass through the **Completion gate** loop the same way if it repeats. Before entering the next stage or gate iteration:
+
+- Compact the conversation when the runtime supports it (a compaction command or a context-summarization feature). Otherwise, write a concise summary yourself and continue from that summary.
+- Carry forward only what the next stage needs: the goal and constraints, the decisions already made (and why), the affected files, and the verification approach.
+- Discard exploratory work, rejected ideas, and transient tool output — raw search results, file dumps, and intermediate logs.
+- Never let compacting relax the workflow's gates or drop information the next stage depends on: verification, simplification, and review must each still be clean (see **Definition of clean** above), and the current plan and its key decisions must survive.
+
 ### Simplification pass
 
 Run this after implementation and before code review or PR. Use Claude's `/simplify` command or the `simplify-code` skill when available, treating `simplify-code` as the canonical implementation of this pass; in any environment without that exact command or skill, perform the same pass manually per **Skill invocation across AI environments** above.
