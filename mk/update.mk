@@ -103,7 +103,7 @@ update/docker: FORCE
 # (e.g. "no new release") are guaranteed to be caught.
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
-	curl -fsSL https://chatgpt.com/codex/install.sh \
+	@curl -fsSL https://chatgpt.com/codex/install.sh \
 		| CODEX_NON_INTERACTIVE=1 sh \
 		|| echo "Codex CLI update skipped (no new release?)."
 
