@@ -97,14 +97,14 @@ update/docker: FORCE
 		docker volume prune -f; \
 	fi
 
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/codex-install.sh
-
-update/codex: FORCE $(DOTFILES_TMPDIR)/codex-install.sh
+# NOTE: a total curl failure (e.g. network outage) leaves sh with empty
+# stdin, which exits 0 -- so `|| echo` below won't even fire in that case.
+# This is a known gap; only failures from within the installer itself
+# (e.g. "no new release") are guaranteed to be caught.
+update/codex: FORCE
 	@echo "Updating Codex CLI..."
-	CODEX_NON_INTERACTIVE=1 sh $(DOTFILES_TMPDIR)/codex-install.sh
-
-$(DOTFILES_TMPDIR)/codex-install.sh:
-	mkdir -p $(@D)
-	curl -fsSL https://chatgpt.com/codex/install.sh -o $@
+	@curl -fsSL https://chatgpt.com/codex/install.sh \
+		| CODEX_NON_INTERACTIVE=1 sh \
+		|| echo "Codex CLI update skipped (no new release?)."
 
 .PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex
