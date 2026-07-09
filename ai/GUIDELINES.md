@@ -108,7 +108,7 @@ When these guidelines say a workflow must be clean, use this concrete definition
    - In worker-based execution, the coordinating agent remains responsible for task framing, review, verification, and final integration
    - If worker or subagent execution is unavailable, execute the same written plan inline in the current session instead of abandoning the workflow
    - Use `superpowers:dispatching-parallel-agents` when there are 2+ independent tasks that can safely run in parallel, if worker or subagent execution is available and the tasks do not share state — see **Parallel Work & Worker Safety** below for how to scope each worker
-   - Do not start subagents automatically in environments that require explicit user permission for delegation; ask first or perform the workflow locally
+   - If delegation requires explicit user permission that hasn't already been granted, perform the workflow locally by default; if delegation would meaningfully improve correctness or safety, ask for permission rather than silently working around the requirement
    - For bug fixes, identify the symptom first, write or update a focused regression test when practical, then fix and verify (CI failures and review feedback follow the same pattern once `/pr-to-ready` takes over after the Completion gate below)
    - Test as you go; avoid unnecessary refactoring unless explicitly requested (see **Core Principles** above for the focused-diff rule)
    - If uncertainty becomes high, requirements conflict, or multiple viable designs emerge mid-implementation, stop and follow **Escalation** (below) instead of improvising an architectural decision
