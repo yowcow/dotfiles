@@ -15,9 +15,11 @@ These are my personal configuration files for my development environment, meticu
 Before you begin, ensure you have the following installed:
 
 *   `make`: Essential for running the installation and management commands.
-*   `git`: Required for cloning the repository and managing submodules.
-*   `curl`: Used by some installation scripts for downloading tools.
+*   `git`: Required for cloning the repository and its external dependencies under `_modules/`.
+*   **SSH access to GitHub**: `_modules/` dependencies (e.g. `fzf`, `nvm`, `pyenv`, `goenv`) are cloned via `git@github.com:...`, so your SSH key must already be registered with GitHub.
+*   `curl` and `jq`: Required for virtually **any** `make` invocation, not just `update/versioned` — the Makefile resolves `TMUX_VERSION` via the GitHub API (`curl` piped into `jq`) at parse time, before any target runs, unless you override it with `TMUX_VERSION=<version>`. They're also used to resolve and download release assets for other versioned tools (e.g. zellij, aws-vault).
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
+*   tmux build dependencies (tmux is built from source via `autoreconf` + `./configure --enable-utf8proc`): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `autoconf automake pkg-config libevent utf8proc`.
 
 ## Installation
 
@@ -27,7 +29,7 @@ Before you begin, ensure you have the following installed:
 2.  **Clone the repository:**
 
     ```bash
-    git clone --recurse-submodules https://github.com/yowcow/dotfiles.git ~/dotfiles
+    git clone git@github.com:yowcow/dotfiles.git ~/dotfiles
     cd ~/dotfiles
     ```
 
@@ -45,7 +47,7 @@ Before you begin, ensure you have the following installed:
 
 The `Makefile` includes a powerful `update` command designed to keep your environment current:
 
-*   Pulls the latest changes for all git submodules (e.g., `fzf`, `nvm`).
+*   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
 *   Updates language-specific tools and package managers for Go, Node.js, Python, and Rust, ensuring you have the latest versions of your development tools.
 
 To run the update:
@@ -54,15 +56,21 @@ To run the update:
 make update
 ```
 
+Versioned tools (e.g. tmux, zellij, aws-vault) are **not** refreshed by `make update` — because refreshing them rebuilds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
+
+```bash
+make update/versioned
+```
+
 ### Cleaning
 
 *   **`make clean`**: This command removes the files created by `make install` from your home directory, including symbolic links and any generated AI instruction files, effectively deactivating the dotfiles.
-*   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned git submodules.
+*   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned external dependencies.
 
 ## Structure
 
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), and more.
 *   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), shared skills, and custom agent definitions. On install, the shared guideline is applied to Claude, Gemini, and Codex; targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
-*   `_modules/`: Contains Git submodules for third-party tools and plugins, such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
+*   `_modules/`: Contains third-party tools and plugins cloned via SSH by the Makefile (not Git submodules — there is no `.gitmodules`), such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
 *   `Makefile`: The central script that orchestrates the entire dotfile management process, handling installation, updates, and cleanup operations.
