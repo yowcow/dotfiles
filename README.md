@@ -48,13 +48,18 @@ Before you begin, ensure you have the following installed:
 The `Makefile` includes a powerful `update` command designed to keep your environment current:
 
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
-*   Re-fetches versioned tools (e.g. tmux, zellij, aws-vault) to their latest releases.
 *   Updates language-specific tools and package managers for Go, Node.js, Python, and Rust, ensuring you have the latest versions of your development tools.
 
 To run the update:
 
 ```bash
 make update
+```
+
+Versioned tools (e.g. tmux, zellij, aws-vault) are **not** refreshed by `make update` — re-fetching them re-builds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
+
+```bash
+make update/versioned
 ```
 
 ### Cleaning
