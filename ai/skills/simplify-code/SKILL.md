@@ -5,65 +5,33 @@ description: Use after implementation and before code review or PR creation to s
 
 # Simplify Code
 
-Use this after code changes and before `superpowers:requesting-code-review`, or whenever the user asks for `/simplify`, "simplify", "code-simplifier", or an equivalent cleanup pass.
+Use after code changes and before `superpowers:requesting-code-review`, or whenever asked to "simplify" or run a code-simplifier pass.
 
 ## Scope
 
-- Focus on recently modified code and the current diff.
-- Do not broaden cleanup unless the user explicitly asks.
-- If a worthwhile simplification requires touching files outside the current diff, report the opportunity instead of changing it, unless explicitly asked.
-- Preserve exact behavior, outputs, public APIs, data migrations, test intent, and user-visible semantics.
-- Prefer readable, explicit code over overly compact code.
+- Focus on recently modified code and the current diff; don't broaden cleanup unless the user asks.
+- If a worthwhile simplification needs files outside the diff, report it instead of changing it.
+- Preserve behavior exactly: outputs, public APIs, data migrations, test intent, and user-visible semantics.
 
-## Project Standards
+## Standards
 
-Before changing code, inspect the relevant local standards and nearby examples:
+Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md`/`GEMINI.md` or shared guidelines, README and contributor docs, the formatter/linter/typechecker/test config, and nearby code for style.
 
-- `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, or shared AI guidelines when present
-- README files and contributor docs
-- formatter, linter, typechecker, and test configuration
-- nearby code that demonstrates the local style
+## What to simplify (behavior-preserving)
 
-Apply project-specific standards rather than generic preferences.
-
-## Simplification Checklist
-
-Look for changes that improve clarity, consistency, or maintainability without changing behavior:
-
-- unnecessary complexity, nesting, or branching
-- redundant code or duplicated logic
-- avoidable abstractions
-- unclear names
-- scattered related logic that can be consolidated safely
-- noisy formatting churn unrelated to the task
-- comments that merely restate obvious code
+- unnecessary complexity, nesting, or branching; redundant or duplicated logic
+- avoidable abstractions; unclear names; related logic scattered where it could be consolidated
+- formatting churn unrelated to the task; comments that merely restate the code
 - tests that can be clearer without weakening coverage
 
-## Balance Rules
+## Don't over-simplify
 
-Avoid over-simplification:
-
-- Do not replace readable code with clever one-liners.
-- Do not use dense expressions just to reduce line count.
-- Avoid nested ternary operators for multi-branch logic; prefer clear `if`/`else` or `switch` style where available.
-- Do not combine too many concerns into one function, component, method, or module.
-- Do not remove helpful abstractions or separation of concerns.
-- Do not make code harder to debug, extend, or review.
+- No clever one-liners or dense expressions just to cut lines; no nested ternaries for multi-branch logic (prefer `if`/`else` or `switch`).
+- Keep helpful abstractions and separation of concerns; don't merge unrelated concerns into one unit.
+- Don't make code harder to debug, extend, or review.
 
 ## Process
 
-1. Identify the recently modified code sections from the current diff.
-2. Analyze opportunities to improve clarity and consistency.
-3. Apply only behavior-preserving refinements.
-4. Verify the refined code with the relevant tests, lint, build, typecheck, smoke test, or manual check.
-5. Repeat until no actionable simplification remains.
-6. Document only significant simplification changes that affect understanding.
-
-## Output
-
-Report:
-
-- what simplification changed
-- what behavior was preserved
-- what verification was run
-- any intentionally deferred cleanup
+1. From the diff, identify the recently modified code and apply only behavior-preserving refinements.
+2. Verify with the relevant tests, lint, build, typecheck, or manual check; repeat until no actionable simplification remains.
+3. Report what changed, what behavior was preserved, what verification ran, and any intentionally deferred cleanup.
