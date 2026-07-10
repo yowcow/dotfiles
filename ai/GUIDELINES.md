@@ -50,7 +50,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 4. Verify once more to confirm it's still clean.
 5. Hand off to the `pr-to-ready` skill.
 
-**Stage boundaries** — at each phase transition and each gate iteration, compact the context (or write your own summary if the runtime can't). Carry forward the goal, constraints, decisions and why, affected files, and verification approach; drop exploratory dumps and stale tool output. Never let compaction relax a gate.
+**Stage boundaries** — at each phase transition and each gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output. Writing this summary is your responsibility even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
 
 **Escalation** — when uncertainty is high, requirements conflict, or multiple viable designs exist, stop and return to planning instead of improvising an architectural decision. Report what's uncertain, the options and trade-offs, and your recommendation.
 
@@ -66,7 +66,7 @@ Dispatch only for subtasks with no shared state. Give each worker a clear object
 ## Git & PR workflow
 
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
-- Never commit directly to `master`/`main` without explicit permission — create a feature branch (use `superpowers:using-git-worktrees` when available). Never force-push; if history needs fixing, `git reset` locally and re-commit onto your branch.
+- Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, isolate the work in a git worktree via `superpowers:using-git-worktrees`; fall back to a plain feature branch only when worktrees aren't available. Never force-push; if history needs fixing, `git reset` locally and re-commit onto your branch.
 - PRs are created as drafts and driven by the `pr-to-ready` skill.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the PR's target issue with a closing keyword (`resolves`/`fixes`/`closes`), keeping it even cross-repo, which GitHub won't auto-close.
 
