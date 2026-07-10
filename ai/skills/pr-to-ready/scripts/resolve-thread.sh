@@ -67,14 +67,17 @@ for COMMENT_ID in "$@"; do
     continue
   fi
 
-  gh api graphql \
+  if ! gh api graphql \
     -f threadId="$THREAD_ID" \
     -f query='
       mutation($threadId: ID!) {
         resolveReviewThread(input: { threadId: $threadId }) {
           thread { isResolved }
         }
-      }'
+      }'; then
+    echo "error: failed to resolve review thread for comment id $COMMENT_ID" >&2
+    status=1
+  fi
 done
 
 exit "$status"

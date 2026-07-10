@@ -78,7 +78,7 @@ Every fix in this loop — for a CI failure (Step 1) or accepted review feedback
 
 ## Step 2: Request review, then loop on feedback
 
-Request review from **both Claude and Copilot** when both are available — they catch different things (in practice Copilot has caught real bugs Claude's review missed). Skip whichever isn't available; if neither is, go straight to Step 3.
+Request review from **both Claude and Copilot** when both are available — they catch different things (in practice Copilot has caught real bugs Claude's review missed). Skip whichever isn't available; if neither is, still run 2-0 (the PR body is worth verifying regardless of reviewers), then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
 
 ### 2-0. Verify PR body issue links
 
