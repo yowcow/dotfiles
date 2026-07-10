@@ -18,16 +18,22 @@ PR="$3"
 shift 3
 
 # Fetch every thread's id together with the databaseIds of its comments once,
-# then resolve each requested comment id against that snapshot.
-THREADS_JSON=$(gh api graphql \
+# then resolve each requested comment id against that snapshot. --paginate
+# follows pageInfo automatically as long as the query names $endCursor and
+# threads it through reviewThreads(after: $endCursor) — needed because a
+# long-running PR's cumulative thread count (resolved + unresolved) can exceed
+# a single page, same as list-unresolved-threads.sh. The --jq streams one
+# thread node per line, so the snapshot spans every page.
+THREADS_JSON=$(gh api graphql --paginate \
   -f owner="$OWNER" \
   -f repo="$REPO" \
   -F pr="$PR" \
   -f query='
-    query($owner: String!, $repo: String!, $pr: Int!) {
+    query($owner: String!, $repo: String!, $pr: Int!, $endCursor: String) {
       repository(owner: $owner, name: $repo) {
         pullRequest(number: $pr) {
-          reviewThreads(first: 100) {
+          reviewThreads(first: 100, after: $endCursor) {
+            pageInfo { hasNextPage endCursor }
             nodes {
               id
               comments(first: 50) {
@@ -38,7 +44,7 @@ THREADS_JSON=$(gh api graphql \
         }
       }
     }' \
-  --jq '.data.repository.pullRequest.reviewThreads.nodes')
+  --jq '.data.repository.pullRequest.reviewThreads.nodes[]')
 
 status=0
 for COMMENT_ID in "$@"; do
@@ -50,7 +56,7 @@ for COMMENT_ID in "$@"; do
 
   THREAD_ID=$(printf '%s' "$THREADS_JSON" \
     | jq -r --argjson cid "$COMMENT_ID" \
-        '.[] | select(any(.comments.nodes[]; .databaseId == $cid)) | .id' \
+        'select(any(.comments.nodes[]; .databaseId == $cid)) | .id' \
     | head -1)
 
   if [ -z "$THREAD_ID" ]; then
