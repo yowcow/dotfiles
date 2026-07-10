@@ -106,7 +106,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 
 - **Claude**: check for an `@claude` trigger in the repo's workflows.
   ```bash
-  grep -l '@claude' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null
+  grep -l '@claude' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null || true
   ```
   If found, post a request comment. Write it in **standard Japanese** with a short "特に見てほしいポイント" list; on a re-request after a new push, include the current HEAD SHA so the review targets the latest state:
   ```bash

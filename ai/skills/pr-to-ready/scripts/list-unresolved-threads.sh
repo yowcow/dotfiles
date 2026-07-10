@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# List unresolved PR review threads (with their comments) via GitHub GraphQL.
+# List unresolved PR review threads (with up to the first 50 comments each) via GitHub GraphQL.
 # Usage: list-unresolved-threads.sh <owner> <repo> <pr-number>
 set -euo pipefail
 

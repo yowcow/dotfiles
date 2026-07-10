@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Resolve one or more GitHub PR review threads, each identified by the REST
-# comment id of any comment inside it. There is no REST endpoint for this —
-# GitHub only exposes thread resolution via GraphQL — so this wraps the
-# lookup+mutation. Pass several comment ids to batch-resolve a whole review
-# round in one invocation.
+# comment id of one of its first 50 comments — the range this script indexes,
+# which covers the comment ids returned by list-unresolved-threads.sh; a
+# comment id beyond that in an unusually long thread won't match. There is no
+# REST endpoint for this — GitHub only exposes thread resolution via GraphQL —
+# so this wraps the lookup+mutation. Pass several comment ids to batch-resolve
+# a whole review round in one invocation.
 # Usage: resolve-thread.sh <owner> <repo> <pr-number> <comment-id> [comment-id...]
 set -euo pipefail
 
