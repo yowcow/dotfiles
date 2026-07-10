@@ -41,18 +41,28 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 ### 1. Understand
 
-- Explore before changing: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, and assess the change's impact.
+- Invoke applicable skills before doing anything, including exploration and questions.
+- Explore before changing: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, assess the impact, and identify existing failures and constraints.
 
 ### 2. Plan
 
-- For non-trivial work, use `superpowers:brainstorming` then `superpowers:writing-plans`; consider edge cases and fold the completion gate (below) into the plan.
+- For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
+- After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
+- Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
 - Don't commit planning artifacts by default — record the plan on the related issue's comment thread (標準語), or present it in chat.
 
 ### 3. Implement
 
-- When workers are available and permitted, start with `superpowers:subagent-driven-development` as an orchestrator — dispatching a fresh implementation subagent per task rather than implementing directly — and otherwise fall back to `superpowers:executing-plans` inline.
-- `superpowers:test-driven-development` and (for diagnosis) `superpowers:systematic-debugging` are the methods workers apply, not the entry point.
+- Implementation requires a written plan; otherwise return to Plan.
+- Choose the execution method deliberately:
+  - In the same session, use `superpowers:subagent-driven-development` only when tasks are mostly independent and workers are available and permitted.
+  - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
+  - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable, execute it manually; do not treat `executing-plans` as an inline fallback.
+- `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent investigations or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
+- Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
+- For diagnosis, use `superpowers:systematic-debugging` before proposing a fix.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
+- With SDD, review each task after it completes. With `executing-plans`, review each task or natural checkpoint. Request review with `superpowers:requesting-code-review`, then evaluate findings with `superpowers:receiving-code-review`: Critical findings stop progress and Important findings must be resolved before the next task.
 - Test as you go and avoid unrelated refactoring.
 
 ### 4. Verify & complete
@@ -63,11 +73,11 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 Before calling implementation done, loop in order until all are clean, then hand off:
 
-- **Verify** — `superpowers:verification-before-completion` with concrete commands from the README, Makefile, package scripts, or CI; run independent verifications in parallel where possible.
-- **Simplify** — `simplify-code`: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff.
-- **Review** — `superpowers:requesting-code-review`, then triage findings with `superpowers:receiving-code-review`: don't assume every finding is correct — evaluate each on its merits and act only on confirmed ones.
-- **Verify again** — re-run verification to confirm it's still clean after fixes.
-- **Hand off** — `pr-to-ready`.
+1. **Verify** — Use `superpowers:verification-before-completion` with fresh output from concrete commands in the README, Makefile, package scripts, or CI. Run independent checks in parallel where possible.
+2. **Simplify** — Use `simplify-code` on only the recent diff, preserving behavior and the smallest maintainable change.
+3. **Repeat as needed** — If simplification changes anything, re-run the relevant verification and simplify again until no further behavior-preserving cleanup remains.
+4. **Review** — Request review with `superpowers:requesting-code-review`, then technically evaluate findings with `superpowers:receiving-code-review`. Accepted fixes return to this same verification, simplification, and review path.
+5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. Create a Draft PR only if the user chooses that option, then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
 
 ### Stage boundaries
 
@@ -81,9 +91,10 @@ Before calling implementation done, loop in order until all are clean, then hand
 
 ## Subagents & worker safety
 
-- Prefer working as an **orchestrator**: when subagents are available and permitted, delegate self-contained or context-heavy subtasks to keep your own context lean. A worker may investigate and propose (you apply the change) or make scoped edits itself — either way you stay responsible for control flow, decisions, verification, and committing the result.
-- Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are already fixed — otherwise sequence them. Prefer sequential implementation unless worktrees (or equivalent isolation) are available.
-- Give each worker a clear objective, bounded files or directories, expected output, and completion criteria — and have it report changed files, decisions, assumptions, verification performed, and remaining risks.
+- These rules apply after choosing a worker-based execution method; they do not decide whether SDD is appropriate.
+- Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
+- A worker may investigate and propose or make scoped edits, but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
+- Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
 - Workers must never search from `/` or unscoped, and shouldn't rediscover project context — restate the scope in the prompt itself, since subagents don't inherit it (e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search").
 - When a prompt references a skill by name, tell the worker to invoke its runtime mechanism (Claude Code's `Skill` tool, etc.) or inline the guidance — a fresh subagent may otherwise search the whole filesystem for the skill file.
 
@@ -92,7 +103,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, isolate the work in a git worktree via `superpowers:using-git-worktrees`; fall back to a plain feature branch only when worktrees aren't available.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
-- Create PRs as drafts and drive them with the `pr-to-ready` skill.
+- Create a Draft PR only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option, then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences
