@@ -50,7 +50,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 ### 3. Implement
 
-- Start with `superpowers:subagent-driven-development` as an orchestrator — dispatch a fresh implementation subagent per task rather than implementing directly, falling back to `superpowers:executing-plans` inline only when workers aren't available.
+- When workers are available and permitted, start with `superpowers:subagent-driven-development` as an orchestrator — dispatching a fresh implementation subagent per task rather than implementing directly — and otherwise fall back to `superpowers:executing-plans` inline.
 - `superpowers:test-driven-development` and (for diagnosis) `superpowers:systematic-debugging` are the methods workers apply, not the entry point.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
 - Test as you go and avoid unrelated refactoring.
@@ -65,7 +65,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 
 - **Verify** — `superpowers:verification-before-completion` with concrete commands from the README, Makefile, package scripts, or CI; run independent verifications in parallel where possible.
 - **Simplify** — `simplify-code`: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff.
-- **Review** — `superpowers:requesting-code-review`, then triage findings with `superpowers:receiving-code-review`: don't assume every finding is correct — classify each (valid / partially valid / invalid / duplicate) and act only on confirmed ones.
+- **Review** — `superpowers:requesting-code-review`, then triage findings with `superpowers:receiving-code-review`: don't assume every finding is correct — evaluate each on its merits and act only on confirmed ones.
 - **Verify again** — re-run verification to confirm it's still clean after fixes.
 - **Hand off** — `pr-to-ready`.
 
@@ -91,7 +91,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, isolate the work in a git worktree via `superpowers:using-git-worktrees`; fall back to a plain feature branch only when worktrees aren't available.
-- Never force-push; if history needs fixing, `git reset` locally and re-commit onto your branch.
+- Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
 - Create PRs as drafts and drive them with the `pr-to-ready` skill.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
