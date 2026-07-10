@@ -48,7 +48,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 2. Simplify with the `simplify-code` skill: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff. If asked to run this as a subagent, use your runtime's code-simplifier agent when one exists, else run it in the main agent — which stays responsible for review and verification.
 3. Review with `superpowers:requesting-code-review` and address findings.
 4. Verify once more to confirm it's still clean.
-5. Hand off to the `pr-to-ready` skill, which owns the GitHub side from here — opening the draft PR and looping through CI and review until clean, then to ready.
+5. Hand off to the `pr-to-ready` skill.
 
 **Stage boundaries** — at each phase transition and each gate iteration, compact the context (or write your own summary if the runtime can't). Carry forward the goal, constraints, decisions and why, affected files, and verification approach; drop exploratory dumps and stale tool output. Never let compaction relax a gate.
 

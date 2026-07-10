@@ -60,13 +60,17 @@ Run this skill as an **orchestrator**. The main loop owns control flow, all deci
 
 Subagents share no state and return only text/structured data — they may **investigate and propose**, but the orchestrator **applies** the change, commits, and pushes. Evaluation/collection subagents are read-only (advisory), so they need no worktree.
 
+## Making fixes
+
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: make it by following the core workflow (implement → verify → simplify → self-review) in the shared AI guidelines. Do **not** re-enter that workflow's completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
+
 ## Step 1: Get CI clean
 
 1. Watch with `gh pr checks <PR> --watch`. If every check passes, go to Step 2.
 2. On any failure:
    - Identify the failed run: `gh run list --branch <branch> --limit 5`
    - **Delegate diagnosis to a subagent**: give it `<run-id>` and have it run `gh run view <run-id> --log-failed`, apply **superpowers:systematic-debugging**, and return *only* the root cause + a concrete fix plan (not the raw logs). This keeps the log dump out of the orchestrator's context.
-   - Apply the fix in the orchestrator, then verify locally first: **REQUIRED SUB-SKILL** superpowers:verification-before-completion
+   - Apply the fix in the orchestrator, following the core workflow (see *Making fixes* above).
    - commit → push (follow the git rules in the shared AI guidelines; never push directly to master/main)
    - Go back to 1.
 
@@ -151,13 +155,11 @@ These subagents are advisory/read-only — they evaluate and propose, they do no
 
 **Apply (orchestrator, sequential — these mutate shared state):**
 
-1. For each `accept`, fix the code where a change is warranted.
-2. Verify locally: **REQUIRED SUB-SKILL** superpowers:verification-before-completion
-3. Do one self-review pass: **REQUIRED SUB-SKILL** superpowers:requesting-code-review
-4. commit → push
-5. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a real session slipped and posted "対応したで！", violating the shared AI guidelines); a frank, casual tone is fine. **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
-6. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
-7. Go back to 2-1 and re-request both reviewers.
+1. For each `accept`, fix the code where a change is warranted, following the core workflow (see *Making fixes* above).
+2. commit → push
+3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a real session slipped and posted "対応したで！", violating the shared AI guidelines); a frank, casual tone is fine. **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
+4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
+5. Go back to 2-1 and re-request both reviewers.
 
 List unresolved threads / resolve one or more at once:
 ```bash
