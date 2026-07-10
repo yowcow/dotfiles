@@ -58,7 +58,7 @@ Run this skill as an **orchestrator**. The main loop owns control flow, all deci
 - **Review-comment collection** (Step 2-3).
 - **Per-finding evaluation, fan-out** (Step 2-3) — one subagent per finding, launched together; genuine parallelism, since findings are independent.
 
-Subagents share no state and return only text/structured data — they may **investigate and propose**, but the orchestrator **applies** the change, commits, and pushes. Evaluation/collection subagents are read-only (advisory), so they need no worktree.
+Subagents only investigate and propose (read-only, advisory, no worktree); the orchestrator applies the change, commits, and pushes.
 
 ## Making fixes
 
@@ -78,7 +78,7 @@ Every fix in this loop — for a CI failure (Step 1) or accepted review feedback
 
 ## Step 2: Request review, then loop on feedback
 
-Request review from **both Claude and Copilot** when both are available — they catch different things (in practice Copilot has caught real bugs Claude's review missed). Skip whichever isn't available; if neither is, still run 2-0 (the PR body is worth verifying regardless of reviewers), then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
+Request review from **both Claude and Copilot** when both are available — they catch different things (Copilot catches bugs Claude misses). Skip whichever isn't available; if neither is, still run 2-0 (the PR body is worth verifying regardless of reviewers), then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
 
 ### 2-0. Verify PR body issue links
 
@@ -138,9 +138,9 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   ```
   Then fetch the new comments it left.
 - **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
-- **Always bound the poll** with an iteration cap + explicit bail-out (real sessions used ~30 min / 60×30s, ~10 min / 30×20s). On timeout, stop and tell the user rather than looping forever.
+- **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
 
-**Login variance**: bot logins differ across surfaces — Copilot appears as `Copilot` and as `copilot-pull-request-reviewer[bot]`; Claude as lowercase `claude`. Match on a substring, and never attribute a comment to a bot by timestamp alone — a concurrent human reviewer commenting in the same window has been misattributed before. Confirm the author login.
+**Login variance**: bot logins differ across surfaces — Copilot appears as `Copilot` and `copilot-pull-request-reviewer[bot]`; Claude as lowercase `claude`. Match on a substring and confirm the author login; don't attribute by timestamp alone (a human commenting in the same window can be misattributed).
 
 ### 2-3. Evaluate and address feedback
 
@@ -155,7 +155,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 
 1. For each `accept`, fix the code where a change is warranted, following the core workflow (see *Making fixes* above).
 2. commit → push
-3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a real session slipped and posted "対応したで！", violating the shared AI guidelines); a frank, casual tone is fine. **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
+3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a frank, casual tone is fine, but dialect has slipped in before). **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 

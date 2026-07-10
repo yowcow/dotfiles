@@ -45,7 +45,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 **Completion gate** — before calling implementation done, loop in order until all are clean, then hand off:
 
 1. Verify (`superpowers:verification-before-completion`) with concrete commands from the README, Makefile, package scripts, or CI.
-2. Simplify with the `simplify-code` skill: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff. If asked to run this as a subagent, use your runtime's code-simplifier agent when one exists, else run it in the main agent — which stays responsible for review and verification.
+2. Simplify with the `simplify-code` skill: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff.
 3. Review with `superpowers:requesting-code-review` and address findings.
 4. Verify once more to confirm it's still clean.
 5. Hand off to the `pr-to-ready` skill.
