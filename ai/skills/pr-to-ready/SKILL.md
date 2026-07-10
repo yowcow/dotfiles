@@ -53,10 +53,10 @@ Run this skill as an **orchestrator**. The main loop owns control flow, all deci
 - code fixes that touch the worktree, and `git commit` / `git push`
 - `gh pr comment`, thread replies, thread resolve, `gh pr ready`
 
-**Delegate to a subagent** (it returns findings only, keeping the orchestrator's context lean):
-- **CI-failure diagnosis** — pass the failed run to a subagent; it reads the logs and returns *root cause + a concrete fix plan* only, not the raw log dump.
-- **Review-comment collection** — a subagent gathers every reviewer comment left after your latest push, dedupes, and returns a structured list of actionable findings.
-- **Per-finding evaluation (fan-out)** — one subagent per finding, all launched in a single message so they run concurrently; each returns an accept/reject verdict. Findings are independent, so this is genuine parallelism.
+**Delegate to a subagent** (it returns findings only, keeping the orchestrator's context lean; each is detailed in its step):
+- **CI-failure diagnosis** (Step 1).
+- **Review-comment collection** (Step 2-3).
+- **Per-finding evaluation, fan-out** (Step 2-3) — one subagent per finding, launched together; genuine parallelism, since findings are independent.
 
 Subagents share no state and return only text/structured data — they may **investigate and propose**, but the orchestrator **applies** the change, commits, and pushes. Evaluation/collection subagents are read-only (advisory), so they need no worktree.
 
@@ -151,8 +151,6 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 - `reject` — push back, with the technical reason
 - `needs-user` — genuinely unclear; surface to the user
 
-These subagents are advisory/read-only — they evaluate and propose, they do not touch the worktree.
-
 **Apply (orchestrator, sequential — these mutate shared state):**
 
 1. For each `accept`, fix the code where a change is warranted, following the core workflow (see *Making fixes* above).
@@ -191,10 +189,3 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   ```
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
-
-## Notes
-
-- PR comment bodies and replies use standard Japanese, never Kansai (per the GitHub rules in the shared AI guidelines).
-- For cross-repo references, write them as `owner/repo#NNN`.
-- Request review from both Claude and Copilot when available; skip whichever isn't.
-- Whether the PR ends up ready or stays draft is decided once, up front (Step 0) — not re-litigated at Step 3.
