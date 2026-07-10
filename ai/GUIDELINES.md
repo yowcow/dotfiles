@@ -54,9 +54,11 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 **Escalation** — when uncertainty is high, requirements conflict, or multiple viable designs exist, stop and return to planning instead of improvising an architectural decision. Report what's uncertain, the options and trade-offs, and your recommendation.
 
-## Parallel work & worker safety
+## Subagents & worker safety
 
-Dispatch workers only for independent tasks with no shared state, when workers are available and permitted. Give each a clear objective, bounded files or directories, expected output, and completion criteria.
+Prefer working as an **orchestrator**: when subagents are available and permitted, delegate self-contained or context-heavy subtasks to them to keep your own context lean, and run independent subtasks in parallel. You stay responsible for control flow, decisions, and applying and committing changes. This is a default working structure, not something to spell out per task.
+
+Dispatch only for subtasks with no shared state. Give each worker a clear objective, bounded files or directories, expected output, and completion criteria.
 
 - Workers must never search from `/` or unscoped — restate the scope in the prompt itself, since subagents don't inherit it, e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search."
 - When a prompt references a skill by name, tell the worker to invoke its `Skill` tool (or inline the guidance) — a fresh subagent may otherwise search the whole filesystem for the skill file.
