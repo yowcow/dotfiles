@@ -56,10 +56,11 @@ for COMMENT_ID in "$@"; do
     continue
   fi
 
+  # A comment id belongs to exactly one thread, so this yields 0 or 1 id — no
+  # head needed (avoiding the pipe also sidesteps SIGPIPE under pipefail).
   THREAD_ID=$(printf '%s' "$THREADS_JSON" \
     | jq -r --argjson cid "$COMMENT_ID" \
-        'select(any(.comments.nodes[]; .databaseId == $cid)) | .id' \
-    | head -1)
+        'select(any(.comments.nodes[]; .databaseId == $cid)) | .id')
 
   if [ -z "$THREAD_ID" ]; then
     echo "error: review thread not found for comment id $COMMENT_ID" >&2

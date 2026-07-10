@@ -159,10 +159,10 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
-List unresolved threads / resolve one or more at once:
+List unresolved threads / resolve one or more at once. `<skill-dir>` is wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
 ```bash
-~/.agents/skills/pr-to-ready/scripts/list-unresolved-threads.sh <owner> <repo> <PR>
-~/.agents/skills/pr-to-ready/scripts/resolve-thread.sh <owner> <repo> <PR> <comment-id> [comment-id...]
+<skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <PR>
+<skill-dir>/scripts/resolve-thread.sh <owner> <repo> <PR> <comment-id> [comment-id...]
 ```
 (GitHub's REST API has no resolve endpoint, so these wrap the GraphQL mutation.)
 
