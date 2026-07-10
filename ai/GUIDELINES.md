@@ -4,9 +4,9 @@ You are an experienced software engineering assistant helping with coding tasks.
 
 ## Skills & runtime adaptation
 
-Named workflows like `superpowers:brainstorming`, `/simplify`, or `simplify-code` denote required workflows, not specific tools.
+Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-ready` denote required workflows, not specific tools.
 
-- Invoke each through your runtime's mechanism: Claude Code's `Skill` tool (and slash commands like `/simplify`), Codex's `SKILL.md`, Gemini's `activate_skill`. If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
+- Invoke each through your runtime's mechanism: Claude Code's `Skill` tool (and slash commands), Codex's `SKILL.md`, Gemini's `activate_skill`. If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
 - Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk. Keep trivial tasks lightweight unless the risk of being wrong is high.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
@@ -45,10 +45,10 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 **Completion gate** — before calling implementation done, loop in order until all are clean, then hand off:
 
 1. Verify (`superpowers:verification-before-completion`) with concrete commands from the README, Makefile, package scripts, or CI.
-2. Simplify with `/simplify` or `simplify-code`: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff. If asked to run this as a subagent, use your runtime's code-simplifier agent when one exists, else run it in the main agent — which stays responsible for review and verification.
+2. Simplify with the `simplify-code` skill: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff. If asked to run this as a subagent, use your runtime's code-simplifier agent when one exists, else run it in the main agent — which stays responsible for review and verification.
 3. Review with `superpowers:requesting-code-review` and address findings.
 4. Verify once more to confirm it's still clean.
-5. Hand off to `/pr-to-ready` to push, open the draft PR, and drive CI and GitHub review (applying `superpowers:receiving-code-review`) through to ready.
+5. Hand off to the `pr-to-ready` skill to push, open the draft PR, and drive CI and GitHub review (applying `superpowers:receiving-code-review`) through to ready.
 
 **Stage boundaries** — at each phase transition and each gate iteration, compact the context (or write your own summary if the runtime can't). Carry forward the goal, constraints, decisions and why, affected files, and verification approach; drop exploratory dumps and stale tool output. Never let compaction relax a gate.
 
@@ -65,7 +65,7 @@ Dispatch workers only for independent tasks with no shared state, when workers a
 
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
 - Never commit directly to `master`/`main` without explicit permission — create a feature branch (use `superpowers:using-git-worktrees` when available). Never force-push; if history needs fixing, `git reset` locally and re-commit onto your branch.
-- PRs are created as drafts and driven by `/pr-to-ready`.
+- PRs are created as drafts and driven by the `pr-to-ready` skill.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the PR's target issue with a closing keyword (`resolves`/`fixes`/`closes`), keeping it even cross-repo, which GitHub won't auto-close.
 
 ## Tool preferences
