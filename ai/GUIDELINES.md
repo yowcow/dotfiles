@@ -56,7 +56,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 ## Subagents & worker safety
 
-Prefer working as an **orchestrator**: when subagents are available and permitted, delegate self-contained or context-heavy subtasks to them to keep your own context lean, and run independent subtasks in parallel. You stay responsible for control flow, decisions, and applying and committing changes. This is a default working structure, not something to spell out per task.
+Prefer working as an **orchestrator**: when subagents are available and permitted, delegate self-contained or context-heavy subtasks to them to keep your own context lean, and run independent subtasks in parallel. A subagent may just investigate and propose (you apply the change) or make scoped edits itself (e.g. a code-simplifier or plan-execution subagent) — either way you stay responsible for control flow, decisions, verification, and committing the result. This is a default working structure, not something to spell out per task.
 
 Dispatch only for subtasks with no shared state. Give each worker a clear objective, bounded files or directories, expected output, and completion criteria.
 
