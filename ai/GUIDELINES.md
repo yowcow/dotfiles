@@ -57,7 +57,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 - Choose the execution method deliberately:
   - In the same session, use `superpowers:subagent-driven-development` only when tasks are mostly independent and workers are available and permitted.
   - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
-  - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable, execute it manually; do not treat `executing-plans` as an inline fallback.
+  - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable or not permitted, execute it manually; do not treat `executing-plans` as an inline fallback.
 - `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent investigations or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
 - Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
 - For diagnosis, use `superpowers:systematic-debugging` before proposing a fix.
