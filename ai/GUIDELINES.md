@@ -31,48 +31,84 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 ## Reasoning effort
 
-Slow down for hard-to-reverse decisions: planning, architecture and code review, simplification strategy, root-cause analysis, and the final critique before calling work done. Move quickly on mechanical work: searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs. If your runtime exposes a thinking-budget control, map it to these two tiers.
+- **Slow down** for hard-to-reverse decisions — planning, architecture, code review, simplification strategy, root-cause analysis, and the final critique before calling work done.
+- **Move quickly** on mechanical work — searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs.
+- If your runtime exposes a thinking-budget control, map it to these two tiers.
 
 ## Workflow
 
 Run these four phases in order. A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain).
 
-1. **Understand** — explore before changing, using Serena when available, else `rg`. Read the relevant files and assess the impact of the change.
-2. **Plan** — for non-trivial work use `superpowers:brainstorming`, then `superpowers:writing-plans`. Consider edge cases, and fold the completion gate (below) into the plan. Don't commit planning artifacts by default: record the plan on the related issue's comment thread (標準語), or present it in chat.
-3. **Implement** — use `superpowers:test-driven-development` and `superpowers:systematic-debugging`. Execute a written plan (`superpowers:executing-plans`), delegating to `superpowers:subagent-driven-development` — or `superpowers:dispatching-parallel-agents` for 2+ independent tasks with no shared state — when workers are available and permitted, otherwise inline. For bug fixes, reproduce the symptom, add a focused regression test, then fix and verify. Test as you go and avoid unrelated refactoring.
-4. **Verify & complete** — run the completion gate until clean, then report the concrete checks you ran (and any you couldn't), what changed and why, assumptions made, and areas needing manual review.
+### 1. Understand
 
-**Completion gate** — before calling implementation done, loop in order until all are clean, then hand off:
+- Before exploration or questions, confirm and invoke applicable skills as required by **Skills & runtime adaptation**.
+- Explore before changing: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, assess the impact, and identify existing failures and constraints.
 
-1. Verify (`superpowers:verification-before-completion`) with concrete commands from the README, Makefile, package scripts, or CI.
-2. Simplify with the `simplify-code` skill: drop dead code, repeated logic, needless abstractions, unclear names, and formatting churn, keeping behavior and the smallest maintainable diff.
-3. Review with `superpowers:requesting-code-review` and address findings.
-4. Verify once more to confirm it's still clean.
-5. Hand off to the `pr-to-ready` skill.
+### 2. Plan
 
-**Stage boundaries** — at each phase transition and each gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output. Writing this summary is your responsibility even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
+- For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
+- After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
+- Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
+- Don't commit planning artifacts by default — record the plan on the related issue's comment thread (標準語), or present it in chat.
 
-**Escalation** — when uncertainty is high, requirements conflict, or multiple viable designs exist, stop and return to planning instead of improvising an architectural decision. Report what's uncertain, the options and trade-offs, and your recommendation.
+### 3. Implement
+
+- Implementation requires a written plan; otherwise return to Plan.
+- Choose the execution method deliberately:
+  - In the same session, use `superpowers:subagent-driven-development` only when tasks are mostly independent and workers are available and permitted.
+  - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
+  - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable or not permitted, execute it manually; do not treat `executing-plans` as an inline fallback.
+- `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent investigations or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
+- Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
+- For diagnosis, use `superpowers:systematic-debugging` before proposing a fix.
+- For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
+- With SDD, review each task after it completes. With `executing-plans`, review each task or natural checkpoint. Request review with `superpowers:requesting-code-review`, then evaluate findings with `superpowers:receiving-code-review`: Critical findings stop progress and Important findings must be resolved before the next task.
+- Test as you go and avoid unrelated refactoring.
+
+### 4. Verify & complete
+
+- Run the completion gate until clean, then report the concrete checks you ran (and any you couldn't), what changed and why, assumptions made, and areas needing manual review.
+
+### Completion gate
+
+Before calling implementation done, loop in order until all are clean, then hand off:
+
+1. **Verify** — Use `superpowers:verification-before-completion` with fresh output from concrete commands in the README, Makefile, package scripts, or CI. Run independent checks in parallel where possible.
+2. **Simplify** — Use `simplify-code` on only the recent diff, preserving behavior and the smallest maintainable change.
+3. **Repeat as needed** — If simplification changes anything, re-run the relevant verification and simplify again until no further behavior-preserving cleanup remains.
+4. **Review** — Request review with `superpowers:requesting-code-review`, then technically evaluate findings with `superpowers:receiving-code-review`. Accepted fixes return to this same verification, simplification, and review path.
+5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. Create a Draft PR only if the user chooses that option, then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
+
+### Stage boundaries
+
+- At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
+- You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
+
+### Escalation
+
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and return to planning instead of improvising an architectural decision.
+- Report what's uncertain, the options and trade-offs, and your recommendation.
 
 ## Subagents & worker safety
 
-Prefer working as an **orchestrator**: when subagents are available and permitted, delegate self-contained or context-heavy subtasks to them to keep your own context lean, and run independent subtasks in parallel. A subagent may just investigate and propose (you apply the change) or make scoped edits itself (e.g. a code-simplifier or plan-execution subagent) — either way you stay responsible for control flow, decisions, verification, and committing the result. This is a default working structure, not something to spell out per task.
-
-Dispatch only for subtasks with no shared state. Give each worker a clear objective, bounded files or directories, expected output, and completion criteria.
-
-- Workers must never search from `/` or unscoped — restate the scope in the prompt itself, since subagents don't inherit it, e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search."
-- When a prompt references a skill by name, tell the worker to invoke its `Skill` tool (or inline the guidance) — a fresh subagent may otherwise search the whole filesystem for the skill file.
+- These rules apply after choosing a worker-based execution method; they do not decide whether SDD is appropriate.
+- Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
+- A worker may investigate and propose or make scoped edits, but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
+- Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
+- Workers must never search from `/` or unscoped, and shouldn't rediscover project context — restate the scope in the prompt itself, since subagents don't inherit it (e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search").
+- When a prompt references a skill by name, tell the worker to invoke its runtime mechanism (Claude Code's `Skill` tool, etc.) or inline the guidance — a fresh subagent may otherwise search the whole filesystem for the skill file.
 
 ## Git & PR workflow
 
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
-- Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, isolate the work in a git worktree via `superpowers:using-git-worktrees`; fall back to a plain feature branch only when worktrees aren't available. Never force-push; if history needs fixing, `git reset` locally and re-commit onto your branch.
-- PRs are created as drafts and driven by the `pr-to-ready` skill.
-- Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the PR's target issue with a closing keyword (`resolves`/`fixes`/`closes`), keeping it even cross-repo, which GitHub won't auto-close.
+- Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
+- Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
+- Create a Draft PR only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option, then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
+- Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences
 
-- Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations (Serena for codebase exploration).
+- Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
 - Don't search from `/`; start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) unless asked.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
