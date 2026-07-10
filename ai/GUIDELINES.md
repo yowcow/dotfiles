@@ -41,7 +41,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 ### 1. Understand
 
-- Invoke applicable skills before doing anything, including exploration and questions.
+- Before exploration or questions, confirm and invoke applicable skills as required by **Skills & runtime adaptation**.
 - Explore before changing: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, assess the impact, and identify existing failures and constraints.
 
 ### 2. Plan
@@ -101,7 +101,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 ## Git & PR workflow
 
 - Don't pause for per-commit review; the user reviews at the PR. Commit autonomously at logical breakpoints, and still summarize what changed.
-- Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, isolate the work in a git worktree via `superpowers:using-git-worktrees`; fall back to a plain feature branch only when worktrees aren't available.
+- Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
 - Create a Draft PR only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option, then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
