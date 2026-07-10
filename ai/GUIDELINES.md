@@ -50,7 +50,7 @@ Run these four phases in order. A phase is *clean* when its checks pass: verific
 
 ### 3. Implement
 
-- Start with `superpowers:subagent-driven-development` as an orchestrator: dispatch a fresh implementation subagent per task rather than implementing directly. Fall back to `superpowers:executing-plans` inline only when workers aren't available.
+- Start with `superpowers:subagent-driven-development` as an orchestrator — dispatch a fresh implementation subagent per task rather than implementing directly, falling back to `superpowers:executing-plans` inline only when workers aren't available.
 - `superpowers:test-driven-development` and (for diagnosis) `superpowers:systematic-debugging` are the methods workers apply, not the entry point.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
 - Test as you go and avoid unrelated refactoring.
