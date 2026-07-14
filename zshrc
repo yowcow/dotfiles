@@ -88,6 +88,7 @@ export AWS_ASSUME_ROLE_TTL=12h
 export AWS_FEDERATION_TOKEN_TTL=12h
 
 export CLAUDE_CODE_DISABLE_MOUSE=1
+export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
 
 function colorlist() {
     for color in {000..015}; do
