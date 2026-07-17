@@ -37,39 +37,50 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 ## Workflow
 
-Run these four phases in order. A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain).
+### Workflow selection
 
-### 1. Understand
+Classify the task first:
+
+- **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Phases: Plan → Implement → Verify & complete.
+- **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
+
+Both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is neither — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
+
+### Understand
 
 - Before exploration or questions, confirm and invoke applicable skills as required by **Skills & runtime adaptation**.
-- Explore before changing: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, assess the impact, and identify existing failures and constraints.
+- Read before acting: read the relevant files (Serena when available, else `rg`), understand the surrounding architecture and impacted interfaces, assess the impact, and identify existing failures and constraints.
+- For investigations, also pin down the symptom precisely — what is observed, where, since when, at what scope — and what a sufficient explanation would look like.
 
-### 2. Plan
+### Change workflow
+
+Run Plan → Implement → Verify & complete in order. A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain).
+
+#### Plan
 
 - For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
 - After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
 - Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
 - Don't commit planning artifacts by default — record the plan on the related issue's comment thread (標準語), or present it in chat.
 
-### 3. Implement
+#### Implement
 
 - Implementation requires a written plan; otherwise return to Plan.
 - Choose the execution method deliberately:
   - In the same session, use `superpowers:subagent-driven-development` only when tasks are mostly independent and workers are available and permitted.
   - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
   - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable or not permitted, execute it manually; do not treat `executing-plans` as an inline fallback.
-- `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent investigations or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
+- `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent fact-finding or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
 - Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
-- For diagnosis, use `superpowers:systematic-debugging` before proposing a fix.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
 - With SDD, review each task after it completes. With `executing-plans`, review each task or natural checkpoint. Request review with `superpowers:requesting-code-review`, then evaluate findings with `superpowers:receiving-code-review`: Critical findings stop progress and Important findings must be resolved before the next task.
 - Test as you go and avoid unrelated refactoring.
 
-### 4. Verify & complete
+#### Verify & complete
 
 - Run the completion gate until clean, then report the concrete checks you ran (and any you couldn't), what changed and why, assumptions made, and areas needing manual review.
 
-### Completion gate
+#### Completion gate
 
 Before calling implementation done, loop in order until all are clean, then hand off:
 
@@ -79,6 +90,29 @@ Before calling implementation done, loop in order until all are clean, then hand
 4. **Review** — Request review with `superpowers:requesting-code-review`, then technically evaluate findings with `superpowers:receiving-code-review`. Accepted fixes return to this same verification, simplification, and review path.
 5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. Create a Draft PR only if the user chooses that option, then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
 
+### Investigation workflow
+
+The deliverable is an evidence-backed explanation of an observed problem. `superpowers:systematic-debugging` is the core loop (reproduce → hypothesize → test → verify); local skills layer domain specifics on top — `investigate-performance` for performance shortfalls, `investigate-failure` for failures and incidents; for a plain unknown-cause bug, the core loop alone usually suffices. Keep evidence and hypotheses strictly separated per **Epistemic honesty**: never promote a hypothesis to a conclusion without a confirming measurement or reproduction.
+
+#### Explore
+
+- Preserve volatile evidence first, then establish a reliable reproduction or observation baseline and gather the evidence and code paths the symptom implicates.
+- Use `superpowers:dispatching-parallel-agents` only for independent evidence-gathering. Investigation workers are read-only: they collect evidence and report findings; the orchestrator owns hypothesis selection, conclusions, and the report.
+
+#### Validate
+
+- Test hypotheses one at a time via the core loop, and record each with its test and verdict; refuted ones stay recorded, not retried.
+
+#### Synthesize
+
+- Exit when the root cause explains all observations — magnitude, timing, and scope included — or when the remaining unknowns are explicitly documented along with how to resolve them. Distinguish root cause from trigger and contributing factors.
+- Report findings with evidence and confidence; the domain skill, when one applies, defines the concrete report format. Proposed fixes are options in the report, not work to start.
+
+#### Investigation → change transition
+
+- An investigation never starts editing. When a fix is wanted, enter the Change workflow's Plan with the findings as input — the fix still needs design approval, even when the investigation proposed it.
+- Carry the reproduction forward: it becomes the regression test for the fix.
+
 ### Stage boundaries
 
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
@@ -86,14 +120,14 @@ Before calling implementation done, loop in order until all are clean, then hand
 
 ### Escalation
 
-- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and return to planning instead of improvising an architectural decision.
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and return to the current workflow's planning or framing phase — or to Workflow selection if the task's type changed — instead of improvising an architectural decision.
 - Report what's uncertain, the options and trade-offs, and your recommendation.
 
 ## Subagents & worker safety
 
-- These rules apply after choosing a worker-based execution method; they do not decide whether SDD is appropriate.
+- These rules apply after choosing a worker-based execution method; they do not decide whether one is appropriate.
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
-- A worker may investigate and propose or make scoped edits, but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
+- A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
 - Workers must never search from `/` or unscoped, and shouldn't rediscover project context — restate the scope in the prompt itself, since subagents don't inherit it (e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search").
 - When a prompt references a skill by name, tell the worker to invoke its runtime mechanism (Claude Code's `Skill` tool, etc.) or inline the guidance — a fresh subagent may otherwise search the whole filesystem for the skill file.
