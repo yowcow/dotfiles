@@ -108,7 +108,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - Exit when the root cause explains all observations — magnitude, timing, and scope included — or when the remaining unknowns are explicitly documented along with how to resolve them. Distinguish root cause from trigger and contributing factors.
 - Report findings with evidence and confidence; the domain skill, when one applies, defines the concrete report format. Proposed fixes are options in the report, not work to start.
 
-#### Investigation → change transition
+#### Investigation → Change transition
 
 - An investigation never starts editing. When a fix is wanted, enter the Change workflow's Plan with the findings as input — the fix still needs design approval, even when the investigation proposed it.
 - Carry the reproduction forward: it becomes the regression test for the fix.

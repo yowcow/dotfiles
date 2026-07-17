@@ -62,7 +62,7 @@ Subagents only investigate and propose (read-only, advisory, no worktree); the o
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: make it by following the Change workflow (implement → verify → simplify → self-review) in the shared AI guidelines. Do **not** re-enter that workflow's completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → self-review, applying the Change workflow's implementation discipline from the shared AI guidelines. Do **not** re-enter the full Change workflow — no new Plan phase and no completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
 
 ## Step 1: Get CI clean
 
@@ -70,7 +70,7 @@ Every fix in this loop — for a CI failure (Step 1) or accepted review feedback
 2. On any failure:
    - Identify the failed run: `gh run list --branch <branch> --limit 5`
    - **Delegate diagnosis to a subagent**: give it `<run-id>` and have it run `gh run view <run-id> --log-failed`, apply **superpowers:systematic-debugging**, and return *only* the root cause + a concrete fix plan (not the raw logs). This keeps the log dump out of the orchestrator's context.
-   - Apply the fix in the orchestrator, following the Change workflow (see *Making fixes* above).
+   - Apply the fix in the orchestrator, per *Making fixes* above.
    - commit → push (follow the git rules in the shared AI guidelines; never push directly to master/main)
    - Go back to 1.
 
@@ -153,7 +153,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 
 **Apply (orchestrator, sequential — these mutate shared state):**
 
-1. For each `accept`, fix the code where a change is warranted, following the Change workflow (see *Making fixes* above).
+1. For each `accept`, fix the code where a change is warranted, per *Making fixes* above.
 2. commit → push
 3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a frank, casual tone is fine, but dialect has slipped in before). **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
