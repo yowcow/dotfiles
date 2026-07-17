@@ -91,6 +91,10 @@ export AWS_FEDERATION_TOKEN_TTL=12h
 export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 #export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
 
+export ANTHROPIC_MODEL=opus
+export CLAUDE_CODE_SUBAGENT_MODEL=sonnet
+export CLAUDE_CODE_EFFORT_LEVEL=auto
+
 function colorlist() {
     for color in {000..015}; do
         print -nP "%F{$color}$color %f"
