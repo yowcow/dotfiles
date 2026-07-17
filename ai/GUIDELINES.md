@@ -61,7 +61,7 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 - For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
 - After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
 - Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
-- Don't commit planning artifacts by default — record the plan on the related issue's comment thread (標準語), or present it in chat.
+- Don't commit planning artifacts by default — when the work tracks a GitHub issue, post the plan detail and its TODO checklist as a comment on that issue (標準語); otherwise present them in chat.
 
 #### Implement
 
@@ -74,6 +74,7 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 - Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
 - With SDD, review each task after it completes. With `executing-plans`, review each task or natural checkpoint. Request review with `superpowers:requesting-code-review`, then evaluate findings with `superpowers:receiving-code-review`: Critical findings stop progress and Important findings must be resolved before the next task.
+- As each task completes and verifies, check it off the TODO checklist — on the issue comment when the plan lives there.
 - Test as you go and avoid unrelated refactoring.
 
 #### Verify & complete
