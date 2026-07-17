@@ -62,7 +62,7 @@ Subagents only investigate and propose (read-only, advisory, no worktree); the o
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → self-review, applying the Change workflow's implementation discipline from the shared AI guidelines. Do **not** re-enter the full Change workflow — no new Plan phase and no completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying the Change workflow's implementation discipline from the shared AI guidelines. Do **not** re-enter the full Change workflow — no new Plan phase and no completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
 
 ## Step 1: Get CI clean
 
