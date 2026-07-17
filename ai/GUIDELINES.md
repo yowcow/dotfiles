@@ -42,7 +42,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 Classify the task first:
 
 - **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Phases: Plan → Implement → Verify & complete.
-- **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
+- **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, an unexplained metric or cost change, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
 
 Both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is neither — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
 
@@ -92,7 +92,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 
 ### Investigation workflow
 
-The deliverable is an evidence-backed explanation of an observed problem. `superpowers:systematic-debugging` is the core loop (reproduce → hypothesize → test → verify); local skills layer domain specifics on top — `investigate-performance` for performance shortfalls, `investigate-failure` for failures and incidents; for a plain unknown-cause bug, the core loop alone usually suffices. Keep evidence and hypotheses strictly separated per **Epistemic honesty**: never promote a hypothesis to a conclusion without a confirming measurement or reproduction.
+The deliverable is an evidence-backed explanation of an observed problem. `superpowers:systematic-debugging` is the core loop (reproduce → hypothesize → test → verify); local skills layer domain specifics on top — `investigate-performance` for performance shortfalls, `investigate-anomaly` for failures, incidents, and unexplained metric or cost changes; for a plain unknown-cause bug, the core loop alone usually suffices. Keep evidence and hypotheses strictly separated per **Epistemic honesty**: never promote a hypothesis to a conclusion without a confirming measurement or reproduction.
 
 #### Explore
 
