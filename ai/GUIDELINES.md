@@ -88,7 +88,7 @@ Before calling implementation done, loop in order until all are clean, then hand
 2. **Simplify** — Use `simplify-code` on only the recent diff, preserving behavior and the smallest maintainable change.
 3. **Repeat as needed** — If simplification changes anything, re-run the relevant verification and simplify again until no further behavior-preserving cleanup remains.
 4. **Review** — Request review with `superpowers:requesting-code-review`, then technically evaluate findings with `superpowers:receiving-code-review`. Accepted fixes return to this same verification, simplification, and review path.
-5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. Create a Draft PR only if the user chooses that option, then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
+5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. If the user picks the PR option, create the PR as a draft (`gh pr create --draft`) — draft is the precondition `pr-to-ready` requires — then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
 
 ### Investigation workflow
 
@@ -138,7 +138,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
 - When a branch will be pushed, choose its local name as the intended remote branch name and push it under that same name. Use a different remote name only with an explicit reason or user instruction.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
-- Create a Draft PR only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option, then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
+- Create the PR as a draft (`gh pr create --draft`) only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option — draft is the precondition `pr-to-ready` requires — then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences
