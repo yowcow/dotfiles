@@ -14,6 +14,13 @@ Root-cause an observed performance shortfall. The deliverable is a findings repo
 - Account for variance and warm-up before trusting a delta.
 - Record every measurement in the evidence log, including refuting ones.
 
+## Orchestration (subagents)
+
+When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only measurements; keep hypothesis selection, the evidence log, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
+
+- Descending the layers (Step 3) stays sequential by design — which layer to drill into depends on the previous measurement.
+- Within a layer, independent measurements (CPU vs memory vs IO saturation; several common suspects) can each go to a worker; workers return numbers and observations only, never verdicts.
+
 ## Step 1: Frame and baseline
 
 - Define the exact metric (p50/p99 latency, throughput, RSS, CPU%) and the target or prior value it is measured against.

@@ -14,6 +14,14 @@ Root-cause an observed failure or incident. The deliverable is a blameless findi
 - Investigation is read-only: never mutate production state (restarts, config, data) without explicit user approval.
 - Preserve volatile evidence before anything else.
 
+## Orchestration (subagents)
+
+When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only evidence-gathering; keep hypothesis selection, conclusions, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
+
+- Step 1 sources (logs, dashboards, queue/process state) can be captured by one worker per source.
+- Step 3 change classes are independent — fan out one worker per class; the orchestrator merges the results into the timeline.
+- Hypothesis testing (Step 4) stays sequential in the orchestrator: each verdict informs the next hypothesis choice.
+
 ## Step 1: Capture and preserve
 
 - Record the exact error text/codes, first and last occurrence, scope (which users/hosts/requests), and current status (ongoing vs recovered).
