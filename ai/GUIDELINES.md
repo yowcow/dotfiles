@@ -67,7 +67,7 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 
 - Implementation requires a written plan; otherwise return to Plan.
 - Choose the execution method deliberately:
-  - In the same session, use `superpowers:subagent-driven-development` only when tasks are mostly independent and workers are available and permitted.
+  - In the same session, prefer `superpowers:subagent-driven-development` whenever tasks are independent and workers are available and permitted — it runs each task in a worker isolated from the orchestrator (a separate context, and a separate model where the runtime supports it).
   - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
   - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable or not permitted, execute it manually; do not treat `executing-plans` as an inline fallback.
 - `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent fact-finding or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
