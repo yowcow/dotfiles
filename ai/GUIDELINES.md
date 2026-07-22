@@ -37,6 +37,8 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 ## Workflow
 
+The orchestrator owns the workflow's progression: it decides when each phase is complete and drives every transition to the next. Subagents do work within a single phase and always hand back — a worker is never given an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
+
 ### Workflow selection
 
 Classify the task first:
