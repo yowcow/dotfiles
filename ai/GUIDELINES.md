@@ -147,7 +147,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 ## Tool preferences
 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
-- Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) unless asked. To find a binary use `command -v`, not a filesystem search; resolve a skill by its runtime mechanism (Claude Code's `Skill` tool, etc.), never by searching the filesystem for its file.
+- Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly (e.g. `build/packages/<pkg>`, `node_modules/<pkg>`) instead of widening the scope. To find a binary use `command -v`, not a filesystem search; resolve a skill by its runtime mechanism (Claude Code's `Skill` tool, etc.), never by searching the filesystem for its file.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Technical preferences
