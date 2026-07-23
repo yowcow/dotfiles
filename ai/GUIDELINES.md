@@ -133,8 +133,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
-- Workers must never search from `/` or unscoped, and shouldn't rediscover project context — restate the scope in the prompt itself, since subagents don't inherit it (e.g. "confine searches to `<path>`; to check for a binary use `command -v`, not a filesystem search").
-- When a prompt references a skill by name, tell the worker to invoke its runtime mechanism (Claude Code's `Skill` tool, etc.) or inline the guidance — a fresh subagent may otherwise search the whole filesystem for the skill file.
+- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance, so it doesn't rediscover context — or search the filesystem for the skill file — on its own.
 
 ## Git & PR workflow
 
@@ -148,7 +147,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 ## Tool preferences
 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
-- Don't search from `/`; start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) unless asked.
+- Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) unless asked. To find a binary use `command -v`, not a filesystem search; resolve a skill by its runtime mechanism (Claude Code's `Skill` tool, etc.), never by searching the filesystem for its file.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Technical preferences
