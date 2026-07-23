@@ -68,10 +68,11 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 #### Implement
 
 - Implementation requires a written plan; otherwise return to Plan.
-- Choose the execution method deliberately:
-  - In the same session, prefer `superpowers:subagent-driven-development` whenever tasks are independent and workers are available and permitted — it runs each task in a worker isolated from the orchestrator (a separate context, and a separate model where the runtime supports it).
-  - In a separate session that loads an existing plan, use `superpowers:executing-plans`.
-  - Replan tightly coupled work into independently verifiable tasks. If it cannot be split, or if same-session workers are unavailable or not permitted, execute it manually; do not treat `executing-plans` as an inline fallback.
+- Before writing code, declare which execution method you chose and why — this choice is explicit, never implicit:
+  - Same session with independent tasks → `superpowers:subagent-driven-development`, the default. Each task runs in a worker isolated from the orchestrator (a separate context, and a separate model where the runtime supports it). Tasks are independent when they share no files, no mutable state, and no ordering dependency.
+  - Separate session loading an existing plan → `superpowers:executing-plans`.
+  - Manual execution is a justified exception, not a fallback: first try to replan coupled work into independently verifiable tasks; do it yourself only when the work genuinely cannot be split, or when same-session workers are unavailable or not permitted. Name the reason — never drift into manual silently, and don't treat `executing-plans` as an inline fallback.
+- Delegation pays off only when each task is large enough to amortize the handoff (context packaging, the worker re-reading files, and review); inline trivially small independent changes instead.
 - `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent fact-finding or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
 - Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
 - For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
