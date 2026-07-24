@@ -195,63 +195,123 @@ function git-url() {
         | while read -r url; do echo "https://${url}/commit/${2}"; done
 }
 
-function git-worktree-clean() {
-  git fetch --prune
+# Remove local branches already merged into the current HEAD branch, and any
+# clean linked worktrees checking them out. Local state only — no fetch, no
+# remotes. Intended after you have updated the integration branch yourself
+# (e.g. git pull). Squash-merged branches are not detected.
+#
+# Usage: git-branch-clean [--apply|-y] [--dry-run|-n]
+#   Default is dry-run; pass --apply to actually delete.
+#   Run while checked out on the integration branch (master/main/…).
+function git-branch-clean() {
+  local apply=0
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      --apply|-y) apply=1 ;;
+      --dry-run|-n) apply=0 ;;
+      -h|--help)
+        cat <<'EOF'
+Usage: git-branch-clean [--apply|-y] [--dry-run|-n]
+
+Remove local branches merged into the currently checked-out branch, and
+their clean linked worktrees. Uses local repository state only (no fetch,
+no remotes). Does not detect squash merges.
+
+Run on the integration branch after you have updated it (e.g. git pull).
+Default is dry-run; pass --apply to delete.
+EOF
+        return 0
+        ;;
+      *)
+        echo "Unknown option: $arg" >&2
+        return 1
+        ;;
+    esac
+  done
 
   local main_wt
-  main_wt="$(git rev-parse --show-toplevel)"
+  main_wt="$(git rev-parse --show-toplevel)" || return 1
 
-  git worktree list --porcelain |
-    awk '
-      /^worktree / {
-        wt=$2
+  local base_branch
+  if ! base_branch="$(git symbolic-ref -q --short HEAD)"; then
+    echo "Error: detached HEAD; check out the integration branch first" >&2
+    return 1
+  fi
+  echo "Base: $base_branch (current branch, local only)"
+
+  # branch -> worktree path (linked only; skip locked / detached / main)
+  local -A wt_for_branch
+  local wt_path="" branch="" locked=0
+  while IFS= read -r line; do
+    case "$line" in
+      worktree\ *)
+        wt_path="${line#worktree }"
         branch=""
         locked=0
-        detached=0
-      }
+        ;;
+      branch\ refs/heads/*)
+        branch="${line#branch refs/heads/}"
+        ;;
+      locked*)
+        locked=1
+        ;;
+      "")
+        if [[ -n "$wt_path" && -n "$branch" && "$locked" -eq 0 && "$wt_path" != "$main_wt" ]]; then
+          wt_for_branch[$branch]="$wt_path"
+        fi
+        wt_path=""
+        branch=""
+        locked=0
+        ;;
+    esac
+  done < <(git worktree list --porcelain)
 
-      /^branch refs\/heads\// {
-        branch=$2
-        sub(/^refs\/heads\//, "", branch)
-      }
+  local merged_branch action_prefix
+  if [[ "$apply" -eq 1 ]]; then
+    action_prefix="Removing"
+  else
+    action_prefix="Would remove"
+  fi
 
-      /^detached/ { detached=1 }
-      /^locked/ { locked=1 }
+  while IFS= read -r merged_branch; do
+    [[ -z "$merged_branch" ]] && continue
+    # Never delete the branch we are on
+    [[ "$merged_branch" == "$base_branch" ]] && continue
 
-      /^$/ {
-        if (locked == 0) {
-          if (branch != "") {
-            print "branch\t" branch "\t" wt
-          } else if (detached == 1) {
-            print "detached\t-\t" wt
-          }
-        }
-      }
-    ' |
-    while IFS=$'\t' read -r kind branch wt_path; do
-      [[ "$wt_path" == "$main_wt" ]] && continue
-
-      if [[ "$kind" == "branch" ]]; then
-        local remote="origin/$branch"
-
-        git show-ref --verify --quiet "refs/remotes/$remote" || continue
-        git merge-base --is-ancestor "$branch" "$remote" || continue
-      fi
-
+    # Linked worktree on this branch: require a clean tree before remove.
+    # If it stays, the branch is still checked out and must not be deleted.
+    local branch_held=0
+    if [[ -n "${wt_for_branch[$merged_branch]:-}" ]]; then
+      wt_path="${wt_for_branch[$merged_branch]}"
       local status_output
       if ! status_output="$(git -C "$wt_path" status --porcelain --ignore-submodules=none)"; then
-        echo "Skip: cannot read status: $wt_path"
-        continue
+        echo "Skip worktree (cannot read status): $wt_path ($merged_branch)"
+        branch_held=1
+      elif [[ -n "$status_output" ]]; then
+        echo "Skip worktree (dirty): $wt_path ($merged_branch)"
+        branch_held=1
+      else
+        echo "$action_prefix worktree: $wt_path ($merged_branch)"
+        if [[ "$apply" -eq 1 ]]; then
+          if ! git worktree remove --force --force "$wt_path"; then
+            echo "Skip worktree (remove failed): $wt_path"
+            branch_held=1
+          fi
+        fi
       fi
+    fi
 
-      [[ -z "$status_output" ]] || continue
-
-      echo "Removing $wt_path ($kind $branch)"
-      git worktree remove --force --force "$wt_path" || {
-        echo "Skip: failed to remove: $wt_path"
-        continue
-      }
-    done
+    # -d re-checks merged-into-HEAD; safe now that base is the local HEAD.
+    if [[ "$branch_held" -eq 0 ]] && git show-ref --verify --quiet "refs/heads/${merged_branch}"; then
+      echo "$action_prefix branch: $merged_branch"
+      if [[ "$apply" -eq 1 ]]; then
+        git branch -d "$merged_branch" || {
+          echo "Skip branch (delete failed): $merged_branch"
+        }
+      fi
+    fi
+  done < <(git branch --merged HEAD --format='%(refname:short)')
 }
 
 function pin() {
