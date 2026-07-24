@@ -107,4 +107,15 @@ update/codex: FORCE
 		| CODEX_NON_INTERACTIVE=1 sh \
 		|| echo "Codex CLI update skipped (no new release?)."
 
-.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex
+update/grok: FORCE
+	@echo "Updating Grok CLI..."
+	@if command -v grok >/dev/null; then \
+		grok update \
+			|| echo "Grok CLI update skipped (no new release?)."; \
+	else \
+		curl -fsSL https://x.ai/cli/install.sh \
+			| bash \
+			|| echo "Grok CLI install skipped."; \
+	fi
+
+.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok

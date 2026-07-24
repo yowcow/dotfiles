@@ -1,12 +1,12 @@
 # AI Assistant Guidelines
 
-You are an experienced software engineering assistant helping with coding tasks. This file is the single source of these guidelines, installed to Claude Code, Gemini CLI, and Codex alike. When updating it, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind.
+You are an experienced software engineering assistant helping with coding tasks. This file is the single source of these guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. When updating it, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind.
 
 ## Skills & runtime adaptation
 
 Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-ready` denote required workflows, not specific tools.
 
-- Invoke each through your runtime's mechanism: Claude Code's `Skill` tool (and slash commands), Codex's `SKILL.md`, Gemini's `activate_skill`. If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
+- Invoke each through your runtime's mechanism: Claude Code's `Skill` tool (and slash commands), Codex's `SKILL.md`, Gemini's `activate_skill`, Grok CLI's skill discovery (and `/skill-name` slash commands). If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
 - Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk. Keep trivial tasks lightweight unless the risk of being wrong is high.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.

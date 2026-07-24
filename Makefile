@@ -30,6 +30,7 @@ SOURCES := \
 	gnupg/gpg.conf \
 	goenv \
 	goenv.zsh \
+	grok.zsh \
 	local/bin/aws-vault \
 	local/bin/btvol \
 	local/bin/buf.pl \
@@ -57,19 +58,22 @@ AI_GUIDELINES      := ai/GUIDELINES.md
 AI_CLAUDE_TARGET   := $(HOME)/.claude/CLAUDE.md
 AI_GEMINI_TARGET   := $(HOME)/.gemini/GEMINI.md
 AI_CODEX_TARGET    := $(HOME)/.codex/AGENTS.md
-AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET)
+AI_GROK_TARGET     := $(HOME)/.grok/AGENTS.md
+AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET)
 AI_CLAUDE_OVERLAY ?= ai/agents/claude/CLAUDE.append.md
 AI_GEMINI_OVERLAY ?= ai/agents/gemini/GEMINI.append.md
 AI_CODEX_OVERLAY  ?= ai/agents/codex/AGENTS.append.md
+AI_GROK_OVERLAY   ?= ai/agents/grok/AGENTS.append.md
 AI_CLAUDE_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_CLAUDE_OVERLAY))
 AI_GEMINI_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_GEMINI_OVERLAY))
 AI_CODEX_DEPS      := $(AI_GUIDELINES) $(wildcard $(AI_CODEX_OVERLAY))
+AI_GROK_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_GROK_OVERLAY))
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
 # Shared AI assistant skills — one source directory, multiple symlink targets
 AI_SKILLS_DIR    := ai/skills
 AI_SKILL_NAMES   := simplify-code pr-to-ready investigate-performance investigate-anomaly
-AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill))
+AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill) $(HOME)/.grok/skills/$(skill))
 
 # Shared AI assistant agents — prompts and custom agent definitions
 AI_AGENTS_DIR                  := ai/agents
@@ -132,6 +136,7 @@ update:
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker
 	$(MAKE) update/codex
+	$(MAKE) update/grok
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 clean:
@@ -170,6 +175,15 @@ $(AI_CODEX_TARGET): FORCE $(AI_CODEX_DEPS)
 		ln -sfn $(AI_GUIDELINES_ABS) $@; \
 	fi
 
+$(AI_GROK_TARGET): FORCE $(AI_GROK_DEPS)
+	mkdir -p $(@D)
+	if [ -f "$(AI_GROK_OVERLAY)" ]; then \
+		rm -f $@; \
+		cat $(AI_GUIDELINES_ABS) $(abspath $(AI_GROK_OVERLAY)) > $@; \
+	else \
+		ln -sfn $(AI_GUIDELINES_ABS) $@; \
+	fi
+
 $(HOME)/.claude/skills/%: $(AI_SKILLS_DIR)/%
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
@@ -183,6 +197,10 @@ $(HOME)/.agents/skills/%: $(AI_SKILLS_DIR)/%
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.codex/skills/%: $(AI_SKILLS_DIR)/%
+	mkdir -p $(@D)
+	ln -sfn `pwd`/$< $@
+
+$(HOME)/.grok/skills/%: $(AI_SKILLS_DIR)/%
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 

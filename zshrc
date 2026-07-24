@@ -300,6 +300,6 @@ function ssh-agent-stop() {
 
 ssh-agent-start
 
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .local.zsh; do
+for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .grok.zsh .local.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done

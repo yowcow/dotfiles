@@ -50,6 +50,7 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
 *   Updates language-specific tools and package managers for Go, Node.js, Python, and Rust, ensuring you have the latest versions of your development tools.
 *   Installs/updates the Codex CLI via the official installer.
+*   Updates the Grok CLI via `grok update` (or the official installer if `grok` is not yet on PATH).
 
 To run the update:
 
@@ -71,7 +72,7 @@ make update/versioned
 ## Structure
 
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), and more.
-*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), shared skills, and custom agent definitions. On install, the shared guideline is applied to Claude, Gemini, and Codex; targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed.
+*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`), shared skills, and custom agent definitions. On install, the shared guideline is applied to Claude, Gemini, Codex, and Grok (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`); skills are symlinked into each runtime's skills directory (including `~/.grok/skills/`). Targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed. When both are plain symlinks to the same source, Grok typically loads only the native `~/.grok/AGENTS.md`; if an overlay makes the files differ and you see both in `grok inspect`, set `[compat.claude] agents = false` in `~/.grok/config.toml` (Claude Code itself is unaffected).
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains third-party tools and plugins cloned via SSH by the Makefile (not Git submodules — there is no `.gitmodules`), such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
 *   `Makefile`: The central script that orchestrates the entire dotfile management process, handling installation, updates, and cleanup operations.
