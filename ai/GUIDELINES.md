@@ -63,6 +63,7 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 - For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
 - After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
 - Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
+- Review the drafted plan with `review-plan`, and don't leave Plan until it reports clean.
 - Don't commit planning artifacts by default — when the work tracks a GitHub issue, post the plan detail and its TODO checklist as a comment on that issue (標準語); otherwise present them in chat.
 
 #### Implement
