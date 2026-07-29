@@ -66,7 +66,7 @@ Run Plan → Implement → Verify & complete in order. A phase is *clean* when i
 - Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
 - Review the drafted plan with `review-plan`. One invocation is one review pass: it reports judged findings and never edits the plan.
 - Fold the accepted Critical and Important findings into the plan yourself, then re-run `review-plan` with the previous pass's record so rejected findings aren't re-litigated. Don't leave Plan until a pass comes back with no blocking finding. If three rounds don't converge, stop, report the open findings and the disagreement, and let the user decide; a Critical finding that invalidates the approved design goes back to `superpowers:brainstorming` for design approval per **Escalation**.
-- Don't commit planning artifacts by default — when the work tracks a GitHub issue, post the plan detail and its TODO checklist as a comment on that issue (標準語); otherwise present them in chat.
+- Don't commit planning artifacts by default, and don't publish the plan mid-loop — it stays in chat until the loop above converges. Then publish the final plan detail and its TODO checklist once (標準語): when the work tracks a GitHub issue, as a comment on that issue, updating the existing plan comment in place when there is one (`gh issue comment <n> --edit-last --create-if-none --body-file -`, whose `--body-file` also keeps backticks out of the shell); otherwise present them in chat.
 
 #### Implement
 
