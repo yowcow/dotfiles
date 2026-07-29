@@ -7,13 +7,14 @@ description: Use after implementation and before code review or PR creation to s
 
 Use after code changes and before `superpowers:requesting-code-review`.
 
-One invocation is one simplification pass: refine the diff, verify, report. Simplifying again after something else changes the code belongs to the caller — in the Change workflow, the guidelines' completion gate owns that loop.
+One invocation is one simplification pass, and the pass owns its apply-verify loop: refine, run the checks, refine again, until nothing actionable is left. What it does not own is re-entry — simplifying again after something else changes the code belongs to the caller; in the Change workflow, the guidelines' completion gate owns that.
 
 ## Scope
 
 - Focus on recently modified code and the current diff; don't broaden cleanup unless the user asks.
 - If a worthwhile simplification needs files outside the diff, report it instead of changing it.
 - Preserve behavior exactly: outputs, public APIs, data migrations, test intent, and user-visible semantics.
+- When the existing checks can't prove a simplification behavior-preserving, add the minimal characterization test that can, and say so in the report. That's the proof, not scope creep.
 
 ## Standards
 
@@ -35,5 +36,5 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 ## Process
 
 1. From the diff, identify the recently modified code and apply only behavior-preserving refinements.
-2. Verify with the concrete commands the project defines — in the README, Makefile, package scripts, or CI — and read their actual output before calling the pass done.
+2. Verify with the concrete commands the project defines — in the README, Makefile, package scripts, or CI — and read their actual output. Loop back to step 1 while actionable simplification remains.
 3. Report what changed, what behavior was preserved, what verification ran, and any simplification left undone.
