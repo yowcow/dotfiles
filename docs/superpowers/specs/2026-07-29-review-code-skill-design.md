@@ -7,6 +7,7 @@ Add a local skill, `review-code`, that runs the review-and-remediate loop to com
 Two problems motivate it:
 
 - **The loop is currently open-coded in the guidelines, in two places.** `ai/GUIDELINES.md:82` (per-task review during Implement) and `ai/GUIDELINES.md:97` (completion gate step 4) each spell out "request review with `superpowers:requesting-code-review`, then evaluate with `superpowers:receiving-code-review`" and leave the iteration implicit. One skill removes the duplication and makes the loop explicit.
+- **The Plan phase's round limit is too tight.** Three `review-plan` passes stop the loop while it is still making progress. This change raises it to five, matching the limit `review-code` uses, so both review loops stop at the same count.
 - **There is no entry point for reviewing code in an arbitrary state.** `superpowers:requesting-code-review` is written around a `BASE_SHA`..`HEAD_SHA` range, so an uncommitted working tree has no defined way in. `review-code` resolves the scope itself, so "review this code and fix what's wrong" works whatever state the tree is in.
 
 ## Non-goals
@@ -61,7 +62,7 @@ The pass is clean when no Critical or Important finding survives step 3. Minor f
 
 - A round is one review → judge → fix → verify cycle. The loop ends clean when a round's review produces no blocking finding.
 - Five rounds at most. If the fifth round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a sixth review — and report those fixes as applied but not re-reviewed, together with any disagreement. Never report clean on the strength of fixes no review has seen.
-- Five here, against three for `review-plan`, is deliberate: a plan that needs a fourth pass usually has a disagreement only the user can settle, while code review converges by fixing one concrete finding at a time and a later round often surfaces something the earlier ones could not reach. Don't "align" the two numbers.
+- Five, not three, because a review loop converges by fixing one concrete finding at a time and a later round often surfaces something the earlier ones could not reach — three stops the loop while it is still making progress. The Plan phase's `review-plan` loop moves from three to five for the same reason, so both review loops stop at the same count.
 - A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' **Escalation**.
 
 ## Report
@@ -80,8 +81,9 @@ Report to the caller in chat. Never post to GitHub — a loop's intermediate sta
 
 **`ai/skills/review-code/SKILL.md`** — new skill. Frontmatter `name` and `description` follow the local convention: what it is for, what it does, and the trigger phrases (`"review this code"`, `"review and fix"`, `"run the review loop until it's clean"`).
 
-**`ai/GUIDELINES.md`** — replace both open-coded call sites:
+**`ai/GUIDELINES.md`** — replace both open-coded call sites, and raise the Plan phase's round limit:
 
+- `:68` (Plan) — "If three rounds don't converge" becomes five, so the `review-plan` loop and the `review-code` loop stop at the same count. This is the only round limit in the file; `pr-to-ready`'s own "same feedback survives 3+ rounds" rule governs the GitHub review loop and is out of scope.
 - `:82` (Implement) — per-task review becomes a `review-code` invocation. Keep the existing severity rule: Critical stops progress, Important is resolved before the next task.
 - `:97` (completion gate step 4) — the Review step becomes a `review-code` invocation that returns clean. Keep the sentence that accepted fixes return to the gate's verification, simplification, and review path: the loop's fixes change the code, so the gate still has to re-verify and re-simplify around it.
 
@@ -91,4 +93,5 @@ Report to the caller in chat. Never post to GitHub — a loop's intermediate sta
 
 - `make -n install | rg review-code` shows symlink targets for all five assistant directories.
 - `rg -n 'requesting-code-review|receiving-code-review' ai/GUIDELINES.md` shows the loop is no longer open-coded at the two call sites.
+- `rg -n 'three rounds' ai/GUIDELINES.md` returns nothing.
 - Read the new `SKILL.md` against `ai/skills/review-plan/SKILL.md` and `ai/skills/simplify-code/SKILL.md`: frontmatter shape, section names, and the roles/loop-ownership statements are consistent with both.
