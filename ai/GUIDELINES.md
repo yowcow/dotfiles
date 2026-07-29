@@ -10,6 +10,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 - Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk. Keep trivial tasks lightweight unless the risk of being wrong is high.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
+- These guidelines own the orchestration invariants — who owns control flow, and the duty to declare an execution method. A skill owns its own procedure: how many workers, on which lenses, and what may run in parallel. A skill that declares no orchestration model runs inline in the main loop — you remain the orchestrator, and never assume it dispatches workers on your behalf.
 
 ## Core Principles
 
@@ -103,7 +104,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 #### Explore
 
 - Preserve volatile evidence first, then establish a reliable reproduction or observation baseline and gather the evidence and code paths the symptom implicates.
-- Use `superpowers:dispatching-parallel-agents` only for independent evidence-gathering. Investigation workers are read-only: they collect evidence and report findings; the orchestrator owns hypothesis selection, conclusions, and the report.
+- Investigation workers are read-only: they collect evidence and report findings; the orchestrator owns hypothesis selection, conclusions, and the report. Delegate only independent evidence-gathering — how it splits across workers belongs to the domain skill.
 
 #### Validate
 
