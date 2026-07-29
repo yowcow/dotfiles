@@ -72,7 +72,7 @@ AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
 # Shared AI assistant skills — one source directory, multiple symlink targets
 AI_SKILLS_DIR    := ai/skills
-AI_SKILL_NAMES   := simplify-code pr-to-ready investigate-performance investigate-anomaly review-plan
+AI_SKILL_NAMES   := simplify-code pr-to-ready investigate-performance investigate-anomaly review-plan review-code
 AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill) $(HOME)/.grok/skills/$(skill))
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS)
