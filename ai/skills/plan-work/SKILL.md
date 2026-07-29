@@ -24,7 +24,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 - An issue number — read the issue and its comments before anything else.
 - A request to be planned with no tracking issue — proceed the same way, minus the issue read. The plan's canonical record becomes chat instead of an issue comment (see **Publish** and **Output contract**).
 
-## Overriding `brainstorming` and `writing-plans`
+## Overriding brainstorming and writing-plans
 
 Both `superpowers:brainstorming` and `superpowers:writing-plans` default to writing a file and committing it, each to its own independent path, with a footnote that user preferences override *that path* (`brainstorming/SKILL.md:107`-`108`, `writing-plans/SKILL.md:18`-`19`). The override here goes further than the path: it replaces the whole mechanism — the file write, the commit, and the review-of-a-file step — not just where the file would live. The canonical record for the whole flow is the tracking issue's comment, or chat when no issue tracks the work.
 
@@ -73,7 +73,7 @@ When no issue tracks the work, this same self-containment is required of the pla
 
 1. Resolve **Entry**: an issue number, or a planning request with no tracking issue.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
-3. Reach design agreement with `superpowers:brainstorming`, applying the overrides in **Overriding `brainstorming` and `writing-plans`**.
+3. Reach design agreement with `superpowers:brainstorming`, applying the overrides in **Overriding brainstorming and writing-plans**.
 4. Draft the plan with `superpowers:writing-plans`, satisfying **Output contract** and applying that same section's second override.
 5. If the plan won't fit one PR, apply **Splitting large work** and **Sub-issue linking** before continuing.
 6. Dispatch `review-plan` against the plan.
@@ -86,7 +86,7 @@ This is clean when the published plan satisfies **Output contract** and the last
 ## Escalation
 
 - Five rounds at most. If the fifth round's `review-plan` pass still returns a blocking finding, stop instead of dispatching a sixth: report the open findings and the disagreement, and let the user decide.
-- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' Escalation.
+- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' **Escalation**.
 
 ## Report
 

@@ -13,7 +13,9 @@ Precondition: a branch whose commits are already verified — in the Change work
 
 Two things, before the loop starts.
 
-**0-1. Create the draft PR if none exists.** `gh pr view --json number,isDraft` tells you whether one is already tied to the branch. If none is, create it:
+### 0-1. Create the draft PR if none exists
+
+`gh pr view --json number,isDraft` tells you whether one is already tied to the branch. If none is, create it:
 
 ```bash
 gh pr create --draft --base <base-branch> --title <title> --body-file <file>
@@ -23,7 +25,9 @@ Title and body in **standard Japanese** (標準語, never dialect), following th
 
 Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately.
 
-**0-2. Ask whether to mark ready on clean.** Ask the user: once CI is green and review feedback is clean, should this skill run `gh pr ready` (ready) or leave the PR as draft (draft)? Record the answer as the **ready-on-clean** flag — fixed for the rest of the run, not re-asked mid-loop. Step 3 branches on this flag.
+### 0-2. Ask whether to mark ready on clean
+
+Ask the user: once CI is green and review feedback is clean, should this skill run `gh pr ready` (ready) or leave the PR as draft (draft)? Record the answer as the **ready-on-clean** flag — fixed for the rest of the run, not re-asked mid-loop. Step 3 branches on this flag.
 
 ## Overall flow
 

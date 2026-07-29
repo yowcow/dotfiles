@@ -57,11 +57,11 @@ Before calling implementation done, loop in order until all steps are clean, the
 
 ## Hand off
 
+The deliverable is a branch of verified commits, with no PR on it yet — which is exactly what `pr-to-ready` takes as its entry.
+
 Use `superpowers:finishing-a-development-branch` to present the verified integration options.
 
 That skill's Step 5 Option 2 ("Push and Create PR") pushes the branch **and creates the pull request itself**, with no draft flag and no delegation to anything else. That is overridden here: in this workflow, `pr-to-ready` owns PR creation (its Step 0, which creates the PR as a draft with `gh pr create --draft`). If the user picks Option 2, truncate it to the push (`git push -u origin <branch>`) and stop there — do not create the PR in this skill. Instead, invoke `pr-to-ready` to create the draft PR and take it from there. Without this truncation, a non-draft PR gets created here and `pr-to-ready`'s Step 0 has nothing left to do.
-
-Once handed off, `pr-to-ready`'s CI-and-review loop is its own completion path. Its own loop, not this one, governs from that point on — do not re-enter this completion gate from it.
 
 ## Report
 
