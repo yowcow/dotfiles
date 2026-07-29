@@ -7,7 +7,7 @@ description: Use after implementation and before code review or PR creation to s
 
 Use after code changes and before `review-code`.
 
-One invocation is one simplification pass, and the pass owns its apply-verify loop: propose, apply, run the checks, propose again, until nothing actionable is left. What it does not own is re-entry — simplifying again after something else changes the code belongs to the caller; in the Change workflow, the guidelines' completion gate owns that.
+One invocation is one simplification pass, and the pass owns its apply-verify loop: propose, apply, run the checks, propose again, until nothing actionable is left. What it does not own is re-entry — simplifying again after something else changes the code belongs to the caller; in the Change workflow, `implement-work`'s completion gate owns that.
 
 ## Roles
 

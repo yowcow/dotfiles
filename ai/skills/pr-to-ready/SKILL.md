@@ -1,22 +1,36 @@
 ---
 name: pr-to-ready
-description: Use after opening a draft PR to drive it to ready — watch CI, investigate/fix/re-push on failure, then request review from BOTH Claude and Copilot, address feedback, reply, resolve threads, and re-review until clean, then flip draft → ready if the user opted in at the start. Triggers on "what next after opening the PR", "CI is failing", "run the review loop", "take it out of draft", "handle the review feedback".
+description: Use to take verified commits to a reviewed PR — this skill opens the draft PR when none exists yet, then watches CI, investigates/fixes/re-pushes on failure, requests review from BOTH Claude and Copilot, addresses feedback, replies, resolves threads, and re-reviews until clean, then flips draft → ready if the user opted in at the start. Triggers on "implementation is done, take it to a PR", "open the draft PR and drive it", "what next after opening the PR", "CI is failing", "run the review loop", "take it out of draft", "handle the review feedback".
 ---
 
 # pr-to-ready
 
-Drive a draft PR by looping until CI passes and the review is clean, then either flip it to **ready** or leave it as **draft**, per the user's up-front choice.
+Take a branch of verified commits to a reviewed PR: open the draft PR if it isn't there yet, then loop until CI passes and the review is clean, and finally either flip it to **ready** or leave it as **draft**, per the user's up-front choice.
 
-Precondition: a draft PR tied to the target branch already exists. If not, create one first with `gh pr create --draft`.
+Precondition: a branch whose commits are already verified — in the Change workflow, `implement-work` hands one over after its completion gate comes back clean. A PR need not exist yet; this skill owns creating it.
 
-## Step 0: Ask whether to mark ready on clean
+## Step 0: Set up the run
 
-Before starting the loop, ask the user: once CI is green and review feedback is clean, should this skill run `gh pr ready` (ready) or leave the PR as draft (draft)? Record the answer as the **ready-on-clean** flag — fixed for the rest of the run, not re-asked mid-loop. Step 3 branches on this flag.
+Two things, before the loop starts.
+
+**0-1. Create the draft PR if none exists.** `gh pr view --json number,isDraft` tells you whether one is already tied to the branch. If none is, create it:
+
+```bash
+gh pr create --draft --base <base-branch> --title <title> --body-file <file>
+```
+
+Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
+
+Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately.
+
+**0-2. Ask whether to mark ready on clean.** Ask the user: once CI is green and review feedback is clean, should this skill run `gh pr ready` (ready) or leave the PR as draft (draft)? Record the answer as the **ready-on-clean** flag — fixed for the rest of the run, not re-asked mid-loop. Step 3 branches on this flag.
 
 ## Overall flow
 
 ```dot
 digraph pr_to_ready {
+  "Draft PR exists?" [shape=diamond];
+  "gh pr create --draft" [shape=box];
   "Ask: ready on clean?" [shape=box];
   "Watch CI" [shape=box];
   "CI green?" [shape=diamond];
@@ -29,6 +43,9 @@ digraph pr_to_ready {
   "gh pr ready" [shape=doublecircle];
   "Leave as draft" [shape=doublecircle];
 
+  "Draft PR exists?" -> "gh pr create --draft" [label="no"];
+  "gh pr create --draft" -> "Ask: ready on clean?";
+  "Draft PR exists?" -> "Ask: ready on clean?" [label="yes"];
   "Ask: ready on clean?" -> "Watch CI";
   "Watch CI" -> "CI green?";
   "CI green?" -> "Investigate -> fix -> push" [label="no"];
@@ -62,7 +79,7 @@ Subagents only investigate and propose (read-only, advisory, no worktree); the o
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying the Change workflow's implementation discipline from the shared AI guidelines. Do **not** re-enter the full Change workflow — no new Plan phase and no completion gate: the gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying `implement-work`'s implementation discipline. Do **not** re-enter the workflow that got here — don't go back to `plan-work`, and don't re-run `implement-work`'s completion gate: that gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
 
 ## Step 1: Get CI clean
 
@@ -190,3 +207,13 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   ```
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
+
+### Parent issue, when the work was split into sub-issues
+
+Large work is planned as a parent issue with one sub-issue per PR (`plan-work` owns that split). GitHub does **not** close a parent when its children close, so once this PR merges and closes its sub-issue, check whether it was the last open one:
+
+```bash
+gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'
+```
+
+If every child is closed, ask the user whether to close the parent or leave it open with a completion comment (標準語), and do what they choose. If children remain open, say which — the next sub-issue is the next run of `plan-work`'s output through `implement-work`.
