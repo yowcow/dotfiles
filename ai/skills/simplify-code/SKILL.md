@@ -55,7 +55,7 @@ Dispatch a fresh proposer each round and give it the diff as it now stands, not 
 
 Each proposer returns proposals only — never an edited file — with:
 
-- **location** — `path:line` within the diff.
+- **location** — `path:line` within the diff, numbered as the file now stands.
 - **lens**.
 - **change** — what the code should say instead.
 - **behavior preservation** — why the change cannot alter behavior, and which existing check would catch it if it did. When no existing check can prove it, propose the minimal characterization test that would, per **Scope**.
