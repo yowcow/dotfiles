@@ -75,14 +75,7 @@ AI_SKILLS_DIR    := ai/skills
 AI_SKILL_NAMES   := simplify-code pr-to-ready investigate-performance investigate-anomaly review-plan
 AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill) $(HOME)/.grok/skills/$(skill))
 
-# Shared AI assistant agents — prompts and custom agent definitions
-AI_AGENTS_DIR                  := ai/agents
-AI_AGENT_NAMES                 := simplify-code
-AI_CODEX_AGENT_TARGETS         := $(foreach agent,$(AI_AGENT_NAMES),$(HOME)/.codex/agents/$(agent).toml)
-AI_ANTIGRAVITY_AGENT_TARGETS   := $(foreach agent,$(AI_AGENT_NAMES),$(HOME)/.gemini/antigravity-cli/.agents/agents/$(subst -,_,$(agent))/agent.json)
-AI_AGENT_TARGETS               := $(AI_CODEX_AGENT_TARGETS) $(AI_ANTIGRAVITY_AGENT_TARGETS)
-
-TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS) $(AI_AGENT_TARGETS)
+TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS)
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 FZF             := _modules/github.com/junegunn/fzf
@@ -201,14 +194,6 @@ $(HOME)/.codex/skills/%: $(AI_SKILLS_DIR)/%
 	ln -sfn `pwd`/$< $@
 
 $(HOME)/.grok/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.codex/agents/%.toml: $(AI_AGENTS_DIR)/%/codex.toml
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.gemini/antigravity-cli/.agents/agents/simplify_code/agent.json: $(AI_AGENTS_DIR)/simplify-code/antigravity/agent.json
 	mkdir -p $(@D)
 	ln -sfn `pwd`/$< $@
 
