@@ -44,10 +44,12 @@ The orchestrator owns the workflow's progression: it decides when each phase is 
 
 Classify the task first:
 
-- **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Phases: Plan → Implement → Verify & complete.
+- **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Three flows: `plan-work` → `implement-work` → `pr-to-ready`.
 - **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, an unexplained metric or cost change, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
 
 Both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is neither — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
+
+For a Change, enter at the flow the work has actually reached: no agreed plan yet → `plan-work`; a written plan in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
 
 ### Understand
 
@@ -57,45 +59,15 @@ Both begin with **Understand**. A bug whose cause is unknown is an investigation
 
 ### Change workflow
 
-Run Plan → Implement → Verify & complete in order. A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain).
+Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
-#### Plan
+- **`plan-work`** — entry: an issue number, or a request to be planned. It researches, settles the design with the user, drafts the plan, and loops `review-plan` to convergence. Deliverable: the converged plan and its TODO checklist, published once — as a comment on the tracking issue, or in chat when no issue tracks the work — and self-contained enough to implement from alone. It never touches the working tree: no worktree, no branch, no code.
+- **`implement-work`** — entry: a written plan (issue comment, chat, or file); with none, go back to `plan-work`. It establishes the isolated workspace and a verified baseline, declares its execution method, implements, and owns the completion gate. Deliverable: a branch of verified commits — with no PR yet.
+- **`pr-to-ready`** — entry: a branch of verified commits. It opens the draft PR itself, then drives CI and review to ready. Its loop is its own completion path; `implement-work`'s gate is never re-entered from it.
 
-- For non-trivial work, use `superpowers:brainstorming` to settle requirements, alternatives, and design with the user, and obtain design approval before implementation.
-- After approval, use `superpowers:using-git-worktrees`: first detect existing isolation and submodules, prefer a runtime-native worktree, and create a Git worktree only when necessary. Set up the project and establish a clean, verified baseline there.
-- Use `superpowers:writing-plans` to turn the approved design into an implementation plan with exact paths, small tasks, edge cases, and verification including the completion gate below.
-- Review the drafted plan with `review-plan`. One invocation is one review pass: it reports judged findings and never edits the plan.
-- Fold the accepted Critical and Important findings into the plan yourself, then re-run `review-plan` with the previous pass's record so rejected findings aren't re-litigated. Don't leave Plan until a pass comes back with no blocking finding. If five rounds don't converge, stop, report the open findings and the disagreement, and let the user decide; a Critical finding that invalidates the approved design goes back to `superpowers:brainstorming` for design approval per **Escalation**.
-- Don't commit planning artifacts by default, and don't publish the plan mid-loop — it stays in chat until the loop above converges. Then publish the final plan detail and its TODO checklist once (標準語): in chat when no GitHub issue tracks the work, otherwise as a comment on that issue, updating the existing plan comment in place rather than adding another. `gh issue comment <issue-number> --edit-last --create-if-none --body-file <plan-file>` covers both, but `--edit-last` targets your most recent comment on the issue whatever it is — once anything else follows the plan comment, edit that comment by id instead: `jq -Rs '{body: .}' <plan-file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -`, since `gh api` wants a JSON payload rather than raw Markdown. Always pass the body from a file, never an inline flag string, so backticks never reach the shell.
+A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
 
-#### Implement
-
-- Implementation requires a written plan; otherwise return to Plan.
-- Before writing code, declare which execution method you chose and why — this choice is explicit, never implicit:
-  - Same session with independent tasks → `superpowers:subagent-driven-development`, the default. Each task runs in a worker isolated from the orchestrator (a separate context, and a separate model where the runtime supports it). Tasks are independent when they share no files, no mutable state, and no ordering dependency.
-  - Separate session loading an existing plan → `superpowers:executing-plans`.
-  - Manual execution is a justified exception, not a fallback: first try to replan coupled work into independently verifiable tasks; do it yourself only when the work genuinely cannot be split, or when same-session workers are unavailable or not permitted. Name the reason — never drift into manual silently, and don't treat `executing-plans` as an inline fallback.
-- Delegation pays off only when each task is large enough to amortize the handoff (context packaging, the worker re-reading files, and review); inline trivially small independent changes instead.
-- `superpowers:dispatching-parallel-agents` is not an alternative to SDD. Use it only for independent fact-finding or problem domains; changes with shared files, mutable state, or ordering dependencies stay sequential.
-- Use `superpowers:test-driven-development` for every implementation: RED → verify the expected failure → minimal GREEN → verify → REFACTOR. For throwaway prototypes, configuration, or generated files, ask the user before taking an exception.
-- For bug fixes: reproduce the symptom, add a focused regression test, then fix and verify.
-- With SDD, review each task after it completes. With `executing-plans`, review each task or natural checkpoint. Review with `review-code`, which loops review, judgment, and remediation until no blocking finding remains: Critical findings stop progress and Important findings must be resolved before the next task.
-- As each task completes and verifies, check it off the TODO checklist — on the issue comment when the plan lives there.
-- Test as you go and avoid unrelated refactoring.
-
-#### Verify & complete
-
-- Run the completion gate until clean, then report the concrete checks you ran (and any you couldn't), what changed and why, assumptions made, and areas needing manual review.
-
-#### Completion gate
-
-Before calling implementation done, loop in order until all are clean, then hand off:
-
-1. **Verify** — Use `superpowers:verification-before-completion` with fresh output from concrete commands in the README, Makefile, package scripts, or CI. Run independent checks in parallel where possible.
-2. **Simplify** — Use `simplify-code` on only the recent diff, preserving behavior and the smallest maintainable change.
-3. **Repeat as needed** — If the simplify pass changed anything, return to step 1: verification must run against the code as it now stands. Converging the simplification itself is `simplify-code`'s own loop, not this one.
-4. **Review** — Use `review-code`: one invocation reviews, judges, and remediates until no blocking finding remains. When it changed code and came back clean, return to step 1 — verification and simplification must run against the code as it now stands. When it stopped at its round cap with blocking findings still open, don't re-invoke it — the gate halts here, not just this step: report the open findings and the disagreement, and let the user decide.
-5. **Hand off** — Once every task and the final review are clean, use `superpowers:finishing-a-development-branch` to present the verified integration options. If the user picks the PR option, create the PR as a draft (`gh pr create --draft`) — draft is the precondition `pr-to-ready` requires — then invoke `pr-to-ready`. Its CI and review loop uses its own completion flow; do not re-enter this completion gate from it.
+Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
 
 ### Investigation workflow
 
@@ -117,17 +89,18 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 #### Investigation → Change transition
 
-- An investigation never starts editing. When a fix is wanted, enter the Change workflow's Plan with the findings as input — the fix still needs design approval, even when the investigation proposed it.
+- An investigation never starts editing. When a fix is wanted, enter `plan-work` with the findings as input — the fix still needs design approval, even when the investigation proposed it.
 - Carry the reproduction forward: it becomes the regression test for the fix.
 
 ### Stage boundaries
 
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
 - You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
+- A handoff between Change flows may land in a different session, which has no chat to fall back on. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up (the published plan comment, the branch of verified commits, the PR), so the receiving session needs nothing this one was holding in context.
 
 ### Escalation
 
-- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and return to the current workflow's planning or framing phase — or to Workflow selection if the task's type changed — instead of improvising an architectural decision.
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing — or to Workflow selection if the task's type changed — instead of improvising an architectural decision.
 - Report what's uncertain, the options and trade-offs, and your recommendation.
 
 ## Subagents & worker safety
@@ -144,7 +117,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
 - When a branch will be pushed, choose its local name as the intended remote branch name and push it under that same name. Use a different remote name only with an explicit reason or user instruction.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
-- Create the PR as a draft (`gh pr create --draft`) only after `superpowers:finishing-a-development-branch` presents PR creation as the selected integration option — draft is the precondition `pr-to-ready` requires — then drive it with `pr-to-ready`. That skill handles CI, Claude and Copilot review, replies, resolution, and re-review.
+- `pr-to-ready` owns the PR from creation onward: it opens it as a draft and then handles CI, Claude and Copilot review, replies, resolution, and re-review. Don't create the PR yourself — when `superpowers:finishing-a-development-branch` presents integration options and PR creation is the one chosen, its push-and-create-PR option is truncated to the push, and `pr-to-ready` takes it from there.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences

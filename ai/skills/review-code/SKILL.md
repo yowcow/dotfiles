@@ -7,7 +7,7 @@ description: Use to review code and fix what the review finds — on a diff, a b
 
 Use on code in any state — a diff just written, a branch, or an uncommitted working tree.
 
-One invocation runs the loop to completion: review, judge, fix, verify, review again, until no blocking finding remains. What it does not own is re-entry — reviewing again after something else changes the code belongs to the caller; in the Change workflow, the guidelines' completion gate owns that. The name pairs with `review-plan`, but the shape differs: `review-plan` is one pass with the loop outside it, this skill owns its loop.
+One invocation runs the loop to completion: review, judge, fix, verify, review again, until no blocking finding remains. What it does not own is re-entry — reviewing again after something else changes the code belongs to the caller; in the Change workflow, `implement-work`'s completion gate owns that. The name pairs with `review-plan`, but the shape differs: `review-plan` is one pass with the loop outside it, this skill owns its loop.
 
 ## Roles
 

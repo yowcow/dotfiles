@@ -7,11 +7,11 @@ description: Use to review an implementation plan itself — before implementati
 
 Use on a written implementation plan (from `superpowers:writing-plans`) — before any code is written, on a revision, or as a later check on a plan already posted. This reviews the plan, not the code.
 
-One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits the plan and never re-reviews on its own. Revising the plan and re-running this skill until it comes back clean belongs to the caller — in the Change workflow, the guidelines' **Plan** phase owns that loop.
+One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits the plan and never re-reviews on its own. Revising the plan and re-running this skill until it comes back clean belongs to the caller — in the Change workflow, `plan-work` owns that loop.
 
 ## Roles
 
-- The orchestrator owns this pass: it dispatches reviewers, judges their findings, and reports. It does not edit the plan and does not declare the Plan phase done — it reports only whether this pass found a blocking finding.
+- The orchestrator owns this pass: it dispatches reviewers, judges their findings, and reports. It does not edit the plan and does not declare planning done — it reports only whether this pass found a blocking finding.
 - Reviewers are read-only workers. Each gets its assigned lenses, the plan text, the original request, and the paths the plan touches. A reviewer reports findings and never edits the plan or the code, and never declares the plan clean.
 - Every reviewer takes the same stance: try to make the plan fail. A plan you cannot break is a plan that passes — but a finding you cannot evidence is not a finding.
 
