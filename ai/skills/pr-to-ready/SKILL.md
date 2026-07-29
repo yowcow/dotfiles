@@ -15,7 +15,7 @@ Two things, before the loop starts.
 
 ### 0-1. Create the draft PR if none exists
 
-`gh pr view --json number,isDraft` tells you whether one is already tied to the branch. When there is none it exits non-zero with `no pull requests found for branch "<name>"` — that failure IS the create signal, not an error to stop on. So create it:
+`gh pr view --json number,isDraft` tells you whether one is already tied to the branch. When there is none it exits non-zero with a "no pull requests found for branch" style message whose exact wording varies by `gh` version — key off the non-zero exit, not the text. That failure IS the create signal, not an error to stop on. So create it:
 
 ```bash
 gh pr create --draft --base <base-branch> --title <title> --body-file <file>
