@@ -1,11 +1,13 @@
 ---
 name: simplify-code
-description: Use after implementation and before code review or PR creation to simplify recently modified code while preserving behavior. Applies project standards, improves clarity and maintainability, avoids clever rewrites, and verifies the result.
+description: Use after implementation and before code review or PR creation to simplify recently modified code while preserving behavior. Applies project standards, improves clarity and maintainability, avoids clever rewrites, and verifies the result. Triggers on "simplify this", "clean up the diff", "run a code-simplifier pass", "tidy this up before review".
 ---
 
 # Simplify Code
 
-Use after code changes and before `superpowers:requesting-code-review`, or whenever asked to "simplify" or run a code-simplifier pass.
+Use after code changes and before `superpowers:requesting-code-review`.
+
+One invocation is one simplification pass: refine the diff, verify, report. Simplifying again after something else changes the code belongs to the caller — in the Change workflow, the guidelines' completion gate owns that loop.
 
 ## Scope
 
@@ -33,5 +35,5 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 ## Process
 
 1. From the diff, identify the recently modified code and apply only behavior-preserving refinements.
-2. Verify with the relevant tests, lint, build, typecheck, or manual check; repeat until no actionable simplification remains.
-3. Report what changed, what behavior was preserved, what verification ran, and any intentionally deferred cleanup.
+2. Verify with the concrete commands the project defines — in the README, Makefile, package scripts, or CI — and read their actual output before calling the pass done.
+3. Report what changed, what behavior was preserved, what verification ran, and any simplification left undone.
