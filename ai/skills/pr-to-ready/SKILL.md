@@ -23,7 +23,7 @@ gh pr create --draft --base <base-branch> --title <title> --body-file <file>
 
 Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
 
-Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately.
+Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately. Record that it came in non-draft: Step 3 has nothing to flip in that case.
 
 ### 0-2. Ask whether to mark ready on clean
 
@@ -205,10 +205,12 @@ Treat human reviewer comments the same way (see receiving-code-review).
 
 Once the review is clean (or no reviewer was available), branch on the flag recorded in Step 0:
 
-- **ready-on-clean = yes**: take it out of draft.
+- **ready-on-clean = yes**: take it out of draft — but only when it actually is one. Confirm first, since Step 0-1 lets an already-non-draft PR through:
   ```bash
-  gh pr ready <PR>
+  gh pr view <PR> --json isDraft --jq '.isDraft'
+  gh pr ready <PR>   # only when isDraft is true
   ```
+  When it is already ready, skip `gh pr ready` and say so — there is nothing to flip.
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
 

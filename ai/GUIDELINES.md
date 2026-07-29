@@ -65,7 +65,7 @@ Three flows, each of which can be entered on its own, and each with its own entr
 - **`implement-work`** — entry: a written plan (issue comment, chat, or file); with none, go back to `plan-work`. It establishes the isolated workspace and a verified baseline, declares its execution method, implements, and owns the completion gate. Deliverable: a branch of verified commits — with no PR yet.
 - **`pr-to-ready`** — entry: a branch of verified commits. It opens the draft PR itself, then drives CI and review to ready. Its loop is its own completion path; `implement-work`'s gate is never re-entered from it.
 
-A phase or flow is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain).
+A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
 
 Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
 
