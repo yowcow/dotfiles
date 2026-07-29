@@ -75,11 +75,11 @@ When no issue tracks the work, this same self-containment is required of the pla
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement with `superpowers:brainstorming`, applying the overrides in **Overriding brainstorming and writing-plans**.
 4. Draft the plan with `superpowers:writing-plans`, satisfying **Output contract** and applying that same section's second override.
-5. If the plan won't fit one PR, apply **Splitting large work** and **Sub-issue linking** before continuing.
-6. Dispatch `review-plan` against the plan.
-7. Fold every accepted Critical and Important finding into the plan yourself — `review-plan` never edits the plan — then re-run it, handing over the record of the previous pass (findings accepted and fixed, findings rejected with the reason) so it doesn't re-litigate what was already rejected.
-8. Don't leave this pass until a `review-plan` pass comes back with no blocking finding. Return to step 6 while one remains, subject to **Escalation**.
-9. Once a pass returns no blocking finding, publish exactly once, per **Publish**.
+5. Dispatch `review-plan` against the whole, undivided plan.
+6. Fold every accepted Critical and Important finding into the plan yourself — `review-plan` never edits the plan — then re-run it, handing over the record of the previous pass (findings accepted and fixed, findings rejected with the reason) so it doesn't re-litigate what was already rejected.
+7. Don't leave this pass until a `review-plan` pass comes back with no blocking finding. Return to step 5 while one remains, subject to **Escalation**.
+8. Once a pass returns no blocking finding: if the plan won't fit one PR, apply **Splitting large work** and **Sub-issue linking** now — the loop converges against the undivided plan first, so splitting never precedes convergence.
+9. Publish exactly once, per **Publish**.
 
 This is clean when the published plan satisfies **Output contract** and the last `review-plan` pass returned no blocking finding.
 
