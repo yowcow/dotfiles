@@ -60,7 +60,8 @@ The pass is clean when no Critical or Important finding survives step 3. Minor f
 ## Convergence and escalation
 
 - A round is one review → judge → fix → verify cycle. The loop ends clean when a round's review produces no blocking finding.
-- Three rounds at most. If the third round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a fourth review — and report those fixes as applied but not re-reviewed, together with any disagreement. Never report clean on the strength of fixes no review has seen. This matches the Plan phase's three-round rule for `review-plan`.
+- Five rounds at most. If the fifth round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a sixth review — and report those fixes as applied but not re-reviewed, together with any disagreement. Never report clean on the strength of fixes no review has seen.
+- Five here, against three for `review-plan`, is deliberate: a plan that needs a fourth pass usually has a disagreement only the user can settle, while code review converges by fixing one concrete finding at a time and a later round often surfaces something the earlier ones could not reach. Don't "align" the two numbers.
 - A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' **Escalation**.
 
 ## Report
