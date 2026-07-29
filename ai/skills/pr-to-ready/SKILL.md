@@ -84,12 +84,13 @@ Request review from **both Claude and Copilot** when both are available — they
 
 Before requesting reviewers, verify that every issue link in the PR body points to the intended repository. This matters because a bare `#NNN` always resolves in the PR's repository, but the target issue may live in a different repository.
 
-1. Read the PR body and target repository:
+1. Read the PR body and the repository the PR lives in:
    ```bash
-   gh pr view <PR> --json body,baseRepository
+   gh pr view <PR> --json body,url
    ```
+   Take the repository from `url` (`https://github.com/<owner>/<repo>/pull/<PR>`) — a PR always lives in its base repository, which is the one a bare `#NNN` resolves in. There is no `baseRepository` field on `gh pr view`, and don't substitute `gh repo view`: it resolves the current directory's remote, which is the fork rather than the upstream when you're working from a fork clone.
 2. Inspect every issue reference in the body, especially references using closing keywords (`resolves`, `fixes`, `closes`). For each reference, determine the repository GitHub will link to:
-   - Bare `#NNN` resolves to the PR repository from `baseRepository`.
+   - Bare `#NNN` resolves to the PR repository from `url`.
    - Fully qualified `owner/repo#NNN` resolves to that explicit repository.
 3. Verify the resolved issue is the intended issue:
    ```bash
