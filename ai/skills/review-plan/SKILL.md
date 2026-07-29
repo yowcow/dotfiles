@@ -1,15 +1,17 @@
 ---
 name: review-plan
-description: Use after drafting an implementation plan and before implementation starts, to review the plan itself — whether the work is warranted at all, and where it has gaps, contradictions, unverified assumptions, or mismatches with the repository's actual state. Dispatches independent read-only reviewers on separate lenses, judges their findings, and loops until no blocking finding remains.
+description: Use to review an implementation plan itself — before implementation starts, on a revision, or as a later check on a plan already written or posted. Reviews whether the work is warranted at all, and where the plan has gaps, contradictions, unverified assumptions, or mismatches with the repository's actual state. Dispatches independent read-only reviewers on separate lenses, judges their findings, and reports the surviving ones. One invocation is one review pass; it never edits the plan.
 ---
 
 # Review Plan
 
-Use on a written implementation plan (from `superpowers:writing-plans`) before any code is written, and again on each revision until it comes back clean. This reviews the plan, not the code.
+Use on a written implementation plan (from `superpowers:writing-plans`) — before any code is written, on a revision, or as a later check on a plan already posted. This reviews the plan, not the code.
+
+One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits the plan and never re-reviews on its own. Revising the plan and re-running this skill until it comes back clean belongs to the caller — in the Change workflow, the guidelines' **Plan** phase owns that loop.
 
 ## Roles
 
-- The orchestrator owns the loop: it dispatches reviewers, judges findings, edits the plan, and decides when the plan is clean.
+- The orchestrator owns this pass: it dispatches reviewers, judges their findings, and reports. It does not edit the plan and does not declare the Plan phase done — it reports only whether this pass found a blocking finding.
 - Reviewers are read-only workers. Each gets its assigned lenses, the plan text, the original request, and the paths the plan touches. A reviewer reports findings and never edits the plan or the code, and never declares the plan clean.
 - Every reviewer takes the same stance: try to make the plan fail. A plan you cannot break is a plan that passes — but a finding you cannot evidence is not a finding.
 
@@ -33,7 +35,7 @@ Reviewers run in parallel (`superpowers:dispatching-parallel-agents` — this is
 - **Small plan** — one reviewer takes every lens, when the work is mechanical or confined to a single file.
 - **Large, risky, or spanning subsystems** — one reviewer per lens.
 
-On re-review, dispatch only the lenses that produced an accepted finding, plus Reality — the plan changed under it. Skip a lens only when it cannot apply, and say which and why.
+When the caller hands over the record of an earlier pass — a revised plan coming back — dispatch only the lenses that produced an accepted finding, plus Reality, since the plan changed under it, and pass the record to the reviewers so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
 
 ## Finding contract
 
@@ -46,21 +48,21 @@ Each reviewer returns findings only — never a rewritten plan — with:
 
 Report "no findings" explicitly rather than inventing one. Confine every search to the project root or narrower.
 
-## Loop
+## Pass
 
-1. Dispatch reviewers against the current plan, sized per **Dispatch**.
-2. Evaluate every finding with `superpowers:receiving-code-review`: verify the claim against the repo before accepting it, and reject wrong or preference-only findings with a stated reason.
-3. Fold accepted findings into the plan, keeping a record of each finding, its verdict, and the reason.
-4. Re-review the revised plan, handing reviewers the record so rejected findings are not re-litigated.
+1. Gather the inputs: the plan text, the original request, the paths the plan touches, and the record of an earlier pass if the caller supplied one.
+2. Dispatch reviewers against the plan, sized per **Dispatch**.
+3. Evaluate every finding with `superpowers:receiving-code-review`: verify the claim against the repo before accepting it, and reject — with a stated reason — findings that are wrong, that only reflect reviewer preference, or that ask for work beyond the request.
+4. Report per **Report**, and stop there — revising the plan and re-reviewing it are the caller's job.
 
-Clean when a round returns no new Critical or Important finding. Minor findings are recorded, not blocking.
-
-## Stop conditions
-
-- A Critical finding that invalidates the approved design is not a plan edit — return to `superpowers:brainstorming` and get design approval again before resuming.
-- Three rounds without converging — stop, report the open findings and the disagreement, and let the user decide.
-- Findings that only reflect reviewer preference, or that ask for work beyond the request, are rejected with the reason recorded.
+This pass is clean when no Critical or Important finding survives step 3. Minor findings are recorded, not blocking.
 
 ## Report
 
-Report the rounds run, the fan-out used and any lens skipped with why, accepted findings and how the plan changed, rejected findings with reasons, and the remaining Minor findings.
+Report, for this pass:
+
+- the fan-out used, and any lens skipped with why
+- accepted findings with lens, severity, evidence, and suggested change
+- rejected findings with the reason
+- the remaining Minor findings
+- the verdict: clean, or the blocking findings that remain — flagging separately any Critical finding that invalidates the approved design, since that needs design approval again rather than a plan edit
