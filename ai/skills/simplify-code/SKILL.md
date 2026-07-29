@@ -23,6 +23,7 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 ## What to simplify (behavior-preserving)
 
 - unnecessary complexity, nesting, or branching; redundant or duplicated logic
+- cost the change itself added beyond what its result needs — per-iteration queries or IO that one call covers, recomputed loop invariants, data read twice, intermediate collections nothing consumes; reshape to the same result at the lower cost
 - avoidable abstractions; unclear names; related logic scattered where it could be consolidated
 - formatting churn unrelated to the task; comments that merely restate the code
 - tests that can be clearer without weakening coverage
@@ -32,6 +33,7 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 - No clever one-liners or dense expressions just to cut lines; no nested ternaries for multi-branch logic (prefer `if`/`else` or `switch`).
 - Keep helpful abstractions and separation of concerns; don't merge unrelated concerns into one unit.
 - Don't make code harder to debug, extend, or review.
+- Don't optimize speculatively: anything whose justification needs a measurement — a different algorithm for scale, caching, concurrency, precomputed indexes — is out of scope. Report it and leave it to `investigate-performance`.
 
 ## Process
 
