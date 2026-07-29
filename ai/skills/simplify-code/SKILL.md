@@ -32,7 +32,7 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 Each lens is a distinct kind of avoidable complexity, and every one is behavior-preserving. How many proposers they map to is decided in **Dispatch** below.
 
 - **Structure** — unnecessary complexity, nesting, or branching; redundant or duplicated logic; avoidable abstractions; unclear names; related logic scattered where it could be consolidated.
-- **Cost** — cost the change itself added beyond what its result needs: per-iteration queries or IO that one call covers, recomputed loop invariants, data read twice, intermediate collections nothing consumes. Reshape to the same result at the lower cost.
+- **Cost** — work the change itself added beyond what its result needs, where the excess is evident from reading the diff rather than from a measurement: per-iteration queries or IO that one call covers, recomputed loop invariants, data read twice, intermediate collections nothing consumes, a scan where the code it replaced had a direct lookup. Reshape to the same result at the lower cost.
 - **Noise** — formatting churn unrelated to the task; comments that merely restate the code; tests that can be clearer without weakening coverage.
 
 ## Don't over-simplify
@@ -40,7 +40,7 @@ Each lens is a distinct kind of avoidable complexity, and every one is behavior-
 - No clever one-liners or dense expressions just to cut lines; no nested ternaries for multi-branch logic (prefer `if`/`else` or `switch`).
 - Keep helpful abstractions and separation of concerns; don't merge unrelated concerns into one unit.
 - Don't make code harder to debug, extend, or review.
-- Don't optimize speculatively: anything whose justification needs a measurement — a different algorithm for scale, caching, concurrency, precomputed indexes — is out of scope. Report it and leave it to `investigate-performance`.
+- Don't optimize speculatively: anything whose justification needs a measurement — a different algorithm for scale, caching, concurrency, precomputed indexes — is out of scope. Report it and leave it to `investigate-performance`. Repairing cost the diff itself introduced is not speculative, and the baseline decides which it is: restoring the cost the code had before the change is in scope, making it cheaper than it has ever been is not.
 
 ## Dispatch
 
