@@ -44,7 +44,7 @@ Each lens is a distinct kind of avoidable complexity, and every one is behavior-
 
 ## Dispatch
 
-Proposers share no files and no mutable state, so they may run in parallel (`superpowers:dispatching-parallel-agents` — this is independent fact-finding, not implementation). Splitting further than the diff warrants only pays handoff cost, so size the fan-out to the diff:
+Proposers are read-only and share no mutable state, so they may run in parallel (`superpowers:dispatching-parallel-agents` — this is independent fact-finding, not implementation). Splitting further than the diff warrants only pays handoff cost, so size the fan-out to the diff:
 
 - **Default** — one proposer takes every lens. A diff is a smaller object than a plan, and delegation has to be worth its handoff.
 - **Large diff, or one spanning subsystems** — one proposer per lens, dispatched together.
