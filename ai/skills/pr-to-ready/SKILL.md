@@ -101,12 +101,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
    - Same-repository issue: bare `#NNN` is allowed.
    - Cross-repository issue: use the fully qualified `owner/repo#NNN` form.
    - If the PR body says it resolves an issue, keep the closing keyword even for cross-repo targets, e.g. `resolves owner/repo#NNN`.
-   - Apply the corrected body with `gh pr edit <PR> --body-file <file>`. If it fails because the token lacks the `read:org` scope, **don't give up** — fall back to REST, which doesn't need that scope:
-     ```bash
-     jq -n --rawfile b <file> '{body: $b}' > <json-file>
-     gh api --method PATCH "repos/<owner>/<repo>/pulls/<PR>" --input <json-file>
-     ```
-     Pass the body via `--input`, never `-f body=...`: PR bodies routinely contain backticks, and the shell eats them.
+   - Use `gh pr edit <PR> --body-file <file>` or equivalent to apply the corrected body.
 
 ### 2-1. Request the reviewers
 
