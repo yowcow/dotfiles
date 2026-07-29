@@ -15,11 +15,20 @@ Two things, before the loop starts.
 
 ### 0-1. Create the draft PR if none exists
 
-`gh pr view --json number,isDraft` tells you whether one is already tied to the branch. When there is none it exits non-zero with a "no pull requests found for branch" style message whose exact wording varies by `gh` version — key off the non-zero exit, not the text. That failure IS the create signal, not an error to stop on. So create it:
+`gh pr view --json number,isDraft` reports a PR already tied to the branch — note its `isDraft`. A non-zero exit does **not** by itself mean there is none: auth, network, and repo-context failures look the same as absence, and the message wording varies by `gh` version, so don't key off either. Treat the failure as "couldn't tell" and confirm absence explicitly:
+
+```bash
+gh pr view --json number,isDraft                              # existing PR? note isDraft
+gh pr list --head <branch> --json number,isDraft              # confirm absence
+```
+
+Create only when the list comes back empty:
 
 ```bash
 gh pr create --draft --base <base-branch> --title <title> --body-file <file>
 ```
+
+If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
 
 Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
 
