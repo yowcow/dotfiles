@@ -59,7 +59,7 @@ This pass is clean when no Critical or Important finding survives step 3. Minor 
 
 ## Report
 
-Report, for this pass:
+Report to the caller in chat. Never post this pass to GitHub — not even when the plan under review lives in an issue or PR comment: a pass is an orchestrator-facing intermediate, and one comment per loop is noise. Report, for this pass:
 
 - the fan-out used, and any lens skipped with why
 - accepted findings with lens, severity, evidence, and suggested change
