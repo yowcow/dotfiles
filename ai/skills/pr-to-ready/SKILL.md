@@ -34,6 +34,12 @@ Title and body in **standard Japanese** (標準語, never dialect), following th
 
 Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately. Record that it came in non-draft: Step 3 has nothing to flip in that case.
 
+Whichever path you took — found or just created — record the PR number and branch before moving on. Every later step takes them as `<PR>` and `<branch>`, and on a first-time run nothing else has bound them yet:
+
+```bash
+gh pr view --json number,headRefName --jq '"PR=\(.number) branch=\(.headRefName)"'
+```
+
 ### 0-2. Ask whether to mark ready on clean
 
 Ask the user: once CI is green and review feedback is clean, should this skill run `gh pr ready` (ready) or leave the PR as draft (draft)? Record the answer as the **ready-on-clean** flag — fixed for the rest of the run, not re-asked mid-loop. Step 3 branches on this flag.
