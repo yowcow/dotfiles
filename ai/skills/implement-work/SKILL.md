@@ -37,7 +37,31 @@ That skill detects existing isolation from the current directory only; it has no
 1. If `git worktree list --porcelain | grep -Fxq "branch refs/heads/<branch>"`, reuse that workspace. Its path comes from the same output: `git worktree list --porcelain | grep -Fx -B2 "branch refs/heads/<branch>" | sed -n 's/^worktree //p'` — each block is `worktree <path>` / `HEAD <sha>` / `branch <ref>`, so the branch line's two predecessors carry the path. `-F` and `-x` are load-bearing, and they replace the `^`/`$` anchors rather than joining them: a branch name may contain `.`, which as a regex matches any character, so an anchored pattern can match a *different* branch and hand back the wrong workspace.
 2. Otherwise, if the branch exists locally, attach a workspace to it with `git worktree add <path> <branch>` — no `-b`. Test existence with `git show-ref --verify --quiet refs/heads/<branch>`; **`git branch --list` exits 0 whether or not it matched**, so branching on its exit status is always true, and on a first run that would send you here to attach a branch that doesn't exist yet. An output-emptiness test works too: `[ -n "$(git branch --list <branch>)" ]`.
 3. Otherwise, if the branch exists only on the remote, attach a workspace that tracks it: `git fetch origin <branch>` first, since a fresh checkout may not have the ref yet, then test with `git show-ref --verify --quiet refs/remotes/origin/<branch>` and run `git worktree add --track -b <branch> <path> origin/<branch>`. Check this before falling through to creating a branch — a resumed task whose branch was already pushed, in a session or a checkout that never held it locally, has no local ref, and creating one afresh would start it from the default branch. It would then diverge from the pushed branch under the same name, and its first push would be rejected as a non-fast-forward; since force-pushing is barred, the earlier work is stranded rather than resumed.
-4. Otherwise create it normally.
+4. Otherwise create it normally, from the base that **Base branch** below settles.
+
+### Base branch
+
+Only step 4 needs this — steps 1-3 attach to a branch that already exists. A task stacked on an unmerged prerequisite has to branch from it: branch from the default instead and the prerequisite's changes are simply absent, so the task's own tests fail for a reason that is nowhere in its diff.
+
+Prerequisites come from the native relation, never from the issue body's prose:
+
+```bash
+gh issue view <task> --json blockedBy                          # → prerequisite issues
+gh issue view <prereq> --json closedByPullRequestsReferences   # → its PR
+gh pr view <pr> --json headRefName,state                       # → the branch, and whether it merged
+```
+
+Test the first two by **count, not presence** — both come back as `{nodes, totalCount}`, so "is it empty" cannot tell one prerequisite from three — and the third by whether `state` is `MERGED`:
+
+| Result | Base |
+| --- | --- |
+| `blockedBy.totalCount` is 0 | the default branch |
+| the prerequisite's PR is `MERGED` | the default branch — fetch first, so that merge is actually in what you branch from |
+| the prerequisite's PR is not merged | that PR's `headRefName` |
+| the prerequisite has no PR at all | **stop.** It isn't implemented yet, so this task cannot start; report that |
+| more than one prerequisite, or more than one PR reference | **stop and ask.** A branch takes exactly one base, so this is a human call |
+
+The last two stop rather than fall through to the default branch, because falling through makes them indistinguishable from an independent task — and that only surfaces later, as a failure whose cause is not in the diff.
 
 Whenever an instruction names a command, say how its result is tested — a command that doesn't vary its exit status will otherwise get branched on wrongly.
 
@@ -96,6 +120,7 @@ Use `superpowers:finishing-a-development-branch` to present the verified integra
 ## Report
 
 - the execution method chosen, and why
+- the base branch the task was created from, and which of **Base branch**'s outcomes chose it
 - the `review-plan` rounds run on the detailed plan, and the final verdict
 - whether the completion gate ran `review-code`, and on what basis if it didn't
 - the concrete checks run, and any that couldn't be
