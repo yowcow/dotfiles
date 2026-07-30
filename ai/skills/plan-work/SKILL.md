@@ -34,6 +34,8 @@ Reach it with `superpowers:brainstorming`.
 
 That skill ends by moving on to the next skill, and says so emphatically. **Don't follow it.** What it is called for here is a design draft that has been through its own self-review and the user's confirmation, recorded in the issue comment (or chat) — run it to there, and stop. Then come back and draft the TODO list yourself.
 
+**It also writes a design document to a file and commits it. Skip that step outright** — draft the design into the comment body (or the chat draft) instead, and leave the working tree alone, per **Boundaries**. Redirecting where the *final* artifact lives is not enough on its own: the file write is a step of its own, reached before the self-review, and a session working through that procedure literally will perform it unless told not to here.
+
 Two things go wrong if this cut lands in the wrong place. Cut too late and the flow runs on into drafting a detailed plan and writing a file — and since this flow has no worktree, that file gets committed to whatever branch the session is on, usually `master`. Cut too early — the moment the design is agreed, before the self-review and the user's confirmation — and the artifact that gets published, and that sub-issues are then generated from, has had no human sign-off on its actual content.
 
 ## Output contract

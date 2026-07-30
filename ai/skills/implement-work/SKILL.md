@@ -34,7 +34,7 @@ Use `superpowers:using-git-worktrees`, then set the project up and establish a v
 
 That skill detects existing isolation from the current directory only; it has no way to find a workspace by branch name, and its creation step assumes the branch is new. So on resumption, look before creating:
 
-1. If `git worktree list --porcelain | grep -q "^branch refs/heads/<branch>$"`, move to that entry's path and reuse it.
+1. If `git worktree list --porcelain | grep -q "^branch refs/heads/<branch>$"`, reuse that workspace. Its path comes from the same output: `git worktree list --porcelain | grep -B2 "^branch refs/heads/<branch>$" | sed -n 's/^worktree //p'` — each block is `worktree <path>` / `HEAD <sha>` / `branch <ref>`, so the branch line's two predecessors carry the path.
 2. Otherwise, if the branch exists, attach a workspace to it with `git worktree add <path> <branch>` — no `-b`. Test existence with `git show-ref --verify --quiet refs/heads/<branch>`; **`git branch --list` exits 0 whether or not it matched**, so branching on its exit status is always true, and on a first run that would send you here to attach a branch that doesn't exist yet. An output-emptiness test works too: `[ -n "$(git branch --list <branch>)" ]`.
 3. Otherwise create it normally.
 
@@ -77,7 +77,10 @@ Add only what the execution method left undone. Loop until nothing changes, then
 1. **Verify** — `superpowers:verification-before-completion`.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
 3. **Review** — skip `review-code` only when the method's own branch-wide review came back **clean**. Run it when any of these holds: findings were left unresolved or parked; no branch-wide review ran at all; or step 2 produced a diff nobody has reviewed. Record the call and its basis in **Report**.
-4. If step 2 or step 3 changed anything, go back to step 1 — verification and simplification have to run against the code as it now stands. If nothing changed and step 3 came back clean or was correctly skipped, go to **Hand off**. If `review-code` stopped at its own cap with blocking findings open, the whole gate halts here: report them and let the user decide.
+4. Take the first of these that applies, in order — they are not independent, since a capped `review-code` still applies and verifies its fixes before stopping, so "changed something" and "hit its cap" can both be true at once:
+   - **`review-code` stopped at its own cap with blocking findings open** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
+   - **Step 2 or step 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
+   - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit.
 
 ## Hand off
 

@@ -34,8 +34,8 @@ issue yowcow/dotfiles#18 は「`review-plan` skill が重すぎるかもしれ�
 
 `review-plan` は1スキルのまま、対象を2つに分ける。
 
-- **Task list**（`plan-work` から）: レンズは Necessity / Completeness / Consistency / Reality / Risk。Assumptions と Executability はスキップ（タスク粒度の詳細がまだ存在せず適用不能）。
-- **Implementation plan**（`implement-work` から）: レンズは Completeness / Consistency / Reality / Assumptions / Executability / Risk。Necessity はスキップ（task list 段階で決着済み）。
+- **TODO list**（`plan-work` から）: レンズは Necessity / Completeness / Consistency / Reality / Risk。Assumptions と Executability はスキップ（タスク粒度の詳細がまだ存在せず適用不能）。
+- **Implementation plan**（`implement-work` から）: レンズは Completeness / Consistency / Reality / Assumptions / Executability / Risk。Necessity はスキップ（TODO list 段階で決着済み）。
 
 Dispatch は既定 **1リビュアーがそのターゲットの全レンズを担当**し、大きい・リスキー・複数サブシステムに跨る場合のみ最大 **2リビュアー**まで増やす。「1レンズ1リビュアー」の段は削除する。ラウンド上限は3（従来5から縮小）。finding contract・判定手順・report は1カ所のまま維持する。
 
