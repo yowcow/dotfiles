@@ -78,6 +78,7 @@ Add only what the execution method left undone. Loop until nothing changes, then
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
 3. **Review** — skip `review-code` only when the method's own branch-wide review came back **clean**. Run it when any of these holds: findings were left unresolved or parked; no branch-wide review ran at all; or step 2 produced a diff nobody has reviewed. Record the call and its basis in **Report**.
 4. Take the first of these that applies, in order — they are not independent, since a capped `review-code` still applies and verifies its fixes before stopping, so "changed something" and "hit its cap" can both be true at once:
+   - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only at its cap, so check for it before the cap condition.
    - **`review-code` stopped at its own cap with blocking findings open** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
    - **Step 2 or step 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
    - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit.

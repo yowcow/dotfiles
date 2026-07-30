@@ -71,4 +71,4 @@ A round is one review → judge → fix → verify cycle. The pass is clean when
 - rejected findings, with the reason
 - the remaining Minor findings
 - what verification ran, and its actual result
-- the verdict: clean, or the blocking findings that remain
+- the verdict: clean, or the blocking findings that remain — flagging separately any Critical finding that invalidates the approved design, since that ends this pass rather than being fixed in it, and the caller has to route it per **Escalation** instead of reading the pass as merely unfinished
