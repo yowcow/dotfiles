@@ -28,6 +28,8 @@ Create only when the list comes back empty:
 gh pr create --draft --base <base-branch> --title <title> --body-file <file>
 ```
 
+`<base-branch>` is the default branch, unless this work is stacked: when `gh issue view <task> --json blockedBy` comes back with a non-zero `totalCount` and that prerequisite's PR has not merged, base the PR on that PR's head branch instead, so the diff carries only this task's work. `implement-work` owns the full derivation — only these two of its outcomes ever reach PR creation, so don't restate the rest here.
+
 If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
 
 Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
