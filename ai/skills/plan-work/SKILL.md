@@ -9,7 +9,7 @@ Use to turn an issue or a planning request into work `implement-work` can pick u
 
 One invocation runs the whole flow to convergence: research, design agreement, a numbered TODO list at PR granularity, and the loop around `review-plan` — up to three rounds — until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop, including its three-round cap. `review-plan` is one pass with no cap of its own — it reports judged findings and never edits what it reviewed — so folding findings in and re-running belongs here.
 
-**This flow stops short of per-task detail.** No exact paths, no per-task verification commands, no edge-case enumeration. That detail is written one PR at a time by `implement-work`, immediately before the work, and reviewing it here — before the design has even settled — is what made planning expensive.
+**This flow stops short of per-task detail** — see **Output contract** for what that excludes. `implement-work` writes that detail one PR at a time, immediately before the work.
 
 ## Roles
 
@@ -90,7 +90,7 @@ Publishing and splitting interleave, because each needs something from the other
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
-5. Dispatch `review-plan` with the target declared as the task list.
+5. Dispatch `review-plan` with the target declared as the TODO list.
 6. Fold every accepted Critical and Important finding in yourself — `review-plan` never edits what it reviewed — then re-run it, handing over the record of the previous pass (findings accepted and fixed, findings rejected with the reason) so it doesn't re-litigate what was already rejected.
 7. Don't leave this pass until `review-plan` comes back with no blocking finding. Return to step 5 while one remains, subject to **Escalation**.
 8. Publish and split, per **Publish**.
