@@ -40,6 +40,10 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 The orchestrator owns the workflow's progression: it decides when each phase is complete and drives every transition to the next. Subagents do work within a single phase and always hand back — a worker is never given an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
 
+The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Several skills state that transition emphatically — as a hard gate, as the single terminal node of their process diagram, as "the only skill you invoke next is X". Emphasis doesn't transfer ownership. Restate this at each call site too: a sub-skill's terminal instruction is read exactly where it is invoked, so a rule living only here loses to it.
+
+What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run — what you called it for is a reviewed, confirmed artifact, not a raw file. Cut too early and you silently drop the last human check on the artifact, the placeholder and consistency scan that makes it usable, and the cleanup nobody else is assigned.
+
 ### Workflow selection
 
 Classify the task first:
@@ -49,7 +53,7 @@ Classify the task first:
 
 Both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is neither — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
 
-For a Change, enter at the flow the work has actually reached: no agreed plan yet → `plan-work`; a written plan in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
+For a Change, enter at the flow the work has actually reached: no agreed design or PR-sized split yet → `plan-work`; one PR-sized task in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
 
 ### Understand
 
@@ -61,11 +65,13 @@ For a Change, enter at the flow the work has actually reached: no agreed plan ye
 
 Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
-- **`plan-work`** — entry: an issue number, or a request to be planned. It researches, settles the design with the user, drafts the plan, and loops `review-plan` to convergence. Deliverable: the converged plan and its TODO checklist, published once — as a comment on the tracking issue, or in chat when no issue tracks the work — and self-contained enough to implement from alone. It never touches the working tree: no worktree, no branch, no code.
-- **`implement-work`** — entry: a written plan (issue comment, chat, or file); with none, go back to `plan-work`. It establishes the isolated workspace and a verified baseline, declares its execution method, implements, and owns the completion gate. Deliverable: a branch of verified commits — with no PR yet.
+- **`plan-work`** — entry: an issue number, or a request to be planned. It researches, settles the design with the user, drafts a numbered TODO list at PR granularity, and loops `review-plan` to convergence. Deliverable: the design and that TODO list, published once — as a comment on the tracking issue, or in chat when no issue tracks the work — plus one sub-issue per item when the work spans two or more PRs. It stops short of per-task detail: no exact paths, no per-task verification commands. It never touches the working tree: no worktree, no branch, no code.
+- **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. It establishes the isolated workspace and a verified baseline, drafts the detailed plan for that one PR and reviews it, declares its execution method, implements, and owns the completion gate. Deliverable: a branch of verified commits — with no PR yet.
 - **`pr-to-ready`** — entry: a branch of verified commits. It opens the draft PR itself, then drives CI and review to ready. Its loop is its own completion path; `implement-work`'s gate is never re-entered from it.
 
-A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
+Detail belongs where it gets used. The pre-implementation artifact is coarse on purpose — writing exact paths and per-task verification before the design has settled makes a large artifact to review and re-review, which is what made planning expensive. The detailed plan is drafted one PR at a time, immediately before the work, for the workers who genuinely have no context; it is scratch, not a published deliverable.
+
+A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain). That triad is what `implement-work`'s completion gate applies — and what that gate adds depends on the execution method, since it only covers ground the method left uncovered. `implement-work` also holds an earlier gate, on the detailed plan, before any code is written. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
 
 Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
 
@@ -96,11 +102,11 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
 - You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
-- A handoff between Change flows may land in a different session, which has no chat to fall back on. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up (the published plan comment, the branch of verified commits, the PR), so the receiving session needs nothing this one was holding in context.
+- A handoff between Change flows may land in a different session, which has no chat to fall back on. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up (the published design and TODO list, the sub-issue for one PR, the branch of verified commits, the PR), so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not one of these: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
 
 ### Escalation
 
-- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing — or to Workflow selection if the task's type changed — instead of improvising an architectural decision.
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing — or to Workflow selection if the task's type changed — instead of improvising an architectural decision. This holds wherever the finding surfaces, including the review of `implement-work`'s own detailed plan: a finding that invalidates the agreed design is not fixed in place.
 - Report what's uncertain, the options and trade-offs, and your recommendation.
 
 ## Subagents & worker safety

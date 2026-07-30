@@ -61,7 +61,7 @@ A round is one review → judge → fix → verify cycle. The pass is clean when
 ## Escalation
 
 - Five rounds at most. If the fifth round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a sixth review: report those fixes as applied but not re-reviewed, along with the disagreement, and let the user decide. Never report clean on the strength of fixes no review has seen.
-- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' **Escalation**.
+- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `plan-work` — that flow owns the framing, and re-approving a design is its job, not something to improvise here or inside a sub-skill of it. This matches the guidelines' **Escalation**.
 
 ## Report
 
