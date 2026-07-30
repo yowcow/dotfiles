@@ -51,9 +51,9 @@ One invocation is one pass, and a pass is as many rounds as it takes:
 1. Resolve the scope per **Scope** and declare it.
 2. Dispatch one reviewer with the code as it now stands. One reviewer per round, fresh each round — a diff is a smaller object than a plan, and splitting the review further only pays handoff cost.
 3. Judge every finding with `superpowers:receiving-code-review`: verify the claim against the code before accepting it, and reject — with a stated reason — findings that are wrong, that only reflect reviewer preference, or that ask for work beyond the request.
-4. Apply the accepted Critical and Important findings yourself. When a finding describes a bug, write the failing regression test first and watch it fail, then fix it (`superpowers:test-driven-development`). Record Minor findings; don't fix them.
+4. Apply the accepted Critical and Important findings yourself — except one that invalidates the approved design, which is not fixed here at all: stop the pass and route it per **Escalation**. When a finding describes a bug, write the failing regression test first and watch it fail, then fix it (`superpowers:test-driven-development`). Record Minor findings; don't fix them.
 5. Verify with the concrete commands the project defines — in the README, Makefile, package scripts, or CI — and read their actual output.
-6. Return to step 2 while a blocking finding remains.
+6. Return to step 2 while a blocking finding remains, subject to **Escalation**.
 7. Report per **Report**.
 
 A round is one review → judge → fix → verify cycle. The pass is clean when a round's review produces no Critical or Important finding. Minor findings are recorded, not blocking.
@@ -61,7 +61,7 @@ A round is one review → judge → fix → verify cycle. The pass is clean when
 ## Escalation
 
 - Five rounds at most. If the fifth round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a sixth review: report those fixes as applied but not re-reviewed, along with the disagreement, and let the user decide. Never report clean on the strength of fixes no review has seen.
-- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `superpowers:brainstorming` for design approval, per the guidelines' **Escalation**.
+- A Critical finding that invalidates the approved design does not get fixed in the loop. Stop and return to `plan-work` — that flow owns the framing, and re-approving a design is its job, not something to improvise here or inside a sub-skill of it. This matches the guidelines' **Escalation**.
 
 ## Report
 
@@ -71,4 +71,4 @@ A round is one review → judge → fix → verify cycle. The pass is clean when
 - rejected findings, with the reason
 - the remaining Minor findings
 - what verification ran, and its actual result
-- the verdict: clean, or the blocking findings that remain
+- the verdict: clean, or the blocking findings that remain — flagging separately any Critical finding that invalidates the approved design, since that ends this pass rather than being fixed in it, and the caller has to route it per **Escalation** instead of reading the pass as merely unfinished

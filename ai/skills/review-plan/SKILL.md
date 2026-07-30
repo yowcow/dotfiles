@@ -1,67 +1,77 @@
 ---
 name: review-plan
-description: Use to review an implementation plan itself — before implementation starts, on a revision, or as a later check on a plan already written or posted. Reviews whether the work is warranted at all, and where the plan has gaps, contradictions, unverified assumptions, or mismatches with the repository's actual state. Dispatches independent read-only reviewers on separate lenses, judges their findings, and reports the surviving ones. One invocation is one review pass; it never edits the plan.
+description: Use to review planning work itself, before implementation starts or on a revision — either a TODO list breaking work into PR-sized items (from `plan-work`), or the detailed implementation plan for one PR (from `implement-work`). Reviews whether the work is warranted at all, and where the plan has gaps, contradictions, unverified assumptions, or mismatches with the repository's actual state. Dispatches read-only reviewers, judges their findings, and reports the surviving ones. One invocation is one review pass; it never edits what it reviewed.
 ---
 
 # Review Plan
 
-Use on a written implementation plan (from `superpowers:writing-plans`) — before any code is written, on a revision, or as a later check on a plan already posted. This reviews the plan, not the code.
+Use on planning work before any code is written, or on a revision of it. This reviews the plan, not the code.
 
-One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits the plan and never re-reviews on its own. Revising the plan and re-running this skill until it comes back clean belongs to the caller — in the Change workflow, `plan-work` owns that loop.
+One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits what it reviewed and never re-reviews on its own. Revising and re-running until it comes back clean belongs to the caller — `plan-work` for a TODO list, `implement-work` for an implementation plan.
 
-## Roles
+## Targets
 
-- The orchestrator owns this pass: it dispatches reviewers, judges their findings, and reports. It does not edit the plan and does not declare planning done — it reports only whether this pass found a blocking finding.
-- Reviewers are read-only workers. Each gets its assigned lenses, the plan text, the original request, and the paths the plan touches. A reviewer reports findings and never edits the plan or the code, and never declares the plan clean.
-- Every reviewer takes the same stance: try to make the plan fail. A plan you cannot break is a plan that passes — but a finding you cannot evidence is not a finding.
+One invocation reviews exactly one target, and **the caller declares which**. The target sets the lens list and the fan-out, because the two artifacts fail in different ways.
+
+- **TODO list** — from `plan-work`: the design plus a numbered list of PR-sized items. Lenses: **Necessity, Completeness, Consistency, Reality, Risk**.
+  - *Skip* **Assumptions** and **Executability**, and say so in the report: there is no task-level detail yet for either to bite on.
+- **Implementation plan** — from `implement-work`: the detailed plan for one PR. Lenses: **Completeness, Consistency, Reality, Assumptions, Executability, Risk**.
+  - *Skip* **Necessity**, and say so in the report: whether the work is warranted was settled when the TODO list was reviewed. If this plan reaches past the scope boundary of the item it implements, that is not Necessity reopening — raise it under Consistency, against that item's stated completion criteria.
+  - Don't redo the self-review the plan-writing skill already performs on its own output — spec coverage, placeholder scanning, name and type consistency. Completeness and Consistency here cover what that self-review cannot see: error paths, migration and rollback, and ordering between tasks.
 
 ## Lenses
 
-Each lens is a distinct failure mode. How many reviewers they map to is decided in **Dispatch** below.
+Each lens is a distinct failure mode. Which ones apply comes from **Targets**; how many reviewers they map to comes from **Dispatch**.
 
-- **Necessity** — whether the work is warranted at all: steps the request never asked for, scope the plan grew on its own, a smaller path to the same outcome, or an existing feature that already covers it. This lens reads the whole plan and questions that it should exist, not just how it reads.
-- **Completeness** — requirements not covered; missing edge cases, error paths, migration, rollback, or docs; a task with no verification step.
+- **Necessity** — whether the work is warranted at all: steps the request never asked for, scope the plan grew on its own, a smaller path to the same outcome, or an existing feature that already covers it. This lens reads the whole thing and questions that it should exist, not just how it reads.
+- **Completeness** — requirements not covered; missing edge cases, error paths, migration, rollback, or docs.
+  - On an **implementation plan**: also a task with no verification step.
+  - On a **TODO list**: an item with no stated completion criteria. **Not** a missing verification command — the TODO list is contractually forbidden to carry those, so flagging their absence would manufacture a finding against every item. Verification detail is Executability's business, and Executability is skipped for this target.
 - **Consistency** — steps that contradict each other, ordering or dependency errors, tasks assuming state no earlier task produces, terminology drift.
 - **Reality** — mismatch with the repo as it is: paths, symbols, or commands that don't exist; existing utilities or patterns the plan reinvents; existing failures, constraints, or config the plan ignores.
 - **Assumptions** — what the plan takes for granted without checking: unstated preconditions, dependency behavior nobody verified, assumed environment, permissions, or data shape. Where Reality catches what the repo contradicts, this catches what nobody has confirmed either way — list each assumption and mark it verified or unverified.
-- **Executability** — tasks too large or too vague to implement and verify independently; shared files that break task independence; verification that isn't a concrete command, or one that wouldn't actually show the change worked.
+- **Executability** — tasks too large or too vague to implement and verify independently; shared files that break task independence; verification that isn't a concrete command, or one that wouldn't actually show the change worked. A named command whose result-testing method is unspecified counts here.
 - **Risk** — blast radius, backward compatibility, data and security implications, and what happens if a task half-lands.
+  - On a **TODO list**: also whether every intermediate state is safe — the PRs land one at a time, so a state where only some have merged has to hold together.
 
 ## Dispatch
 
-Reviewers run in parallel (`superpowers:dispatching-parallel-agents` — this is independent fact-finding, not implementation). Splitting lenses across reviewers buys independence: none of them sees another's findings, so none anchors on them. Splitting further than the plan warrants only pays handoff cost, so size the fan-out to the plan:
+Reviewers are read-only workers. Each gets its assigned lenses, the artifact under review, the original request, and the paths it touches. A reviewer reports findings and never edits anything, and never declares the plan clean. Every reviewer takes the same stance: try to make the plan fail. One you cannot break passes — but a finding you cannot evidence is not a finding.
 
-- **Default** — three reviewers, one bundle each: **Intent** (Necessity, Completeness, Consistency — needs the plan and the original request, not the repo), **Ground truth** (Reality, Assumptions), **Execution** (Executability, Risk).
-- **Small plan** — one reviewer takes every lens, when the work is mechanical or confined to a single file.
-- **Large, risky, or spanning subsystems** — one reviewer per lens.
+Size the fan-out to the target, and keep it small. Both targets are small artifacts — a list of PR-sized items, or one PR's plan — and splitting further than that only pays hand-off cost.
 
-When the caller hands over the record of an earlier pass — a revised plan coming back — dispatch only the lenses that produced an accepted finding, plus Reality, since the plan changed under it, and pass the record to the reviewers so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
+- **Default — one reviewer** takes the target's whole lens list.
+- **Two reviewers**, when the work is large, risky, or spans subsystems: split the lens list into the ones that need only the artifact and the original request, and the ones that need to read the repo. Independence is what the split buys — neither sees the other's findings, so neither anchors on them.
+
+Use `superpowers:dispatching-parallel-agents` for the dispatch itself when there is more than one; this is independent fact-finding, not implementation. Don't restate its prompt-construction guidance here.
+
+On a revision — the caller hands over the record of an earlier pass — dispatch only the lenses that produced an accepted finding, plus Reality, since the artifact changed under it. Pass the record along so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
 
 ## Finding contract
 
 Each reviewer returns findings only — never a rewritten plan — with:
 
-- **lens** and **severity**: Critical (the design or approach is wrong), Important (must be resolved before implementation), Minor (worth noting).
-- **claim** — one sentence on what is wrong with the plan.
-- **evidence** — `path:line` from the repo, or the quoted plan line. No evidence, no finding.
-- **suggested change** — what the plan should say instead.
+- **lens**, and **severity**: Critical (the design or approach is wrong), Important (must be resolved before implementation), Minor (worth noting).
+- **claim** — one sentence on what is wrong.
+- **evidence** — `path:line` from the repo, or the quoted line from the artifact. No evidence, no finding.
+- **suggested change** — what it should say instead.
 
 Report "no findings" explicitly rather than inventing one. Confine every search to the project root or narrower.
 
 ## Pass
 
-1. Gather the inputs: the plan text, the original request, the paths the plan touches, and the record of an earlier pass if the caller supplied one.
-2. Dispatch reviewers against the plan, sized per **Dispatch**.
+1. Gather the inputs: the declared target, the artifact, the original request, the paths it touches, and the record of an earlier pass if the caller supplied one.
+2. Dispatch reviewers, sized per **Dispatch**.
 3. Evaluate every finding with `superpowers:receiving-code-review`: verify the claim against the repo before accepting it, and reject — with a stated reason — findings that are wrong, that only reflect reviewer preference, or that ask for work beyond the request.
-4. Report per **Report**, and stop there — revising the plan and re-reviewing it are the caller's job.
+4. Report per **Report**, and stop there — revising and re-reviewing are the caller's job.
 
 This pass is clean when no Critical or Important finding survives step 3. Minor findings are recorded, not blocking.
 
 ## Report
 
-Report to the caller in chat. Never post this pass to GitHub — not even when the plan under review lives in an issue or PR comment: a pass is an orchestrator-facing intermediate, and one comment per loop is noise. Report, for this pass:
+Report to the caller in chat. Never post this pass to GitHub — not even when the artifact under review lives in an issue or PR comment: a pass is an orchestrator-facing intermediate, and one comment per loop is noise. Report, for this pass:
 
-- the fan-out used, and any lens skipped with why
+- the target reviewed, the fan-out used, and any lens skipped with why
 - accepted findings with lens, severity, evidence, and suggested change
 - rejected findings with the reason
 - the remaining Minor findings
