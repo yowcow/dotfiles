@@ -46,7 +46,7 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 
 1. Read the task. Where the design lives depends on the entry: a **sub-issue** carries its own body plus a link to the parent's design comment; an **issue that fits one PR** carries its own comment; a **request with no issue** is itself the input, together with whatever `plan-work` left in chat.
 2. Draft the detailed plan with `superpowers:writing-plans`. It goes in the workspace, git-ignored, and is never committed or published — it is scratch for the execution method, not a deliverable. **That skill ends by choosing an execution method and starting it; don't follow it there.** Stop once the plan has been through the skill's own self-review — not the moment the file lands, since that self-review is what makes the plan usable and nothing else performs it.
-3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted Critical and Important finding in yourself, then re-run it, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
+3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted Critical and Important finding in yourself — except one that invalidates the agreed design, which is not folded in at all: stop and take the **Design invalidated** exit below. Then re-run `review-plan`, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
    - **Design invalidated** — a Critical finding that undoes the agreed design → stop and return to `plan-work`. It doesn't get worked around here.
