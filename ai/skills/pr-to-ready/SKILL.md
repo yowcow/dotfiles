@@ -172,13 +172,15 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: try the reviewer flag first; if it fails with `Could not resolve user with login 'copilot'`, that means the flag syntax doesn't resolve here — **do not give up**, fall back to the REST endpoint (the bot IS reachable):
+- **Copilot**: try the reviewer flag first, then fall back to the REST endpoint (the bot IS reachable). **Don't chain them with `||`**: the flag can exit 0 and print the PR URL while adding nobody, so its exit status proves nothing and the fallback would never fire. Test what actually landed instead — and read it over REST, because `gh pr view --json reviewRequests` omits bots entirely and reports 0 even while Copilot is requested:
   ```bash
-  gh pr edit <PR> --add-reviewer "@copilot" \
-    || gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-         -f "reviewers[]=copilot-pull-request-reviewer[bot]"
+  requested() { gh api "repos/<owner>/<repo>/pulls/<PR>" \
+                  --jq '[.requested_reviewers[].login | ascii_downcase | select(contains("copilot"))] | length'; }
+  gh pr edit <PR> --add-reviewer "@copilot" >/dev/null 2>&1 || true
+  [ "$(requested)" -gt 0 ] || gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
+                                -f "reviewers[]=copilot-pull-request-reviewer[bot]"
   ```
-  Only treat it as "Copilot unavailable" if BOTH forms fail.
+  `requested` returns a count, so `-gt 0` is the test; it yields 0 rather than erroring when no reviewer is requested at all. Only treat it as "Copilot unavailable" when `requested` still returns 0 after the fallback.
 
 ### 2-2. Wait for the review (bound the wait)
 
