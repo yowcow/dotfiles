@@ -100,7 +100,7 @@ Publishing and splitting interleave, because each needs something from the other
 
 ## Pass
 
-1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third arrives with the finding, the branch name, and the branch's state, and enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
+1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
