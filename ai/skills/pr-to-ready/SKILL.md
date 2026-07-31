@@ -24,30 +24,15 @@ gh pr list --head <branch> --json number,isDraft              # confirm absence
 
 Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
-```bash
-default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) ||
-  default=$(gh repo view --json defaultBranchRef --jq '"origin/" + .defaultBranchRef.name') ||
-  default=""                  # keep the list ending in success, so the test below is the only stop
-[ -n "$default" ] || exit 1   # neither resolved — stop, don't guess a branch name
-base=$(git log "$default"..HEAD --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 . || true)
-# a recorded base that is no longer on the remote is finished with: fall back to the default
-[ -z "$base" ] || git ls-remote --exit-code --heads origin "$base" >/dev/null 2>&1 || base=""
-```
+The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history. Three cases, and only the middle one passes `--base`:
 
-The trailing `|| default=""` is what lets that emptiness test be the stop condition at all: `set -e` is suppressed for every command in a `||` list *except the last*, so without it a failing `gh repo view` would abort the flow before the test ever ran. The emptiness test on `default` is then not optional: `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so without it a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter — it lives at the repository level, and a hand-built remote never gets it. The `origin/` prefix is built **inside** the `jq` expression rather than prepended outside it, so that a failing `gh` leaves `default` genuinely empty; prepending outside would yield the string `origin/`, which is non-empty and would sail straight past the test.
-
-Newest match wins — a stack deeper than one carries an earlier task's trailer further back, and the nearer one is reached first. `grep` finding nothing is the ordinary unstacked case, so it must not read as an error: `|| true` is load-bearing, because `grep -m1 .` exits non-zero on no match and that would abort the whole flow under `set -e` — which the scripts this skill ships do use. With it, `base` is simply empty.
-
-Between them, the trailer read and the `ls-remote` line leave `base` in exactly one of three states:
-
-- **empty because no trailer was recorded** → no `--base` at all; let GitHub default. This is the ordinary unstacked case, and the absence of a trailer is what says so.
-- **set, and still on the remote** → base the PR on it. This is the live stack.
-- **emptied by the `ls-remote` check** → the recorded prerequisite branch is gone, so fall back to the default too. It has to be cleared rather than merely noted, or the deleted branch would go straight into the command below.
-
-`${base:+...}` adds the flag only when `base` is non-empty, so one command covers all three outcomes:
+- **No trailer** → omit `--base` and let GitHub choose. This is the ordinary unstacked case, and the absence of a trailer is what says so.
+- **A trailer whose branch is still on the remote** → open the PR against that branch, so the diff carries only this task's work.
+- **A trailer whose branch is gone** → omit `--base` as well. That prerequisite is finished with, and its commits are in the default branch already.
 
 ```bash
-gh pr create --draft ${base:+--base "$base"} --title <title> --body-file <file>
+gh pr create --draft --title <title> --body-file <file>                     # no trailer, or its branch is gone
+gh pr create --draft --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
 ```
 
 That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
@@ -177,21 +162,13 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: try the reviewer flag first, then fall back to the REST endpoint (the bot IS reachable). **Don't chain them with `||`**: the flag can exit 0 and print the PR URL while adding nobody, so its exit status proves nothing and the fallback would never fire. Test what actually landed instead — and read it over REST, because `gh pr view --json reviewRequests` omits bots entirely and reports 0 even while Copilot is requested:
+- **Copilot**: try the reviewer flag, then fall back to the REST endpoint (the bot IS reachable):
   ```bash
-  # prints the count; a non-zero exit means the API call itself failed, which is not "none requested"
-  requested() { gh api "repos/<owner>/<repo>/pulls/<PR>" \
-                  --jq '[.requested_reviewers[].login | ascii_downcase | select(contains("copilot"))] | length'; }
-  gh pr edit <PR> --add-reviewer "@copilot" >/dev/null 2>&1 || true
-  n=$(requested) || { echo "cannot read requested reviewers — stop rather than guess"; exit 1; }
-  if [ "$n" -eq 0 ]; then
-    gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-      -f "reviewers[]=copilot-pull-request-reviewer[bot]"
-    n=$(requested) || { echo "cannot read requested reviewers — stop rather than guess"; exit 1; }
-  fi
-  [ "$n" -gt 0 ] || echo "Copilot unavailable: neither form stuck"
+  gh pr edit <PR> --add-reviewer "@copilot"
+  gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
+    -f "reviewers[]=copilot-pull-request-reviewer[bot]"
   ```
-  Capture the count into `n` rather than testing `$(requested)` inline: a failing `gh` would make the substitution empty, and `[ "" -gt 0 ]` is a syntax error that aborts under `set -e` — and, worse, would otherwise read as "none requested". Distinguishing the two is the point, so an API failure stops with its own message. The **final** check is what decides availability, because the POST can fail on auth or a rate limit; don't infer success from having run it.
+  **Don't judge either form by its exit status, and don't chain them with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and it is intermittent, so one success proves nothing about the next run. Confirm instead by reading back who is actually requested after each attempt, and only run the REST form when the flag didn't take. Read that back over REST as well: `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it can't answer this. Treat Copilot as unavailable only when it is still absent after the REST form — and note that failing to *read* the reviewers is not the same as none being requested, so stop on that rather than reporting unavailable.
 
 ### 2-2. Wait for the review (bound the wait)
 
