@@ -59,7 +59,7 @@ On a revision — the caller hands over the record of an earlier pass — dispat
 
 Each reviewer returns findings only — never a rewritten plan — with:
 
-- **lens**, and **severity**: Critical (the design or approach is wrong) or Important (the plan can be edited to resolve it). Both block implementation — **What counts as a finding** admits nothing that doesn't.
+- **lens**, and **severity** — which says where the remedy lives, not how urgent it is: **Critical**, the agreed design or approach is wrong, so no edit to the plan fixes it and the design needs approval again; **Important**, the plan itself is wrong and editing it resolves this. Both block implementation — **What counts as a finding** admits nothing that doesn't.
 - **claim** — one sentence on what is wrong.
 - **evidence** — `path:line` from the repo, or the quoted line from the artifact. No evidence, no finding.
 - **suggested change** — what it should say instead.
