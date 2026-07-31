@@ -110,12 +110,17 @@ Draft, not ready: the whole point of the loop below is that CI and review run be
 Whichever path you took — found or just created — record the PR number before moving on. `<branch>` is already bound at the top of this step, so this records `<PR>` only; every later step takes both as given, and on a first-time run nothing else has bound `<PR>` yet. As with the existence check above, name `<branch>` explicitly rather than relying on the current checkout:
 
 ```bash
-gh pr list --head <branch> --json number,isDraft --jq '.[0] | select(. != null) | "PR=\(.number) draft=\(.isDraft)"'
+gh pr list --head <branch> --json number,isDraft --jq '.[] | "PR=\(.number) draft=\(.isDraft)"'
 ```
 
-**`select(. != null)` is load-bearing, not decoration.** On a branch with no PR, `.[0]` is `null` and jq interpolates it as text, so without the guard this prints `PR=null draft=null` — non-empty output that would bind `<PR>` to a string. With it, the no-PR case prints nothing.
+**Print every match with `.[]` and count the lines — don't reach for `.[0]`.** Two things go wrong with indexing. A branch can carry more than one open PR, since a second PR may target a different base, and `.[0]` would pick one of them arbitrarily and hand every later step the wrong `<PR>`. And on a branch with no PR at all, `.[0]` is `null`, which jq interpolates as text — printing `PR=null draft=null`, non-empty output that would bind `<PR>` to a string. `.[]` yields nothing for an empty list and one line per match, so the count answers both questions.
 
-Read exit status and output together: exit 0 with a `PR=` line binds `<PR>`; exit 0 with no output means no open PR on the branch, so creation did not take — stop and surface that; a non-zero exit means the query itself failed and also prints nothing, so stop and report *that* instead, rather than misreporting a failed lookup as a failed creation.
+Read exit status and line count together, and stop on three of the four outcomes:
+
+- **non-zero exit** → the query failed, and it prints nothing on stdout, so stop and report *that* — never misreport a failed lookup as a failed creation;
+- **exit 0, no lines** → no open PR on the branch, so creation did not take; stop and surface it rather than continuing with `<PR>` unbound;
+- **exit 0, exactly one line** → bind `<PR>` from it;
+- **exit 0, more than one line** → stop and ask which PR this run should drive. A branch takes one `<PR>` here, so this is a human call.
 
 ### 0-2. Ask whether to mark ready on clean
 
