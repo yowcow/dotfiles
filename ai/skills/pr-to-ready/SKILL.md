@@ -348,4 +348,4 @@ Hand `plan-work`'s entry for a re-approval the three things it asks for:
 
 Add where the review had got to: the round the finding surfaced on, and the findings already fixed and pushed. Re-approval is judged against the branch as it now stands, not as it was handed over.
 
-Leave the PR as it is. Don't close it, and don't take it out of draft: whether that branch is reused or discarded is `plan-work`'s call, and closing a PR is a person's. Report that it is still open and still draft, so neither is mistaken for done.
+Leave the PR as it is. Don't close it, and don't change its draft state: whether that branch is reused or discarded is `plan-work`'s call, and closing a PR is a person's. Report that it is still open and that its draft state is unchanged, so neither is mistaken for done.
