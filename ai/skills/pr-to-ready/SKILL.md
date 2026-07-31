@@ -143,6 +143,7 @@ digraph pr_to_ready {
   "ready-on-clean?" [shape=diamond];
   "gh pr ready" [shape=doublecircle];
   "Leave as draft" [shape=doublecircle];
+  "Return to plan-work" [shape=doublecircle];
 
   "Draft PR exists?" -> "gh pr create --draft" [label="no"];
   "gh pr create --draft" -> "Ask: ready on clean?";
@@ -157,6 +158,8 @@ digraph pr_to_ready {
   "Any actionable feedback?" -> "Address -> push -> reply -> resolve" [label="yes"];
   "Address -> push -> reply -> resolve" -> "Request review (Claude + Copilot)";
   "Any actionable feedback?" -> "ready-on-clean?" [label="no (clean)"];
+  "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
+  "Investigate -> fix -> push" -> "Return to plan-work" [label="design invalidated"];
   "ready-on-clean?" -> "gh pr ready" [label="yes"];
   "ready-on-clean?" -> "Leave as draft" [label="no"];
 }
@@ -180,7 +183,16 @@ Subagents only investigate and propose (read-only, advisory, no worktree); the o
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying `implement-work`'s implementation discipline. Do **not** re-enter the workflow that got here — don't go back to `plan-work`, and don't re-run `implement-work`'s completion gate: that gate ends by handing off to this skill, so re-entering it from here would loop. This skill's own loop is the PR-phase completion path.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying `implement-work`'s implementation discipline. This skill's own loop is the PR-phase completion path, so an ordinary fix finishes here rather than by re-entering the workflow that got here.
+
+**Before applying any fix, check that it is one.** A review finding — or a CI diagnosis — showing that the agreed design is itself what's wrong is not a fix waiting to be applied. Take **Escalation** instead.
+
+That check belongs here rather than in one of the two loops, because both reach the exit through this section. Step 2's stop conditions state it again as a stop condition of their own, since a loop needs one to stop on; Step 1 has no equivalent list, and routes every fix through here, so this is where its CI path gets the same exit. Wiring only the review loop would leave the CI path with a stated exception and nowhere to take it — the failure this section exists to close.
+
+The two prohibitions that follow from that are **not equally absolute**, and collapsing them into one is how that exit gets lost:
+
+- **`implement-work`'s completion gate — never re-run it**, no exception. That gate ends by handing off to this skill, so re-entering it from here would loop.
+- **`plan-work` — don't go back for an ordinary fix.** A finding that invalidates the agreed design is the exception, because this loop cannot absorb it: per the check above, it is not a fix at all.
 
 ## Step 1: Get CI clean
 
@@ -294,10 +306,12 @@ List unresolved threads / resolve one or more at once. `<skill-dir>` is wherever
 
 Treat human reviewer comments the same way (see receiving-code-review).
 
-**Stop the loop when ANY of these holds** (otherwise keep looping):
+**Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping).
+
 1. Clean per above.
-2. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready.
-3. **Same feedback survives 3+ rounds** of fixes without resolving → stop and ask the user.
+2. **A finding invalidates the agreed design** → stop and return to `plan-work`, per **Escalation**. Don't fix it here, and don't carry it into another round. This is where the ordering earns its keep: such a finding can survive three rounds of attempted fixes and so satisfy 4 as well, and 4's remedy — hand the disagreement to the user — is the wrong one for a design that needs re-approving. It can surface on **any** round, so this is not a cap; check it every round, the way `implement-work`'s completion gate checks for it before its own cap condition.
+3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready.
+4. **Same feedback survives 3+ rounds** of fixes without resolving → stop and ask the user.
 
 ## Step 3: Finish, per the ready-on-clean flag
 
@@ -321,3 +335,17 @@ gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, stat
 ```
 
 If every child is closed, ask the user whether to close the parent or leave it open with a completion comment (標準語), and do what they choose. If children remain open, say which — the next sub-issue is the next run of `plan-work`'s output through `implement-work`.
+
+## Escalation
+
+A Critical finding that invalidates the agreed design does not get fixed in this loop. Stop and return to `plan-work` — that flow owns the framing, and re-approving a design is its job, not something to improvise here. This matches the guidelines' **Escalation**, and it is the same exit `review-code` and `implement-work` take on the same finding: the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
+
+Hand `plan-work`'s entry for a re-approval the three things it asks for:
+
+- **the finding** — what it showed, and which part of the agreed design it undoes;
+- **the branch name**;
+- **the branch's state** — whether it is pushed, and the `<PR>` this run was driving.
+
+Add where the review had got to: the round the finding surfaced on, and the findings already fixed and pushed. Re-approval is judged against the branch as it now stands, not as it was handed over.
+
+Leave the PR as it is. Don't close it, and don't take it out of draft: whether that branch is reused or discarded is `plan-work`'s call, and closing a PR is a person's. Report that it is still open and still draft, so neither is mistaken for done.
