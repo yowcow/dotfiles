@@ -328,15 +328,23 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
 
-### Parent issue, when the work was split into sub-issues
+Either way, **this run ends here.** ready and draft are the flow's two terminal states — the same two the flow diagram ends on — and reaching one is this flow's completion, not a pause partway through something longer. Everything that depends on the merge belongs to a person, because the merge itself does: what follows is what this run hands them.
 
-Large work is planned as a parent issue with one sub-issue per PR (`plan-work` owns that split). GitHub does **not** close a parent when its children close, so once this PR merges and closes its sub-issue, check whether it was the last open one:
+### What this run hands back
 
-```bash
-gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'
-```
+The merge lands after this run has ended, so nothing that depends on it can be a step here. Report these as the run's closing hand-over, and act on none of them:
 
-If every child is closed, ask the user whether to close the parent or leave it open with a completion comment (標準語), and do what they choose. If children remain open, say which — the next sub-issue is the next run of `plan-work`'s output through `implement-work`.
+- **The parent issue, when the work was split into sub-issues.** Large work is planned as a parent issue with one sub-issue per PR (`plan-work` owns that split), and GitHub does **not** close a parent when its children close — so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
+
+  ```bash
+  gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'
+  ```
+
+  Read that as of now and say so: this PR's own sub-issue still shows open, because the merge that closes it hasn't happened yet. If it is the last one open, the parent becomes closable on that merge — report that, and leave it. Closing an issue is a person's call whoever is counting.
+- **The worktree and the branch.** Both outlive this run and nothing here removes them: the PR is open, so the branch is still needed, and PR feedback gets fixed in that worktree. Name both, so neither becomes litter nobody can identify later.
+- **The next sub-issue, when children remain open.** Say which one is next. It is a fresh run of `implement-work` over `plan-work`'s output — from that flow's own entry, not a continuation of this one.
+
+**Don't start any of it.** Reaching ready or draft ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR — follow that, because the user has said what happens next rather than leaving it to be inferred.
 
 ## Escalation
 
