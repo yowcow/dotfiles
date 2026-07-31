@@ -27,7 +27,7 @@ git branch --show-current      # empty output = detached HEAD
 
 Tested by **output emptiness, not exit status** — it exits 0 and prints nothing on a detached HEAD.
 
-**Two answers from the fallback are refusals, not results**: empty output, and the default branch. Stop and ask which branch to take to a PR rather than proceeding — a session handed no name may be sitting in the main checkout on the default branch, whose HEAD carries none of the task's work, and driving a PR from there would target someone else's branch, or none at all (the F5 failure).
+**Two answers from the fallback are refusals, not results**: empty output, and the default branch. Stop and ask which branch to take to a PR rather than proceeding — a session handed no name may be sitting in the main checkout on the default branch, whose HEAD carries none of the task's work, and driving a PR from there would target someone else's branch, or open none at all.
 
 Recognizing the default branch takes a command of its own. Use the same three-rung ladder `review-code`'s **Scope** uses — `symbolic-ref`, then `gh repo view`, then ask — rather than inventing a second answer, with flags suited to this comparison, which needs a bare branch name:
 
@@ -56,7 +56,7 @@ Exit 0 → push it (`git push -u origin <branch>`) and go on. Exit 1 → **stop 
 
 Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
 
-`gh pr view --json number,isDraft` reports a PR already tied to the branch — note its `isDraft`. A non-zero exit does **not** by itself mean there is none: auth, network, and repo-context failures look the same as absence, and the message wording varies by `gh` version, so don't key off either. Treat the failure as "couldn't tell" and confirm absence explicitly:
+`gh pr view <branch> --json number,isDraft` reports a PR already tied to the branch — note its `isDraft`. A non-zero exit does **not** by itself mean there is none: auth, network, and repo-context failures look the same as absence, and the message wording varies by `gh` version, so don't key off either. Treat the failure as "couldn't tell" and confirm absence explicitly:
 
 ```bash
 gh pr view <branch> --json number,isDraft                     # existing PR? note isDraft
@@ -65,16 +65,16 @@ gh pr list --head <branch> --json number,isDraft              # confirm absence
 
 Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
-The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history. Three cases, and only the middle one passes `--base`:
+The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history.
 
 The scan runs **from HEAD backwards and takes the first one found**, which is what "the nearest one wins" means operationally:
 
 ```bash
-git fetch --quiet origin <branch>
+git fetch --quiet origin <branch>   # must succeed — see below
 git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD | grep -m1 .
 ```
 
-`grep` exits **0** with the recorded base on stdout, **1** when no commit carries the trailer. It reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
+Check the fetch's own exit status and stop the run if it is non-zero, before trusting the scan that follows: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, and an empty `FETCH_HEAD` makes `git log ... | grep -m1 .` exit 1 — indistinguishable from a genuine absence of the trailer. Reading that silently as "no trailer" would open the PR without `--base` against the wrong target. `grep` itself exits **0** with the recorded base on stdout, **1** when no commit carries the trailer. It reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
 
 When a trailer was found, check whether its branch survives:
 

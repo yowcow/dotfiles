@@ -33,6 +33,11 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
    ```bash
    git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD | grep -m1 .   # 0 = recorded base on stdout, 1 = no trailer
+   ```
+
+   When a trailer was found, check whether its branch survives:
+
+   ```bash
    git ls-remote --exit-code --heads origin <recorded>                          # 0 = still there, 2 = gone
    ```
 
@@ -40,10 +45,10 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
    Two outcomes decide `<base>`:
    - trailer found and its branch still on the remote → `git fetch origin <recorded>`, then `<base>` is `origin/<recorded>`;
-   - no trailer, or its branch is gone → `<base>` is the default branch. This is the fallback the completion criteria require. Resolve it rather than assuming `main`: `git symbolic-ref refs/remotes/origin/HEAD`, then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
+   - no trailer, or its branch is gone → `<base>` is the default branch. This is the ordinary case: the branch is unstacked, or its prerequisite has already landed. Resolve it rather than assuming `main`: `git symbolic-ref refs/remotes/origin/HEAD`, then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
 
    If the range turns out empty — HEAD is already at `<base>` — fall through to 4.
-4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
+4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` that item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
 
 ## Reviewer prompt
 
