@@ -53,7 +53,7 @@ The published artifact is the design plus a numbered list of PR-sized items. It 
   - **Reuse it** → write that branch's name in the item. `implement-work`'s **Isolation** finds it and attaches a workspace to it, so the item carries on from those commits.
   - **Discard it** → write a **new** branch name in the item. That Isolation ladder reuses any branch it finds and has no rung that discards one, so an item carrying the old name would quietly resume work on top of the very commits the invalidated design produced — the failure this convention exists to prevent.
 
-  Name the discarded branch and its worktree in the published artifact too, as a person's cleanup. This flow never touches the working tree, so nothing here removes them, and an abandoned branch nobody named is indistinguishable from one still in use.
+  Name the discarded branch in the published artifact too, as a person's cleanup, along with the worktree checked out on it — identified by that branch rather than by a path, since this flow is never handed one. This flow never touches the working tree, so nothing here removes them, and an abandoned branch nobody named is indistinguishable from one still in use.
 
 **Deliberately absent:** exact paths, line numbers, per-task verification commands, edge-case enumeration. Those belong to `implement-work`.
 

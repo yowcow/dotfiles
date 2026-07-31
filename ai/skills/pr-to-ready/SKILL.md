@@ -135,7 +135,8 @@ digraph pr_to_ready {
   "Ask: ready on clean?" [shape=box];
   "Watch CI" [shape=box];
   "CI green?" [shape=diamond];
-  "Investigate -> fix -> push" [shape=box];
+  "Diagnose the failure" [shape=box];
+  "Fix -> push" [shape=box];
   "Verify PR body issue links" [shape=box];
   "Request review (Claude + Copilot)" [shape=box];
   "Any actionable feedback?" [shape=diamond];
@@ -150,8 +151,9 @@ digraph pr_to_ready {
   "Draft PR exists?" -> "Ask: ready on clean?" [label="yes"];
   "Ask: ready on clean?" -> "Watch CI";
   "Watch CI" -> "CI green?";
-  "CI green?" -> "Investigate -> fix -> push" [label="no"];
-  "Investigate -> fix -> push" -> "Watch CI";
+  "CI green?" -> "Diagnose the failure" [label="no"];
+  "Diagnose the failure" -> "Fix -> push" [label="a fix"];
+  "Fix -> push" -> "Watch CI";
   "CI green?" -> "Verify PR body issue links" [label="yes"];
   "Verify PR body issue links" -> "Request review (Claude + Copilot)";
   "Request review (Claude + Copilot)" -> "Any actionable feedback?";
@@ -159,7 +161,7 @@ digraph pr_to_ready {
   "Address -> push -> reply -> resolve" -> "Request review (Claude + Copilot)";
   "Any actionable feedback?" -> "ready-on-clean?" [label="no (clean)"];
   "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
-  "CI green?" -> "Return to plan-work" [label="diagnosis invalidates the design"];
+  "Diagnose the failure" -> "Return to plan-work" [label="design invalidated"];
   "ready-on-clean?" -> "gh pr ready" [label="yes"];
   "ready-on-clean?" -> "Leave as draft" [label="no"];
 }
