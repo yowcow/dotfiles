@@ -56,12 +56,13 @@ Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and repor
 
 Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
 
-`gh pr view <branch> --json number,isDraft` reports a PR already tied to the branch — note its `isDraft`. A non-zero exit does **not** by itself mean there is none: auth, network, and repo-context failures look the same as absence, and the message wording varies by `gh` version, so don't key off either. Treat the failure as "couldn't tell" and confirm absence explicitly:
+Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**: `gh pr view` reads a selector made entirely of digits as a PR *number*, so a branch literally named `123` would resolve PR #123 instead. `--head` is a literal branch-name filter with no such ambiguity, and it already returns everything this check needs:
 
 ```bash
-gh pr view <branch> --json number,isDraft                     # existing PR? note isDraft
-gh pr list --head <branch> --json number,isDraft              # confirm absence
+gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, note its isDraft; [] = none
 ```
+
+Test it by **output and exit status together**. Exit 0 with `[]` is the only thing that means "no PR". A non-zero exit does **not** mean there is none: auth, network, and repo-context failures print nothing on stdout and look exactly like absence, and the message wording varies by `gh` version, so don't key off either alone. Treat a non-zero exit as "couldn't tell" and stop — never open a second PR on top of one you couldn't see.
 
 Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
@@ -70,11 +71,14 @@ The trailer is `Base-Branch:`, on the task's own first commit. Where a stack run
 The scan runs **from HEAD backwards and takes the first one found**:
 
 ```bash
-git fetch --quiet origin <branch>   # must succeed — see below
-git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD | grep -m1 .
+git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop, see below
+trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)"   # 0 = history read; non-zero = stop
+printf '%s\n' "$trailers" | grep -m1 .                                         # 0 = recorded base on stdout, 1 = no trailer
 ```
 
-Check the fetch's own exit status and stop the run if it is non-zero, before trusting the scan that follows: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, and an empty `FETCH_HEAD` makes `git log ... | grep -m1 .` exit 1 — indistinguishable from a genuine absence of the trailer. Reading that silently as "no trailer" would open the PR without `--base` against the wrong target. `grep` itself exits **0** with the recorded base on stdout, **1** when no commit carries the trailer. It reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
+**Both reads are captured before anything is tested, because a pipe hides the failure.** `git log ... | grep -m1 .` reports only `grep`'s status, and `grep` exits 1 on empty input whether the trailer is genuinely absent or `git log` just failed — so the two are indistinguishable, and `set -o pipefail` does not separate them either (`grep` is the rightmost command and its 1 is a real exit code, not a masked one). The same trap sits one line up: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, which then makes the scan exit 1 as well. Reading either as "no trailer" would open the PR without `--base` against the wrong target, which is the one outcome the trailer exists to prevent.
+
+The scan reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
 
 When a trailer was found, check whether its branch survives:
 
@@ -99,19 +103,19 @@ gh pr create --draft --head <branch> --base <recorded> --title <title> --body-fi
 
 That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
 
-If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
-
 Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
 
 Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately. Record that it came in non-draft: Step 3 has nothing to flip in that case.
 
-Whichever path you took — found or just created — record the PR number before moving on. `<branch>` is already bound at the top of this step, so this records `<PR>` only; every later step takes both as given, and on a first-time run nothing else has bound `<PR>` yet. As with the existence check above, keep an explicit selector rather than relying on the current branch:
+Whichever path you took — found or just created — record the PR number before moving on. `<branch>` is already bound at the top of this step, so this records `<PR>` only; every later step takes both as given, and on a first-time run nothing else has bound `<PR>` yet. As with the existence check above, name `<branch>` explicitly rather than relying on the current checkout:
 
 ```bash
-gh pr list --head <branch> --json number,isDraft --jq '.[0] | "PR=\(.number) draft=\(.isDraft)"'
+gh pr list --head <branch> --json number,isDraft --jq '.[0] | select(. != null) | "PR=\(.number) draft=\(.isDraft)"'
 ```
 
-A non-empty line binds `<PR>`. **Empty output means no open PR on the branch** — creation did not take, so stop and surface it rather than continuing with `<PR>` unbound.
+**`select(. != null)` is load-bearing, not decoration.** On a branch with no PR, `.[0]` is `null` and jq interpolates it as text, so without the guard this prints `PR=null draft=null` — non-empty output that would bind `<PR>` to a string. With it, the no-PR case prints nothing.
+
+Read exit status and output together: exit 0 with a `PR=` line binds `<PR>`; exit 0 with no output means no open PR on the branch, so creation did not take — stop and surface that; a non-zero exit means the query itself failed and also prints nothing, so stop and report *that* instead, rather than misreporting a failed lookup as a failed creation.
 
 ### 0-2. Ask whether to mark ready on clean
 

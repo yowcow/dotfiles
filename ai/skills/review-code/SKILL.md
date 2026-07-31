@@ -32,8 +32,11 @@ Resolve what to review in this order, and declare the resolved scope before disp
    Scan for the trailer with the same rule and the same result test `pr-to-ready` uses — from HEAD backwards, first hit wins, because an earlier task's trailer sits further back in the same history:
 
    ```bash
-   git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD | grep -m1 .   # 0 = recorded base on stdout, 1 = no trailer
+   trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD)"   # 0 = history read; non-zero = stop
+   printf '%s\n' "$trailers" | grep -m1 .                                        # 0 = recorded base on stdout, 1 = no trailer
    ```
+
+   **Capture `git log` before testing it, rather than piping straight into `grep`.** A pipe reports only `grep`'s status, and `grep` exits 1 on empty input whether the trailer is genuinely absent or `git log` failed — and `set -o pipefail` does not separate them, since `grep`'s 1 is a real exit code rather than a masked one. Reading a failed `git log` as "no trailer" would fall back to the default branch and widen the range.
 
    When a trailer was found, check whether its branch survives:
 
