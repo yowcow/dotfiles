@@ -27,6 +27,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 
 - An issue number — read the issue and its comments before anything else.
 - A request to be planned with no tracking issue — proceed the same way, minus the issue read. Chat becomes the canonical record (see **Publish** and **Output contract**).
+- **A design invalidated downstream** — `implement-work` or `pr-to-ready` stopped because a finding undid the agreed design, and sent it back for re-approval. It arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state (whether it is pushed, and whether a PR is open on it). Re-enter at **Design agreement** with those in hand: what needs re-approval is the design, so the flow restarts there rather than at a fresh research pass. Where an issue tracks the work it is still the canonical record, so the re-approved design updates that same comment in place rather than adding another, per **Publish**. What is new in this case is the existing branch — **Output contract** says how every TODO item has to account for it.
 
 ## Design agreement
 
@@ -48,6 +49,11 @@ The published artifact is the design plus a numbered list of PR-sized items. It 
 - a **numbered** TODO list, one item per PR. Each item states its purpose, its scope boundary (including what it excludes), and its completion criteria.
 - for each item, whether it can be started in parallel or must be stacked on an earlier item — named, not implied — plus the dependency order when anything stacks. Every item must be **verifiable** on its own; being **startable** on its own is what stacking gives up, so a stacked item names the item it waits for and why.
 - affected area at module or directory granularity
+- **only when entering from a design invalidated downstream** — how each item treats the existing branch. This is not one convention but two, and they are written differently:
+  - **Reuse it** → write that branch's name in the item. `implement-work`'s **Isolation** finds it and attaches a workspace to it, so the item carries on from those commits.
+  - **Discard it** → write a **new** branch name in the item. That Isolation ladder reuses any branch it finds and has no rung that discards one, so an item carrying the old name would quietly resume work on top of the very commits the invalidated design produced — the failure this convention exists to prevent.
+
+  Name the discarded branch in the published artifact too, as a person's cleanup, along with the worktree checked out on it — identified by that branch rather than by a path, since this flow is never handed one. This flow never touches the working tree, so nothing here removes them, and an abandoned branch nobody named is indistinguishable from one still in use.
 
 **Deliberately absent:** exact paths, line numbers, per-task verification commands, edge-case enumeration. Those belong to `implement-work`.
 
@@ -55,7 +61,9 @@ When no issue tracks the work, the same contract binds the version posted in cha
 
 ## Splitting into sub-issues
 
-Two or more items means sub-issues, one per item. This isn't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
+Two or more items means sub-issues, one per item — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
+
+**Two or more items and no tracking issue → ask before publishing anything.** Chat has nothing to hang a sub-issue from, and it cannot satisfy the guidelines' requirement that a hand-off stand on its own, so ask the user to create a tracking issue for this work and publish there instead. If they decline, proceed with no sub-issues and chat as the canonical record — and write the consequence into the artifact itself: with no named entry per PR, every item has to be carried to completion in this one session, because a later session inherits nothing to pick up. That premise is what declining accepts, so state it rather than leaving it implicit. One item and no tracking issue needs none of this — there is nothing to split either way.
 
 - **Parent issue comment**: the overall design, the split policy, and the list of sub-issues.
 - **Each sub-issue**: its purpose, its scope boundary, its completion criteria, its prerequisites, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
@@ -76,22 +84,23 @@ GitHub does not auto-close a parent issue when all its sub-issues close. Closing
 Publishing and splitting interleave, because each needs something from the other: a sub-issue body carries the design comment's URL, and the parent comment lists the sub-issues. Order them:
 
 1. Converge the `review-plan` loop.
-2. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
-3. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
-4. **Edit the same comment in place** to append the list of sub-issues.
+2. **Settle where it gets published.** Two or more items and no tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put a multi-item list in the wrong place and need it redone.
+3. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
+4. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
+5. **Edit the same comment in place** to append the list of sub-issues.
 
 "Publish once" means one comment for this work, not one per round — editing that comment in place is not a second publish.
 
 - Don't commit planning artifacts.
 - Don't publish mid-loop — the draft stays in chat until the loop converges.
 - Write anything posted to GitHub in 標準語 (standard Japanese, never dialect).
-- No issue tracks the work → chat is the canonical record, and there is nothing to split into sub-issues. An issue tracks the work → a comment on that issue, updated in place rather than added to.
+- No issue tracks the work → chat is the canonical record. With one item there is nothing to split; with two or more, **Splitting into sub-issues** asks the user for a tracking issue first, and only a declined ask publishes a multi-item list to chat. An issue tracks the work → a comment on that issue, updated in place rather than added to.
 - `gh issue comment <n> --edit-last --create-if-none --body-file <file>` covers both the first publish and later updates — but `--edit-last` targets your *most recent* comment on the issue, whatever it is. Once anything else (a reply, a review note) follows it, `--edit-last` would hit the wrong comment: edit by id instead, with `jq -Rs '{body: .}' <file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -` (`gh api` wants a JSON payload, not raw Markdown, hence the `jq -Rs` wrap).
 - Always pass the body from a file, never an inline flag string, so backticks never reach the shell.
 
 ## Pass
 
-1. Resolve **Entry**: an issue number, or a planning request with no tracking issue.
+1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
@@ -109,9 +118,10 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Report
 
-- the entry: issue number, or the chat request when no issue tracks the work
+- the entry: issue number, the chat request when no issue tracks the work, or a design invalidated downstream — for the third, name the finding that invalidated it and the branch it came back with
 - where the result was published — the comment URL, or "posted in chat"
 - the number of `review-plan` rounds run, and the verdict of the final one
 - accepted findings folded in, and rejected findings with the reason
 - the sub-issues created, or why none were
+- when a design came back invalidated: which branch each item reuses, which items got a new branch name instead, and the branches and worktrees left for a person to clean up
 - assumptions made, and anything that could not be verified
