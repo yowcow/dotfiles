@@ -18,7 +18,7 @@ One invocation is one simplification pass, and the pass owns its apply-verify lo
 
 ## Scope
 
-- Focus on recently modified code and the current diff; don't broaden cleanup unless the user asks.
+- Resolve scope the way `review-code`'s **Scope** does, rather than a second time here: the two skills run on the same code in the same pass of `implement-work`'s completion gate, so a separate ladder in this file would be a second answer — and on a stacked branch the wrong one, since only that ladder reads back what the branch was cut from. Don't broaden cleanup unless the user asks.
 - If a worthwhile simplification needs files outside the diff, report it instead of changing it.
 - Preserve behavior exactly: outputs, public APIs, data migrations, test intent, and user-visible semantics.
 - When the existing checks can't prove a simplification behavior-preserving, add the minimal characterization test that can, and say so in the report. That's the proof, not scope creep.
