@@ -340,11 +340,11 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
   gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'
   ```
 
-  Read that as of now and say so: this PR's own sub-issue still shows open, because the merge that closes it hasn't happened yet. If it is the last one open, the parent becomes closable on that merge — report that, and leave it. Closing an issue is a person's call whoever is counting.
+  Read that as of now and say so: this PR's own sub-issue still shows open, because the merge that closes it hasn't happened yet. If it is the last one open, the parent becomes closable on that merge — report that, and leave it. Closing an issue is a person's call, whoever is counting.
 - **The worktree and the branch.** Both outlive this run and nothing here removes them: the PR is open, so the branch is still needed, and PR feedback gets fixed in that worktree. Name both, so neither becomes litter nobody can identify later.
 - **The next sub-issue, when children remain open.** Say which one is next. It is a fresh run of `implement-work` over `plan-work`'s output — from that flow's own entry, not a continuation of this one.
 
-**Don't start any of it.** Reaching ready or draft ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR — follow that, because the user has said what happens next rather than leaving it to be inferred.
+**Don't start any of it.** Reaching **ready** or **draft** ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR — follow that, because the user has said what happens next rather than leaving it to be inferred.
 
 ## Escalation
 
