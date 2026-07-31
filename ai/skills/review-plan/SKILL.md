@@ -13,7 +13,7 @@ One invocation is one review pass: dispatch reviewers, judge their findings, rep
 
 One test admits everything this skill reports: **left as it is, would this make the implementation that follows stall or go wrong?** A gap that would send an implementer down the wrong path, leave them unable to proceed, or produce the wrong result is a finding. Nothing else is.
 
-This test overrides the lenses. A lens names a failure mode to look for; naming one does not make every instance of it worth reporting. Terminology that drifts without misleading anyone, wording that could read better, a section a reviewer would have organised differently — these fail the test, so they are not findings, whatever lens surfaced them. Reviewer preference, prose quality, and formatting are never findings here.
+This test overrides the lenses. A lens names a failure mode to look for; naming one does not make every instance of it worth reporting. Terminology that drifts without misleading anyone, wording that could read better, a section a reviewer would have organised differently — these fail the test, so they are not findings, whatever lens surfaced them. Reviewer preference is never a finding here. Prose and formatting are findings only where they leave an implementer unable to tell what the plan means.
 
 There is no non-blocking tier. A finding that passes the test has to be resolved before implementation; anything that fails it is left unsaid rather than recorded as a note.
 
@@ -53,7 +53,7 @@ Size the fan-out to the target, and keep it small. Both targets are small artifa
 
 Use `superpowers:dispatching-parallel-agents` for the dispatch itself when there is more than one; this is independent fact-finding, not implementation. Don't restate its prompt-construction guidance here.
 
-On a revision — the caller hands over the record of an earlier pass — dispatch only the lenses that produced an accepted finding, plus Reality, since the artifact changed under it. What they review is the edits that resolved those findings. An edit made for another reason that leaves what the plan instructs unchanged — a rewording, a tidy-up — is outside the pass, Reality included; it does not earn a fresh look. Pass the record along so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
+On a revision — the caller hands over the record of an earlier pass — dispatch only the lenses that produced an accepted finding, plus Reality, since the artifact changed under it. They review the edits that resolved those findings; that is the scope for every lens dispatched, Reality included. An edit made for another reason that leaves what the plan instructs unchanged — a rewording, a tidy-up — is not part of that scope and does not earn a fresh look. Pass the record along so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
 
 ## Finding contract
 
