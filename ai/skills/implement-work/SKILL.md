@@ -41,27 +41,32 @@ That skill detects existing isolation from the current directory only; it has no
 
 ### Base branch
 
-Only step 4 needs this — steps 1-3 attach to a branch that already exists. A task stacked on an unmerged prerequisite has to branch from it: branch from the default instead and the prerequisite's changes are simply absent, so the task's own tests fail for a reason that is nowhere in its diff.
+Only step 4 needs this — steps 1-3 attach to a branch that already exists. A task stacked on a prerequisite whose PR is still `OPEN` has to branch from that PR's head: branch from the default instead and the prerequisite's changes are simply absent, so the task's own tests fail for a reason that is nowhere in its diff. The other states don't lend a branch at all — the table below settles which of them stop.
+
+A task with no tracking issue — the chat-only entry — has no relation to read at all: branch from the default branch. Everything below applies only when an issue backs the task.
 
 Prerequisites come from the native relation, never from the issue body's prose:
 
 ```bash
 gh issue view <task> --json blockedBy                          # → prerequisite issues
 gh issue view <prereq> --json closedByPullRequestsReferences   # → its PR
-gh pr view <pr> --json headRefName,state                       # → the branch, and whether it merged
+gh pr view <pr> --json headRefName,state                       # → the branch, and which of the three states it is in
 ```
 
-Test the first two by **count, not presence** — both come back as `{nodes, totalCount}`, so "is it empty" cannot tell one prerequisite from three — and the third by whether `state` is `MERGED`:
+Test the first two by **count, not presence** — both come back as `{nodes, totalCount}`, so "is it empty" cannot tell one prerequisite from three. Test the third by `state`, which is `OPEN`, `CLOSED`, or `MERGED`: "not merged" is not one case, because a PR closed without merging means abandoned work rather than work still in flight.
 
 | Result | Base |
 | --- | --- |
 | `blockedBy.totalCount` is 0 | the default branch |
 | the prerequisite's PR is `MERGED` | the default branch — fetch first, so that merge is actually in what you branch from |
-| the prerequisite's PR is not merged | that PR's `headRefName` |
+| the prerequisite's PR is `OPEN` | that PR's `headRefName` |
+| the prerequisite's PR is `CLOSED` without merging | **stop.** That work was abandoned, so stacking on it would carry rejected commits forward |
 | the prerequisite has no PR at all | **stop.** It isn't implemented yet, so this task cannot start; report that |
 | more than one prerequisite, or more than one PR reference | **stop and ask.** A branch takes exactly one base, so this is a human call |
 
-The last two stop rather than fall through to the default branch, because falling through makes them indistinguishable from an independent task — and that only surfaces later, as a failure whose cause is not in the diff.
+The three stop rows stop rather than fall through to the default branch, because falling through makes them indistinguishable from an independent task — and that only surfaces later, as a failure whose cause is not in the diff.
+
+**Record a non-default base**, as a `Base-Branch: <base>` trailer on this task's first commit. `pr-to-ready` reads it instead of deriving the base again, so the decision is made once, here, from the relation as it stood when the branch was cut. Branching from the default branch records nothing — that absence is exactly what tells `pr-to-ready` to let GitHub default.
 
 Whenever an instruction names a command, say how its result is tested — a command that doesn't vary its exit status will otherwise get branched on wrongly.
 

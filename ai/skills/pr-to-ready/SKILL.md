@@ -22,13 +22,26 @@ gh pr view --json number,isDraft                              # existing PR? not
 gh pr list --head <branch> --json number,isDraft              # confirm absence
 ```
 
-Create only when the list comes back empty:
+Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
 ```bash
-gh pr create --draft --base <base-branch> --title <title> --body-file <file>
+base=$(git log "$(git symbolic-ref --short refs/remotes/origin/HEAD)"..HEAD \
+         --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 .)
 ```
 
-`<base-branch>` is the default branch, unless this work is stacked: when `gh issue view <task> --json blockedBy` comes back with a non-zero `totalCount` and that prerequisite's PR has not merged, base the PR on that PR's head branch instead, so the diff carries only this task's work. `implement-work` owns the full derivation — only these two of its outcomes ever reach PR creation, so don't restate the rest here.
+Newest match wins — a stack deeper than one carries an earlier task's trailer further back. `grep` exits non-zero and leaves `base` empty when there is none. Then:
+
+- **empty** → no `--base` at all; let GitHub default. This is the ordinary unstacked case, and the absence of a trailer is what says so.
+- **set, and the branch still exists** — `git ls-remote --exit-code --heads origin "$base"`, exit 0 — → base the PR on it.
+- **set, but the branch is gone** (exit non-zero) → it merged, so its commits are in the default branch already; drop back to no `--base`.
+
+`${base:+...}` adds the flag only when the variable survived those checks, so one command covers all three outcomes — clear `base` yourself in the third case:
+
+```bash
+gh pr create --draft ${base:+--base "$base"} --title <title> --body-file <file>
+```
+
+Setting `--base` at all costs you the automatic close: a closing keyword only fires when the PR merges into the **default** branch, so a PR based on a prerequisite's branch does not close its sub-issue by merging into that base. Keep the keyword in the body anyway — it still links the issue — and when such a PR lands anywhere but the default branch, close its sub-issue yourself (`gh issue close <sub-issue> --reason completed`, then confirm `gh issue view <sub-issue> --json state` reads `CLOSED`). Otherwise the parent's remaining-children check reads it as still open and points at work that is already done.
 
 If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
 
