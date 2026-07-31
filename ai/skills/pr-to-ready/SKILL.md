@@ -68,7 +68,7 @@ Create only when the list comes back empty. The base comes from the branch itsel
 
 The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history.
 
-The scan runs **from HEAD backwards and takes the first one found**:
+The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
 git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop, see below
