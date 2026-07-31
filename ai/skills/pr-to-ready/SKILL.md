@@ -25,15 +25,19 @@ gh pr list --head <branch> --json number,isDraft              # confirm absence
 Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
 ```bash
-base=$(git log "$(git symbolic-ref --short refs/remotes/origin/HEAD)"..HEAD \
-         --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 .)
+default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) ||
+  default="origin/$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
+base=$(git log "$default"..HEAD --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 .)
 ```
 
-Newest match wins — a stack deeper than one carries an earlier task's trailer further back. `grep` exits non-zero and leaves `base` empty when there is none. Then:
+Resolve `default` through that fallback, and **stop if neither form resolves** — never run the range with it empty. `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so an unresolved default leaves `base` empty and a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter: it lives at the repository level and a hand-built remote never gets it.
+
+Newest match wins — a stack deeper than one carries an earlier task's trailer further back, and the nearer one is reached first. `grep` exits non-zero and leaves `base` empty when there is none. Then:
 
 - **empty** → no `--base` at all; let GitHub default. This is the ordinary unstacked case, and the absence of a trailer is what says so.
-- **set, and the branch still exists** — `git ls-remote --exit-code --heads origin "$base"`, exit 0 — → base the PR on it.
-- **set, but the branch is gone** (exit non-zero) → it merged, so its commits are in the default branch already; drop back to no `--base`.
+- **set, but the branch is gone** — `git ls-remote --exit-code --heads origin "$base"` exits non-zero — → it is finished with; drop back to no `--base`.
+- **set, the branch exists, but its PR already merged** — `gh pr list --head "$base" --state merged --json number --jq 'length'` returns non-zero — → the prerequisite's work is in the default branch already, so base on the default branch, not on a stale branch. Don't infer this from the branch being gone: deleting the head branch on merge is a repository setting that is **off** by default, so a merged prerequisite's branch usually still exists.
+- **set, the branch exists, and no merged PR for it** → base the PR on it. This is the live stack.
 
 `${base:+...}` adds the flag only when the variable survived those checks, so one command covers all three outcomes — clear `base` yourself in the third case:
 
