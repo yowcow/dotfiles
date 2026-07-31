@@ -164,10 +164,11 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   ```
 - **Copilot**: try the reviewer flag, then fall back to the REST endpoint (the bot IS reachable):
   ```bash
-  gh pr edit <PR> --add-reviewer "@copilot"
+  gh pr edit <PR> --add-reviewer "@copilot"                     # first choice
   gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-    -f "reviewers[]=copilot-pull-request-reviewer[bot]"
+    -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
   ```
+  These are alternatives, not a sequence — running both unconditionally would post a needless request.
   **Don't judge either form by its exit status, and don't chain them with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and it is intermittent, so one success proves nothing about the next run. Confirm instead by reading back who is actually requested after each attempt, and only run the REST form when the flag didn't take. Read that back over REST as well: `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it can't answer this. Treat Copilot as unavailable only when it is still absent after the REST form — and note that failing to *read* the reviewers is not the same as none being requested, so stop on that rather than reporting unavailable.
 
 ### 2-2. Wait for the review (bound the wait)
