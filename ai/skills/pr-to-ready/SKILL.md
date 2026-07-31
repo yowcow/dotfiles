@@ -328,7 +328,7 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
 
-Either way, **this run ends here.** ready and draft are the flow's two terminal states — the same two the flow diagram ends on — and reaching one is this flow's completion, not a pause partway through something longer. Everything that depends on the merge belongs to a person, because the merge itself does: what follows is what this run hands them.
+Either way, **this run ends here.** The flow has two terminal states, **ready** and **draft** — the same two the flow diagram ends on — and reaching one is this flow's completion, not a pause partway through something longer. Everything that depends on the merge belongs to a person, because the merge itself does: what follows is what this run hands them.
 
 ### What this run hands back
 

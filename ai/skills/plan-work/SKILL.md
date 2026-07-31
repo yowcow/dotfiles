@@ -77,7 +77,7 @@ Two or more items means sub-issues, one per item — and a sub-issue hangs off a
 
 Prefer the MCP `sub_issue_write` tool (`method: "add"`, parent as `issue_number`, child as `sub_issue_id`); fall back to `gh api --method POST repos/{owner}/{repo}/issues/<parent>/sub_issues -F sub_issue_id=<child id>` where the MCP tool is unavailable. The child is identified by **id, not issue number** — get it with `gh api repos/{owner}/{repo}/issues/<n> --jq .id`.
 
-GitHub does not auto-close a parent issue when all its sub-issues close. Closing the parent (or leaving a completion comment) is a person's, once the PR that closes the last sub-issue has merged: `pr-to-ready` reports that the decision has come due and hands over the count behind it, but that merge lands after its run has ended, and closing an issue is a human call regardless. Either way it is not this skill's.
+GitHub does not auto-close a parent issue when all its sub-issues close. Closing the parent (or leaving a completion comment) is a person's decision, once the PR that closes the last sub-issue has merged: `pr-to-ready` reports that it has come due and hands over the count behind it, but that merge lands after its run has ended, and closing an issue is a human call regardless. Either way it is not this skill's.
 
 ## Publish
 
