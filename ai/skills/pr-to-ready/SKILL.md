@@ -344,7 +344,7 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
 - **The worktree and the branch.** Both outlive this run and nothing here removes them: the PR is open, so the branch is still needed, and PR feedback gets fixed in that worktree. Name both, so neither becomes litter nobody can identify later.
 - **The next sub-issue, when children remain open.** Say which one is next. It is a fresh run of `implement-work` over `plan-work`'s output — from that flow's own entry, not a continuation of this one.
 
-**Don't start any of it.** Reaching **ready** or **draft** ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR — follow that, because the user has said what happens next rather than leaving it to be inferred.
+**Don't start any of it.** Reaching **ready** or **draft** ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR. Even then **this run still ends here**: what such an instruction licenses is *starting* the next run — from its own flow's entry and through every one of its gates — not extending this one past its terminus. Follow it, because the user has said what happens next rather than leaving it to be inferred.
 
 ## Escalation
 
