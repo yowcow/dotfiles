@@ -332,7 +332,7 @@ Either way, **this run ends here.** ready and draft are the flow's two terminal 
 
 ### What this run hands back
 
-The merge lands after this run has ended, so nothing that depends on it can be a step here. Report these as the run's closing hand-over, and act on none of them:
+Nothing that depends on the merge can be a step here. Report these as the run's closing hand-over, and act on none of them:
 
 - **The parent issue, when the work was split into sub-issues.** Large work is planned as a parent issue with one sub-issue per PR (`plan-work` owns that split), and GitHub does **not** close a parent when its children close — so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
 
