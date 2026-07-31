@@ -91,9 +91,11 @@ Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-r
 - **A trailer whose branch is gone** → omit `--base` as well. That prerequisite is finished with, and its commits are in the default branch already.
 
 ```bash
-gh pr create --draft --title <title> --body-file <file>                     # no trailer, or its branch is gone
-gh pr create --draft --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
+gh pr create --draft --head <branch> --title <title> --body-file <file>                     # no trailer, or its branch is gone
+gh pr create --draft --head <branch> --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
 ```
+
+**`--head <branch>` is not optional here**, whichever line you take: `gh pr create` defaults the head to the *current* branch, and this step exists precisely because `<branch>` may not be the one checked out. Omit it and a session handed a branch it isn't standing on opens the PR from the wrong head — and the readback below, which filters on `<branch>`, then comes back empty and reports that creation didn't take, when in fact it did and left a stray draft PR behind.
 
 That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
 
