@@ -9,6 +9,14 @@ Use on planning work before any code is written, or on a revision of it. This re
 
 One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits what it reviewed and never re-reviews on its own. Revising and re-running until it comes back clean belongs to the caller — `plan-work` for a TODO list, `implement-work` for an implementation plan.
 
+## What counts as a finding
+
+One test admits everything this skill reports: **left as it is, would this make the implementation that follows stall or go wrong?** A gap that would send an implementer down the wrong path, leave them unable to proceed, or produce the wrong result is a finding. Nothing else is.
+
+This test overrides the lenses. A lens names a failure mode to look for; naming one does not make every instance of it worth reporting. Terminology that drifts without misleading anyone, wording that could read better, a section a reviewer would have organised differently — these fail the test, so they are not findings, whatever lens surfaced them. Reviewer preference is never a finding here. Prose and formatting are findings only where they leave an implementer unable to tell what the plan means.
+
+There is no non-blocking tier. A finding that passes the test has to be resolved before implementation; anything that fails it is left unsaid rather than recorded as a note.
+
 ## Targets
 
 One invocation reviews exactly one target, and **the caller declares which**. The target sets the lens list and the fan-out, because the two artifacts fail in different ways.
@@ -21,7 +29,7 @@ One invocation reviews exactly one target, and **the caller declares which**. Th
 
 ## Lenses
 
-Each lens is a distinct failure mode. Which ones apply comes from **Targets**; how many reviewers they map to comes from **Dispatch**.
+Each lens is a distinct failure mode, and none of them lowers the bar in **What counts as a finding**. Which ones apply comes from **Targets**; how many reviewers they map to comes from **Dispatch**.
 
 - **Necessity** — whether the work is warranted at all: steps the request never asked for, scope the plan grew on its own, a smaller path to the same outcome, or an existing feature that already covers it. This lens reads the whole thing and questions that it should exist, not just how it reads.
 - **Completeness** — requirements not covered; missing edge cases, error paths, migration, rollback, or docs.
@@ -45,13 +53,13 @@ Size the fan-out to the target, and keep it small. Both targets are small artifa
 
 Use `superpowers:dispatching-parallel-agents` for the dispatch itself when there is more than one; this is independent fact-finding, not implementation. Don't restate its prompt-construction guidance here.
 
-On a revision — the caller hands over the record of an earlier pass — dispatch only the lenses that produced an accepted finding, plus Reality, since the artifact changed under it. Pass the record along so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
+On a revision — the caller hands over the record of an earlier pass — dispatch only the lenses that produced an accepted finding, plus Reality, since the artifact changed under it. They review the edits that resolved those findings; that is the scope for every lens dispatched, Reality included. An edit made for another reason that leaves what the plan instructs unchanged — a rewording, a tidy-up — is not part of that scope and does not earn a fresh look. Pass the record along so rejected findings are not re-litigated. Skip a lens only when it cannot apply, and say which and why.
 
 ## Finding contract
 
 Each reviewer returns findings only — never a rewritten plan — with:
 
-- **lens**, and **severity**: Critical (the design or approach is wrong), Important (must be resolved before implementation), Minor (worth noting).
+- **lens**, and **severity** — which says where the remedy lives, not how urgent it is: **Critical**, the agreed design or approach is wrong, so no edit to the plan fixes it and the design needs approval again; **Important**, the plan itself is wrong and editing it resolves this. Both block implementation — **What counts as a finding** admits nothing that doesn't.
 - **claim** — one sentence on what is wrong.
 - **evidence** — `path:line` from the repo, or the quoted line from the artifact. No evidence, no finding.
 - **suggested change** — what it should say instead.
@@ -62,10 +70,10 @@ Report "no findings" explicitly rather than inventing one. Confine every search 
 
 1. Gather the inputs: the declared target, the artifact, the original request, the paths it touches, and the record of an earlier pass if the caller supplied one.
 2. Dispatch reviewers, sized per **Dispatch**.
-3. Evaluate every finding with `superpowers:receiving-code-review`: verify the claim against the repo before accepting it, and reject — with a stated reason — findings that are wrong, that only reflect reviewer preference, or that ask for work beyond the request.
+3. Evaluate every finding with `superpowers:receiving-code-review`: verify the claim against the repo before accepting it, and reject — with a stated reason — findings that are wrong, that ask for work beyond the request, or that fail the test in **What counts as a finding**.
 4. Report per **Report**, and stop there — revising and re-reviewing are the caller's job.
 
-This pass is clean when no Critical or Important finding survives step 3. Minor findings are recorded, not blocking.
+This pass is clean when no finding survives step 3.
 
 ## Report
 
@@ -74,5 +82,4 @@ Report to the caller in chat. Never post this pass to GitHub — not even when t
 - the target reviewed, the fan-out used, and any lens skipped with why
 - accepted findings with lens, severity, evidence, and suggested change
 - rejected findings with the reason
-- the remaining Minor findings
 - the verdict: clean, or the blocking findings that remain — flagging separately any Critical finding that invalidates the approved design, since that needs design approval again rather than a plan edit
