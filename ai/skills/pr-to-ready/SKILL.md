@@ -159,7 +159,7 @@ digraph pr_to_ready {
   "Address -> push -> reply -> resolve" -> "Request review (Claude + Copilot)";
   "Any actionable feedback?" -> "ready-on-clean?" [label="no (clean)"];
   "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
-  "Investigate -> fix -> push" -> "Return to plan-work" [label="design invalidated"];
+  "CI green?" -> "Return to plan-work" [label="diagnosis invalidates the design"];
   "ready-on-clean?" -> "gh pr ready" [label="yes"];
   "ready-on-clean?" -> "Leave as draft" [label="no"];
 }
