@@ -27,6 +27,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 
 - An issue number — read the issue and its comments before anything else.
 - A request to be planned with no tracking issue — proceed the same way, minus the issue read. Chat becomes the canonical record (see **Publish** and **Output contract**).
+- **A design invalidated downstream** — `implement-work` or `pr-to-ready` stopped because a finding undid the agreed design, and sent it back for re-approval. It arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state (whether it is pushed, and whether a PR is open on it). Re-enter at **Design agreement** with those in hand: what needs re-approval is the design, so the flow restarts there rather than at a fresh research pass. Where an issue tracks the work it is still the canonical record, so the re-approved design updates that same comment in place rather than adding another, per **Publish**. What is new in this case is the existing branch — **Output contract** says how every TODO item has to account for it.
 
 ## Design agreement
 
@@ -48,6 +49,11 @@ The published artifact is the design plus a numbered list of PR-sized items. It 
 - a **numbered** TODO list, one item per PR. Each item states its purpose, its scope boundary (including what it excludes), and its completion criteria.
 - for each item, whether it can be started in parallel or must be stacked on an earlier item — named, not implied — plus the dependency order when anything stacks. Every item must be **verifiable** on its own; being **startable** on its own is what stacking gives up, so a stacked item names the item it waits for and why.
 - affected area at module or directory granularity
+- **only when entering from a design invalidated downstream** — how each item treats the existing branch. This is not one convention but two, and they are written differently:
+  - **Reuse it** → write that branch's name in the item. `implement-work`'s **Isolation** finds it and attaches a workspace to it, so the item carries on from those commits.
+  - **Discard it** → write a **new** branch name in the item. That Isolation ladder reuses any branch it finds and has no rung that discards one, so an item carrying the old name would quietly resume work on top of the very commits the invalidated design produced — the failure this convention exists to prevent.
+
+  Name the discarded branch and its worktree in the published artifact too, as a person's cleanup. This flow never touches the working tree, so nothing here removes them, and an abandoned branch nobody named is indistinguishable from one still in use.
 
 **Deliberately absent:** exact paths, line numbers, per-task verification commands, edge-case enumeration. Those belong to `implement-work`.
 
@@ -91,7 +97,7 @@ Publishing and splitting interleave, because each needs something from the other
 
 ## Pass
 
-1. Resolve **Entry**: an issue number, or a planning request with no tracking issue.
+1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third arrives with the finding, the branch name, and the branch's state, and enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
@@ -109,9 +115,10 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Report
 
-- the entry: issue number, or the chat request when no issue tracks the work
+- the entry: issue number, the chat request when no issue tracks the work, or a design invalidated downstream — for the third, name the finding that invalidated it and the branch it came back with
 - where the result was published — the comment URL, or "posted in chat"
 - the number of `review-plan` rounds run, and the verdict of the final one
 - accepted findings folded in, and rejected findings with the reason
 - the sub-issues created, or why none were
+- when a design came back invalidated: which branch each item reuses, which items got a new branch name instead, and the branches and worktrees left for a person to clean up
 - assumptions made, and anything that could not be verified
