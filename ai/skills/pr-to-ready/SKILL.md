@@ -26,14 +26,15 @@ Create only when the list comes back empty. The base comes from the branch itsel
 
 ```bash
 default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) ||
-  default=$(gh repo view --json defaultBranchRef --jq '"origin/" + .defaultBranchRef.name')
+  default=$(gh repo view --json defaultBranchRef --jq '"origin/" + .defaultBranchRef.name') ||
+  default=""                  # keep the list ending in success, so the test below is the only stop
 [ -n "$default" ] || exit 1   # neither resolved — stop, don't guess a branch name
 base=$(git log "$default"..HEAD --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 . || true)
 # a recorded base that is no longer on the remote is finished with: fall back to the default
 [ -z "$base" ] || git ls-remote --exit-code --heads origin "$base" >/dev/null 2>&1 || base=""
 ```
 
-The emptiness test on `default` is what stops an unresolved default, and it is not optional: `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so without it a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter — it lives at the repository level, and a hand-built remote never gets it. The `origin/` prefix is built **inside** the `jq` expression rather than prepended outside it, so that a failing `gh` leaves `default` genuinely empty; prepending outside would yield the string `origin/`, which is non-empty and would sail straight past the test.
+The trailing `|| default=""` is what lets that emptiness test be the stop condition at all: `set -e` is suppressed for every command in a `||` list *except the last*, so without it a failing `gh repo view` would abort the flow before the test ever ran. The emptiness test on `default` is then not optional: `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so without it a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter — it lives at the repository level, and a hand-built remote never gets it. The `origin/` prefix is built **inside** the `jq` expression rather than prepended outside it, so that a failing `gh` leaves `default` genuinely empty; prepending outside would yield the string `origin/`, which is non-empty and would sail straight past the test.
 
 Newest match wins — a stack deeper than one carries an earlier task's trailer further back, and the nearer one is reached first. `grep` finding nothing is the ordinary unstacked case, so it must not read as an error: `|| true` is load-bearing, because `grep -m1 .` exits non-zero on no match and that would abort the whole flow under `set -e` — which the scripts this skill ships do use. With it, `base` is simply empty.
 
