@@ -27,8 +27,23 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
 1. **Caller-supplied** — a SHA range, paths, or a PR. Use it as given.
 2. **Uncommitted changes present** — the working tree diff: staged, unstaged, and untracked files.
-3. **Clean tree, commits ahead of the default branch** — `merge-base(<default branch>, HEAD)..HEAD`. Resolve the default branch rather than assuming `main`: `git symbolic-ref refs/remotes/origin/HEAD`, then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name. If the range turns out empty — HEAD is already at the default branch — fall through to 4.
-4. **Nothing to review** — no uncommitted change and no commit ahead of the default branch. Ask the user what to review. Never widen to the whole repository on a guess.
+3. **Clean tree, commits ahead of `<base>`** — the range is `merge-base(<base>, HEAD)..HEAD`, and `<base>` is resolved, not assumed. This matters because `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts a branch from a prerequisite's still-open PR; taking the default branch there sweeps the prerequisite's commits into the range, and the reviewer spends the round on code this task never wrote — a wrong review, not merely a wide one.
+
+   Scan for the trailer with the same rule and the same result test `pr-to-ready` uses — from HEAD backwards, first hit wins, because an earlier task's trailer sits further back in the same history:
+
+   ```bash
+   git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD | grep -m1 .   # 0 = recorded base on stdout, 1 = no trailer
+   git ls-remote --exit-code --heads origin <recorded>                          # 0 = still there, 2 = gone
+   ```
+
+   Any other non-zero exit from `ls-remote` is a network or auth failure, not absence — surface it and stop rather than silently widening the range. (Scanning `HEAD` is right here, unlike in `pr-to-ready`: this skill reviews the checkout it is in, so the history it must read is the local one.)
+
+   Two outcomes decide `<base>`:
+   - trailer found and its branch still on the remote → `git fetch origin <recorded>`, then `<base>` is `origin/<recorded>`;
+   - no trailer, or its branch is gone → `<base>` is the default branch. This is the fallback the completion criteria require. Resolve it rather than assuming `main`: `git symbolic-ref refs/remotes/origin/HEAD`, then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
+
+   If the range turns out empty — HEAD is already at `<base>` — fall through to 4.
+4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
 
 ## Reviewer prompt
 
