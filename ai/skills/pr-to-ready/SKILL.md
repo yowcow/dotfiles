@@ -26,19 +26,20 @@ Create only when the list comes back empty. The base comes from the branch itsel
 
 ```bash
 default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) ||
-  default="origin/$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
+  default=$(gh repo view --json defaultBranchRef --jq '"origin/" + .defaultBranchRef.name')
+[ -n "$default" ] || exit 1   # neither resolved — stop, don't guess a branch name
 base=$(git log "$default"..HEAD --format='%(trailers:key=Base-Branch,valueonly)' | grep -m1 .)
 ```
 
-Resolve `default` through that fallback, and **stop if neither form resolves** — never run the range with it empty. `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so an unresolved default leaves `base` empty and a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter: it lives at the repository level and a hand-built remote never gets it.
+The emptiness test on `default` is what stops an unresolved default, and it is not optional: `git log ..HEAD` is a *valid* empty range that exits 0 and prints nothing, so without it a correctly-stacked task silently reads as unstacked. `refs/remotes/origin/HEAD` is unset often enough to matter — it lives at the repository level, and a hand-built remote never gets it. The `origin/` prefix is built **inside** the `jq` expression rather than prepended outside it, so that a failing `gh` leaves `default` genuinely empty; prepending outside would yield the string `origin/`, which is non-empty and would sail straight past the test.
 
 Newest match wins — a stack deeper than one carries an earlier task's trailer further back, and the nearer one is reached first. `grep` exits non-zero and leaves `base` empty when there is none. Then:
 
 - **empty** → no `--base` at all; let GitHub default. This is the ordinary unstacked case, and the absence of a trailer is what says so.
 - **set, and the branch still exists** — `git ls-remote --exit-code --heads origin "$base"`, exit 0 — → base the PR on it.
-- **set, but the branch is gone** (exit non-zero) → drop back to no `--base`.
+- **set, but the branch is gone** (exit non-zero) → `base=""`, dropping back to no `--base`. Clear it explicitly: the existence check doesn't touch `base`, so leaving it set would put the deleted branch straight into the command below.
 
-`${base:+...}` adds the flag only when the variable survived those checks, so one command covers all three outcomes — clear `base` yourself in the third case:
+`${base:+...}` adds the flag only when `base` is non-empty, so one command covers all three outcomes:
 
 ```bash
 gh pr create --draft ${base:+--base "$base"} --title <title> --body-file <file>
