@@ -61,7 +61,9 @@ When no issue tracks the work, the same contract binds the version posted in cha
 
 ## Splitting into sub-issues
 
-Two or more items means sub-issues, one per item. This isn't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
+Two or more items means sub-issues, one per item — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
+
+**Two or more items and no tracking issue → ask before publishing anything.** Chat has nothing to hang a sub-issue from, and it cannot satisfy the guidelines' requirement that a hand-off stand on its own, so ask the user to create a tracking issue for this work and publish there instead. If they decline, proceed with no sub-issues and chat as the canonical record — and write the consequence into the artifact itself: with no named entry per PR, every item has to be carried to completion in this one session, because a later session inherits nothing to pick up. That premise is what declining accepts, so state it rather than leaving it implicit. One item and no tracking issue needs none of this — there is nothing to split either way.
 
 - **Parent issue comment**: the overall design, the split policy, and the list of sub-issues.
 - **Each sub-issue**: its purpose, its scope boundary, its completion criteria, its prerequisites, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
@@ -82,16 +84,17 @@ GitHub does not auto-close a parent issue when all its sub-issues close. Closing
 Publishing and splitting interleave, because each needs something from the other: a sub-issue body carries the design comment's URL, and the parent comment lists the sub-issues. Order them:
 
 1. Converge the `review-plan` loop.
-2. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
-3. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
-4. **Edit the same comment in place** to append the list of sub-issues.
+2. **Settle where it gets published.** Two or more items and no tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put a multi-item list in the wrong place and need it redone.
+3. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
+4. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
+5. **Edit the same comment in place** to append the list of sub-issues.
 
 "Publish once" means one comment for this work, not one per round — editing that comment in place is not a second publish.
 
 - Don't commit planning artifacts.
 - Don't publish mid-loop — the draft stays in chat until the loop converges.
 - Write anything posted to GitHub in 標準語 (standard Japanese, never dialect).
-- No issue tracks the work → chat is the canonical record, and there is nothing to split into sub-issues. An issue tracks the work → a comment on that issue, updated in place rather than added to.
+- No issue tracks the work → chat is the canonical record. With one item there is nothing to split; with two or more, **Splitting into sub-issues** asks the user for a tracking issue first, and only a declined ask publishes a multi-item list to chat. An issue tracks the work → a comment on that issue, updated in place rather than added to.
 - `gh issue comment <n> --edit-last --create-if-none --body-file <file>` covers both the first publish and later updates — but `--edit-last` targets your *most recent* comment on the issue, whatever it is. Once anything else (a reply, a review note) follows it, `--edit-last` would hit the wrong comment: edit by id instead, with `jq -Rs '{body: .}' <file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -` (`gh api` wants a JSON payload, not raw Markdown, hence the `jq -Rs` wrap).
 - Always pass the body from a file, never an inline flag string, so backticks never reach the shell.
 
