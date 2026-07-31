@@ -52,7 +52,7 @@ Exit 2 has two remedies, because pushing needs something to push and a session m
 git show-ref --verify --quiet refs/heads/<branch>   # 0 = local ref exists, 1 = it does not
 ```
 
-Exit 0 → push it (`git push -u origin <branch>`) and go on. Exit 1 → **stop and report**: the branch named exists neither in this checkout nor on the remote, so there is nothing to push and nothing to open a PR from — inventing or creating a branch here would manufacture the very state the precondition asks the caller to bring.
+Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and reporting if the push itself exits non-zero. Exit 1 → **stop and report**: the branch named exists neither in this checkout nor on the remote, so there is nothing to push and nothing to open a PR from — inventing or creating a branch here would manufacture the very state the precondition asks the caller to bring.
 
 Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
 

@@ -44,7 +44,7 @@ Resolve what to review in this order, and declare the resolved scope before disp
    Any other non-zero exit from `ls-remote` is a network or auth failure, not absence — surface it and stop rather than silently widening the range. (Scanning `HEAD` is right here, unlike in `pr-to-ready`: this skill reviews the checkout it is in, so the history it must read is the local one.)
 
    Two outcomes decide `<base>`:
-   - trailer found and its branch still on the remote → `git fetch origin <recorded>`, then `<base>` is `origin/<recorded>`;
+   - trailer found and its branch still on the remote → `git fetch origin <recorded>`, then `<base>` is `origin/<recorded>`. **Stop the run if that fetch exits non-zero**, rather than going on to use the ref: a failed fetch leaves any `origin/<recorded>` an earlier round already fetched sitting there at its old commit, so `<base>` would resolve to a stale one and quietly widen the range — the same wrong review this item exists to prevent, arrived at from the other direction;
    - no trailer, or its branch is gone → `<base>` is the default branch. This is the ordinary case: the branch is unstacked, or its prerequisite has already landed. Resolve it rather than assuming `main`: `git symbolic-ref refs/remotes/origin/HEAD`, then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
 
    If the range turns out empty — HEAD is already at `<base>` — fall through to 4.
