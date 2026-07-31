@@ -35,9 +35,8 @@ Resolve `default` through that fallback, and **stop if neither form resolves** �
 Newest match wins — a stack deeper than one carries an earlier task's trailer further back, and the nearer one is reached first. `grep` exits non-zero and leaves `base` empty when there is none. Then:
 
 - **empty** → no `--base` at all; let GitHub default. This is the ordinary unstacked case, and the absence of a trailer is what says so.
-- **set, but the branch is gone** — `git ls-remote --exit-code --heads origin "$base"` exits non-zero — → it is finished with; drop back to no `--base`.
-- **set, the branch exists, but its PR already merged** — `gh pr list --head "$base" --state merged --json number --jq 'length'` returns non-zero — → the prerequisite's work is in the default branch already, so base on the default branch, not on a stale branch. Don't infer this from the branch being gone: deleting the head branch on merge is a repository setting that is **off** by default, so a merged prerequisite's branch usually still exists.
-- **set, the branch exists, and no merged PR for it** → base the PR on it. This is the live stack.
+- **set, and the branch still exists** — `git ls-remote --exit-code --heads origin "$base"`, exit 0 — → base the PR on it.
+- **set, but the branch is gone** (exit non-zero) → drop back to no `--base`.
 
 `${base:+...}` adds the flag only when the variable survived those checks, so one command covers all three outcomes — clear `base` yourself in the third case:
 
@@ -45,7 +44,7 @@ Newest match wins — a stack deeper than one carries an earlier task's trailer 
 gh pr create --draft ${base:+--base "$base"} --title <title> --body-file <file>
 ```
 
-Setting `--base` at all costs you the automatic close: a closing keyword only fires when the PR merges into the **default** branch, so a PR based on a prerequisite's branch does not close its sub-issue by merging into that base. Keep the keyword in the body anyway — it still links the issue — and when such a PR lands anywhere but the default branch, close its sub-issue yourself (`gh issue close <sub-issue> --reason completed`, then confirm `gh issue view <sub-issue> --json state` reads `CLOSED`). Otherwise the parent's remaining-children check reads it as still open and points at work that is already done.
+That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
 
 If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
 
