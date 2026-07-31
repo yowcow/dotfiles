@@ -22,11 +22,20 @@ gh pr view --json number,isDraft                              # existing PR? not
 gh pr list --head <branch> --json number,isDraft              # confirm absence
 ```
 
-Create only when the list comes back empty:
+Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
+
+The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history. Three cases, and only the middle one passes `--base`:
+
+- **No trailer** → omit `--base` and let GitHub choose. This is the ordinary unstacked case, and the absence of a trailer is what says so.
+- **A trailer whose branch is still on the remote** → open the PR against that branch, so the diff carries only this task's work.
+- **A trailer whose branch is gone** → omit `--base` as well. That prerequisite is finished with, and its commits are in the default branch already.
 
 ```bash
-gh pr create --draft --base <base-branch> --title <title> --body-file <file>
+gh pr create --draft --title <title> --body-file <file>                     # no trailer, or its branch is gone
+gh pr create --draft --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
 ```
+
+That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
 
 If the list is non-empty but `gh pr view` failed, surface that error and stop — never open a second PR on top of one you couldn't see.
 
@@ -153,13 +162,14 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: try the reviewer flag first; if it fails with `Could not resolve user with login 'copilot'`, that means the flag syntax doesn't resolve here — **do not give up**, fall back to the REST endpoint (the bot IS reachable):
+- **Copilot**: try the reviewer flag, then fall back to the REST endpoint (the bot IS reachable):
   ```bash
-  gh pr edit <PR> --add-reviewer "@copilot" \
-    || gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-         -f "reviewers[]=copilot-pull-request-reviewer[bot]"
+  gh pr edit <PR> --add-reviewer "@copilot"                     # first choice
+  gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
+    -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
   ```
-  Only treat it as "Copilot unavailable" if BOTH forms fail.
+  These are alternatives, not a sequence — running both unconditionally would post a needless request.
+  **Don't judge either form by its exit status, and don't chain them with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and it is intermittent, so one success proves nothing about the next run. Confirm instead by reading back who is actually requested after each attempt, and only run the REST form when the flag didn't take. Read that back over REST as well: `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it can't answer this. Treat Copilot as unavailable only when it is still absent after the REST form — and note that failing to *read* the reviewers is not the same as none being requested, so stop on that rather than reporting unavailable.
 
 ### 2-2. Wait for the review (bound the wait)
 

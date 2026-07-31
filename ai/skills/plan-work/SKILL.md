@@ -46,7 +46,7 @@ The published artifact is the design plus a numbered list of PR-sized items. It 
 - design and rationale — the approved shape, and why not the alternatives
 - the split policy — where the PR boundaries fall and why
 - a **numbered** TODO list, one item per PR. Each item states its purpose, its scope boundary (including what it excludes), and its completion criteria.
-- the dependency order, if any, and confirmation that each item can be started and verified on its own
+- for each item, whether it can be started in parallel or must be stacked on an earlier item — named, not implied — plus the dependency order when anything stacks. Every item must be **verifiable** on its own; being **startable** on its own is what stacking gives up, so a stacked item names the item it waits for and why.
 - affected area at module or directory granularity
 
 **Deliberately absent:** exact paths, line numbers, per-task verification commands, edge-case enumeration. Those belong to `implement-work`.
@@ -58,7 +58,10 @@ When no issue tracks the work, the same contract binds the version posted in cha
 Two or more items means sub-issues, one per item. This isn't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
 
 - **Parent issue comment**: the overall design, the split policy, and the list of sub-issues.
-- **Each sub-issue**: its purpose, its scope boundary, its completion criteria, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
+- **Each sub-issue**: its purpose, its scope boundary, its completion criteria, its prerequisites, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
+- **The prerequisite line is always present**, and it carries the reason: either the sub-issues that must merge first (`#12 のマージが先行して必要（同一ファイルを触るため）`), or `なし（並列に着手できる）` when the item is independent — that phrasing, parenthetical included. A bare `なし`, or no line at all, reads as an omission rather than as independence, and telling those two apart at a glance is the whole point.
+- **When the item has a prerequisite, also set the native relation**: `gh issue edit <child> --add-blocked-by <prerequisite>`. The body line is for the human and carries the why; the native relation is what `implement-work` reads, so it never has to parse prose. Neither replaces the other. Confirm it took — `gh issue view <child> --json blockedBy` should come back with `<prerequisite>` among `nodes` and a non-zero `totalCount`. A relation that didn't stick leaves the count at 0, which `implement-work` reads as "independent": the silent misclassification this whole line exists to prevent.
+- **An independent item gets no relation at all** — its `なし（並列に着手できる）` line is the entire record. Setting one anyway would leave `blockedBy.totalCount` non-zero, and `implement-work` would branch on that and treat the item as stacked.
 - Converge the `review-plan` loop against the whole, undivided TODO list before splitting.
 - A body too large for one comment is itself a signal to split further. The observed ceiling is 65536 characters — this is not in GitHub's REST reference; it's the API's own error text (`Body is too long (maximum is 65536 characters)`), so treat it as an observation, not a contract.
 
@@ -74,7 +77,7 @@ Publishing and splitting interleave, because each needs something from the other
 
 1. Converge the `review-plan` loop.
 2. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
-3. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**.
+3. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
 4. **Edit the same comment in place** to append the list of sub-issues.
 
 "Publish once" means one comment for this work, not one per round — editing that comment in place is not a second publish.
