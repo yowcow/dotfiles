@@ -13,7 +13,7 @@ This skill holds two gates: one on the detailed plan, before any code, and the c
 
 ## Orchestration model
 
-**This skill dispatches no workers of its own.** It runs in the main loop as the orchestrator, and every worker in this flow is dispatched by a sub-skill it calls — `review-plan` on the detailed plan, the execution method on the tasks, `simplify-code` and `review-code` in the completion gate. Each of those owns its own fan-out; don't assume any of them dispatches on your behalf, and don't add a fan-out here.
+**This skill dispatches no workers of its own.** It runs in the main loop as the orchestrator, and every worker in this flow is dispatched by a sub-skill it calls — `review-plan` on the detailed plan, the execution method on the tasks, `simplify-code` and `review-code` in the completion gate. Each of those declares its own fan-out, so read what it dispatches from its own declaration rather than assuming — and add no fan-out here.
 
 - The orchestrator owns the task, the workspace, both gates, the execution-method choice, every commit, and the hand-off. It decides when a gate is clean — no worker declares that.
 - Workers do bounded, single-task work and hand back. A worker is never given an objective spanning more than one task, and never advances the plan or a gate itself.
