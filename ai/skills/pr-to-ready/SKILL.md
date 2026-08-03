@@ -249,8 +249,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
     -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
   ```
-  These are alternatives, not a sequence — running both unconditionally would post a needless request.
-  **Don't judge either form by its exit status, and don't chain them with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and it is intermittent, so one success proves nothing about the next run. Confirm instead by reading back who is actually requested after each attempt, and only run the REST form when the flag didn't take. Read that back over REST as well: `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it can't answer this. Treat Copilot as unavailable only when it is still absent after the REST form — and note that failing to *read* the reviewers is not the same as none being requested, so stop on that rather than reporting unavailable.
+  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`** — the flag can exit 0 while adding nobody. Read back who is actually requested after each attempt, over REST (`gh pr view --json reviewRequests` omits bots and cannot answer this), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 
@@ -268,7 +267,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 - **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
 
-**Login variance**: bot logins differ across surfaces — Copilot appears as `Copilot` and `copilot-pull-request-reviewer[bot]`; Claude as lowercase `claude`. Match on a substring and confirm the author login; don't attribute by timestamp alone (a human commenting in the same window can be misattributed).
+**Login variance**: match a substring of the author login — Copilot appears as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude` — and never attribute by timestamp alone.
 
 ### 2-3. Evaluate and address feedback
 

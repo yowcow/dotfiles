@@ -18,3 +18,15 @@ Print every match and count the lines. Two things go wrong with indexing:
 - On a branch with no PR at all, `.[0]` is `null`, which jq interpolates as text — printing `PR=null draft=null`. That is non-empty output, so it would bind `<PR>` to a string rather than reading as absence.
 
 `.[]` yields nothing for an empty list and one line per match, so the line count answers both questions at once. That is what makes the four outcomes in `SKILL.md` distinguishable from each other.
+
+## Requesting Copilot — the flag and the REST form are alternatives
+
+`gh pr edit --add-reviewer "@copilot"` and the `requested_reviewers` REST endpoint request the same thing two ways. They are alternatives rather than a sequence: running both unconditionally posts a needless request.
+
+**Neither can be judged by its exit status, and they must not be chained with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and the behaviour is intermittent, so one success proves nothing about the next run. The only test that works is reading back who is actually requested after each attempt, and running the REST form only when the flag didn't take.
+
+That readback has to go over REST as well. `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it cannot answer the question at all. Copilot counts as unavailable only when it is still absent after the REST form — and failing to *read* the reviewers is not the same as none being requested, which is why that case stops the run instead of reporting unavailable.
+
+## Identifying a bot — match the login, not the timestamp
+
+Bot logins differ across surfaces: Copilot appears both as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude`. Matching a substring of the author login covers the variants. Attributing by timestamp instead misreads a human who happened to comment in the same window as the reviewer.
