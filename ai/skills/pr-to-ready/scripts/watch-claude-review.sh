@@ -33,7 +33,7 @@ RUN_ID="${2:-}"
 # the substitution is guarded and the emptiness of wf is what gets tested.
 wf="$({ grep -rl '@claude' .github/workflows/ 2>/dev/null || true; } | head -1)"
 if [ -z "$wf" ]; then
-  echo "no @claude workflow found in .github/workflows/ — skip the Claude wait" >&2
+  echo "no @claude workflow found in .github/workflows/" >&2
   exit 1
 fi
 wf="$(basename "$wf")"
