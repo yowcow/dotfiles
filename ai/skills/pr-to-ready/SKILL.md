@@ -253,15 +253,10 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 
 ### 2-2. Wait for the review (bound the wait)
 
-- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts. Find the run the request triggered on this branch, then block on it:
+- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
   ```bash
-  wf=$(basename "$({ grep -rl '@claude' .github/workflows/ 2>/dev/null || true; } | head -1)")
-  if [ -z "$wf" ]; then
-    echo "no @claude workflow found — skip the Claude wait"
-  else
-    gh run list --workflow="$wf" --branch <branch> --limit 5 --json databaseId,status,headSha,conclusion
-    gh run watch <run-id> --exit-status   # blocks until the run finishes
-  fi
+  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON, 1 = no @claude workflow
+  <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = run finished
   ```
   Then fetch the new comments it left.
 - **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
