@@ -161,7 +161,7 @@ digraph pr_to_ready {
 }
 ```
 
-## Orchestration model (subagents)
+## Orchestration model
 
 Run this skill as an **orchestrator**. The main loop owns control flow, all decisions, and every state-mutating action; it delegates only self-contained, context-heavy work to subagents. The steps form a dependency chain (a loop), so they run **sequentially** — do not try to run different steps in parallel. Parallelism exists at exactly one point: evaluating independent review findings (2-3).
 
@@ -183,7 +183,7 @@ Every fix in this loop — for a CI failure (Step 1) or accepted review feedback
 
 **Before applying any fix, check that it is one.** A review finding — or a CI diagnosis — showing that the agreed design is itself what's wrong is not a fix waiting to be applied. Take **Escalation** instead.
 
-That check belongs here rather than in one of the two loops, because both reach the exit through this section. Step 2's stop conditions state it again as a stop condition of their own, since a loop needs one to stop on; Step 1 has no equivalent list, and routes every fix through here, so this is where its CI path gets the same exit. Wiring only the review loop would leave the CI path with a stated exception and nowhere to take it — the failure this section exists to close.
+This check sits here rather than in either loop because both reach the exit through this section: Step 2's stop conditions carry the trigger, because a loop needs a condition to stop on, and Step 1 has no equivalent list at all.
 
 The two prohibitions that follow from that are **not equally absolute**, and collapsing them into one is how that exit gets lost:
 
@@ -292,7 +292,7 @@ Treat human reviewer comments the same way (see receiving-code-review).
 **Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping).
 
 1. Clean per above.
-2. **A finding invalidates the agreed design** → stop and return to `plan-work`, per **Escalation**. Don't fix it here, and don't carry it into another round. This is where the ordering earns its keep: such a finding can survive three rounds of attempted fixes and so satisfy 4 as well, and 4's remedy — hand the disagreement to the user — is the wrong one for a design that needs re-approving. It can surface on **any** round, so this is not a cap; check it every round, the way `implement-work`'s completion gate checks for it before its own cap condition.
+2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4: such a finding can also satisfy 4, and 4's remedy — handing the disagreement to the user — is the wrong one for a design that needs re-approving.
 3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready.
 4. **Same feedback survives 3+ rounds** of fixes without resolving → stop and ask the user.
 
@@ -329,7 +329,7 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
 
 ## Escalation
 
-A Critical finding that invalidates the agreed design does not get fixed in this loop. Stop and return to `plan-work` — that flow owns the framing, and re-approving a design is its job, not something to improvise here. This matches the guidelines' **Escalation**, and it is the same exit `review-code` and `implement-work` take on the same finding: the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
+The rule is the shared AI guidelines' **Escalation**, and the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
 
 Hand `plan-work`'s entry for a re-approval the three things it asks for:
 
