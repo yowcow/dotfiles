@@ -69,7 +69,7 @@ Create only when the list comes back empty. The base comes from the branch itsel
 The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
-git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop, see below
+git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
 trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)"   # 0 = history read; non-zero = stop
 printf '%s\n' "$trailers" | grep -m1 .                                         # 0 = recorded base on stdout, 1 = no trailer
 ```
