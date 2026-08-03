@@ -1,6 +1,6 @@
 ---
 name: implement-work
-description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a branch of verified commits. Establishes the isolated workspace and a verified baseline, drafts the detailed plan for that one PR and reviews it to convergence, declares and runs the execution method, then runs the completion gate before handing off. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
+description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a pushed branch of verified commits. Establishes the isolated workspace and a verified baseline, drafts the detailed plan for that one PR and reviews it to convergence, declares and runs the execution method, then runs the completion gate and pushes the branch. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
 ---
 
 # Implement Work
@@ -98,7 +98,7 @@ Delegate and don't restate: worker dispatch, model selection, the ban on paralle
 
 Two judgements stay here: delegation only pays when a task is big enough to cover the hand-off, so inline trivially small independent changes; and don't take on refactoring the task didn't ask for.
 
-**The execution method does not carry the work into integration.** Its own procedure ends by presenting integration options; the completion gate runs first, and **Hand off** owns presenting them. What that cuts is the transition only — the method's own cleanup before it, such as removing its scratch workspace, still runs.
+**The execution method does not carry the work into integration.** Its own procedure ends by presenting integration options; the completion gate runs first, and **Hand off** owns the terminal step. What that cuts is the transition only — the method's own cleanup before it, such as removing its scratch workspace, still runs.
 
 ## Completion gate
 
@@ -111,7 +111,7 @@ Add only what the execution method left undone. Loop until nothing changes, then
    - **What goes in** — whatever steps 2 and 3 changed, plus any `.gitignore` entry added under the third bullet: that entry is part of leaving the tree clean, not a separate concern.
    - **Confirm it worked** — `git status --porcelain`, tested by **output emptiness, not exit status**, since it exits 0 whether or not anything is pending. **Don't leave this step while the tree is dirty**; that is precisely what would break the guarantee in the last bullet.
    - **Account for anything still left, rather than sweeping it in** — work this task produced belongs in the commit; a byproduct of step 1's checks belongs in `.gitignore`, and the byproduct itself is never committed; anything you cannot account for stops the gate and goes to the user, since committing an edit that isn't yours is worse than halting.
-   - **Why this precedes the exits** — both of them hand over the branch rather than the worktree. **Hand off** calls `superpowers:finishing-a-development-branch`, whose push and merge options act on *commits*, so an uncommitted edit reaches neither — and it goes down with the worktree whenever that is removed. **Escalation** hands `plan-work` a branch name, and re-approval is judged against what that branch contains, so an edit left uncommitted is simply absent from what the next flow reads.
+   - **Why this precedes the exits** — both of them hand over the branch rather than the worktree. **Hand off** pushes the branch, and a push carries *commits*, so an uncommitted edit never reaches the remote — and it goes down with the worktree whenever that is removed. **Escalation** hands `plan-work` a branch name, and re-approval is judged against what that branch contains, so an edit left uncommitted is simply absent from what the next flow reads.
 5. Take the first of these that applies, in order — they are not independent, since a capped `review-code` still applies and verifies its fixes before stopping, so "changed something" and "hit its cap" can both be true at once:
    - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only at its cap, so check for it before the cap condition.
    - **`review-code` stopped at its own cap with blocking findings open** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
@@ -120,12 +120,22 @@ Add only what the execution method left undone. Loop until nothing changes, then
 
 ## Hand off
 
-The deliverable is a branch of verified commits with no PR on it — exactly what `pr-to-ready` takes as its entry.
+The deliverable is a **pushed** branch of verified commits with no PR on it — exactly what `pr-to-ready` takes as its entry. Once the completion gate takes its normal exit, push it, unconditionally:
 
-Use `superpowers:finishing-a-development-branch` to present the verified integration options, with two limits:
+```bash
+git push -u origin <branch>
+```
 
-- **PR creation belongs to `pr-to-ready`.** If an option would push and open the PR, take the push and stop (`git push -u origin <branch>`), then invoke `pr-to-ready` to open it as a draft and drive it.
-- **Integration goes through a PR.** Don't take an option that merges the branch into its base and ends the flow — that skips `pr-to-ready`, CI, and PR review entirely. If the user explicitly wants that, confirm they mean to skip the PR, then follow it.
+The push is what turns the branch into a deliverable rather than local state: `gh pr create` opens a PR from a remote ref, so an unpushed branch leaves the next flow nothing to enter on — in a later session, or a checkout that never held the branch.
+
+Then stop, and name `pr-to-ready` as the next entry **without invoking it**. Which flow runs next is the caller's decision, not this skill's.
+
+Two limits hold at that stop:
+
+- **PR creation belongs to `pr-to-ready`.** Don't run `gh pr create` here.
+- **Integration goes through a PR.** Merging this branch into its base instead of handing it over would skip `pr-to-ready`, CI, and PR review entirely. If the user explicitly wants that, confirm they mean to skip the PR before doing it — this skill carries no merge procedure of its own.
+
+Don't call `superpowers:finishing-a-development-branch` here, and don't reinstate the call. Everything it offers is already settled: its verification by the completion gate, the base branch it would confirm by the `Base-Branch:` trailer, and its local-merge option by the limit just above — which leaves only the push, written out above.
 
 ## Report
 
@@ -135,6 +145,7 @@ Use `superpowers:finishing-a-development-branch` to present the verified integra
 - whether the completion gate ran `review-code`, and on what basis if it didn't
 - the concrete checks run, and any that couldn't be
 - what changed and why
+- the pushed branch, and `pr-to-ready` named as the next entry
 - assumptions made, and areas needing manual review
 
 ## Escalation
