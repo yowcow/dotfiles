@@ -11,7 +11,9 @@ Use once the design is agreed and the work has been cut to one PR's worth. There
 
 This skill holds two gates: one on the detailed plan, before any code, and the completion gate at the end. It does not own the PR-side loop — once a branch is handed off, `pr-to-ready` runs its own completion path, and neither gate here is re-entered from there.
 
-## Roles
+## Orchestration model
+
+**This skill dispatches no workers of its own.** It runs in the main loop as the orchestrator, and every worker in this flow is dispatched by a sub-skill it calls — `review-plan` on the detailed plan, the execution method on the tasks, `simplify-code` and `review-code` in the completion gate. Each of those owns its own fan-out; don't assume any of them dispatches on your behalf, and don't add a fan-out here.
 
 - The orchestrator owns the task, the workspace, both gates, the execution-method choice, every commit, and the hand-off. It decides when a gate is clean — no worker declares that.
 - Workers do bounded, single-task work and hand back. A worker is never given an objective spanning more than one task, and never advances the plan or a gate itself.
@@ -79,7 +81,7 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted finding in yourself — except one that invalidates the agreed design, which is not folded in at all: stop and take the **Design invalidated** exit below. Then re-run `review-plan`, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
-   - **Design invalidated** — a Critical finding that undoes the agreed design → stop and return to `plan-work`. It doesn't get worked around here.
+   - **Design invalidated** — a Critical finding that undoes the agreed design → take **Escalation**.
    - **Capped** — three rounds run and a blocking finding survives that doesn't invalidate the design → stop, report the open findings and the disagreement, and let the user decide. Don't start a fourth round.
 
 Don't restate a quality bar for the plan here. `superpowers:writing-plans` owns what a good plan contains, and `review-plan`'s lenses find where a particular plan falls short.
@@ -150,4 +152,6 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 
 ## Escalation
 
-A Critical finding that invalidates the agreed design does not get fixed here — not in the plan gate and not in the completion gate. Stop and return to `plan-work`; the design needs re-approval, not a workaround.
+Per the guidelines' **Escalation**: a Critical finding that invalidates the agreed design goes back to `plan-work` for re-approval, and this skill is no exception — not in the plan gate, and not in the completion gate.
+
+What this flow hands over is the branch: its name, and whether it is pushed. `plan-work`'s **Entry** says what it does with that. Where the finding surfaced in the completion gate, the branch already carries the round's commits, since the gate commits before taking either exit.
