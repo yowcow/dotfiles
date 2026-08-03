@@ -30,7 +30,7 @@ Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. D
 
 ## Isolation
 
-Establish this **before drafting the plan**: the plan file has to live inside the workspace the execution method will read it from, and a workspace created afterwards would not contain it.
+Establish this **before drafting the plan**: the plan file has to live inside the workspace the execution method will read it from, and a workspace created afterwards would not contain it — a new working tree gets the tracked content, not ignored scratch files.
 
 Use `superpowers:using-git-worktrees`, then set the project up and establish a verified baseline there.
 
