@@ -65,7 +65,7 @@ For a Change, enter at the flow the work has actually reached: no agreed design 
 
 Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
-- **`plan-work`** — entry: an issue number, or a request to be planned. It researches, settles the design with the user, drafts a numbered TODO list at PR granularity, and loops `review-plan` to convergence. Deliverable: the design and that TODO list, published once — as a comment on the tracking issue, or in chat when no issue tracks the work — plus one sub-issue per item when the work spans two or more PRs. It stops short of per-task detail: no exact paths, no per-task verification commands. It never touches the working tree: no worktree, no branch, no code.
+- **`plan-work`** — entry: an issue number, or a request to be planned. It researches, settles the design with the user, drafts a numbered TODO list at PR granularity, and loops `review-plan` to convergence. Deliverable: the design and that TODO list, published once — as a comment on the tracking issue, or in chat when no issue tracks the work — plus one sub-issue per item. It stops short of per-task detail: no exact paths, no per-task verification commands. It never touches the working tree: no worktree, no branch, no code.
 - **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. It establishes the isolated workspace and a verified baseline, drafts the detailed plan for that one PR and reviews it, declares its execution method, implements, and owns the completion gate. Deliverable: a branch of verified commits — with no PR yet.
 - **`pr-to-ready`** — entry: a branch of verified commits. It opens the draft PR itself, then drives CI and review to ready. Its loop is its own completion path; `implement-work`'s gate is never re-entered from it.
 
@@ -75,9 +75,9 @@ A phase is *clean* when its checks pass: verification (the relevant test, lint, 
 
 Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
 
-When the work was split into sub-issues, `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the TODO list's order, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
+Where a tracking issue backs the work, `plan-work` splits it into one sub-issue per item whatever the count, so `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the TODO list's order, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
 
-**Merging is a person's responsibility, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So the next sub-issue starts a separate session — the handoff rule above, applied to the loop.
+**Merging is a person's responsibility, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So a remaining sub-issue starts a separate session — the handoff rule above, applied to the loop.
 
 ### Investigation workflow
 
