@@ -61,7 +61,7 @@ When no issue tracks the work, the same contract binds the version posted in cha
 
 ## Splitting into sub-issues
 
-Two or more items means sub-issues, one per item — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR and `pr-to-ready` has nothing to check when it decides whether the parent can close.
+Two or more items means sub-issues, one per item — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR, and nothing records which PRs are still outstanding when someone comes to decide whether the parent can close.
 
 **Two or more items and no tracking issue → ask before publishing anything.** Chat has nothing to hang a sub-issue from, and it cannot satisfy the guidelines' requirement that a hand-off stand on its own, so ask the user to create a tracking issue for this work and publish there instead. If they decline, proceed with no sub-issues and chat as the canonical record — and write the consequence into the artifact itself: with no named entry per PR, every item has to be carried to completion in this one session, because a later session inherits nothing to pick up. That premise is what declining accepts, so state it rather than leaving it implicit. One item and no tracking issue needs none of this — there is nothing to split either way.
 
@@ -77,7 +77,7 @@ Two or more items means sub-issues, one per item — and a sub-issue hangs off a
 
 Prefer the MCP `sub_issue_write` tool (`method: "add"`, parent as `issue_number`, child as `sub_issue_id`); fall back to `gh api --method POST repos/{owner}/{repo}/issues/<parent>/sub_issues -F sub_issue_id=<child id>` where the MCP tool is unavailable. The child is identified by **id, not issue number** — get it with `gh api repos/{owner}/{repo}/issues/<n> --jq .id`.
 
-GitHub does not auto-close a parent issue when all its sub-issues close. Closing the parent (or leaving a completion comment) is `pr-to-ready`'s responsibility at its finish step, triggered by the merge of the PR that closes the last sub-issue — not this skill's.
+GitHub does not auto-close a parent issue when all its sub-issues close. Closing the parent (or leaving a completion comment) is a person's decision, once the PR that closes the last sub-issue has merged: `pr-to-ready` reports that it has come due and hands over the count behind it, but that merge lands after its run has ended, and closing an issue is a human call regardless. Either way it is not this skill's.
 
 ## Publish
 
