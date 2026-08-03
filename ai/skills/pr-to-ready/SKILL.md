@@ -64,9 +64,7 @@ gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, no
 
 Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
-
-The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history.
+Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back rather than deriving it again. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings.
 
 The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
@@ -76,23 +74,19 @@ trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)
 printf '%s\n' "$trailers" | grep -m1 .                                         # 0 = recorded base on stdout, 1 = no trailer
 ```
 
-**Both reads are captured before anything is tested, because a pipe hides the failure.** `git log ... | grep -m1 .` reports only `grep`'s status, and `grep` exits 1 on empty input whether the trailer is genuinely absent or `git log` just failed — so the two are indistinguishable, and `set -o pipefail` does not separate them either (`grep` is the rightmost command and its 1 is a real exit code, not a masked one). The same trap sits one line up: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, which then makes the scan exit 1 as well. Reading either as "no trailer" would open the PR without `--base` against the wrong target, which is the one outcome the trailer exists to prevent.
-
-The scan reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
-
 When a trailer was found, check whether its branch survives:
 
 ```bash
 git ls-remote --exit-code --heads origin <recorded>   # 0 = still there, 2 = gone
 ```
 
-Any other non-zero exit is a network or auth failure rather than absence, and it stops the run — reading it as "gone" would silently open the PR against the default branch, which is the one outcome the trailer exists to prevent.
+Any other non-zero exit is a failure rather than absence: stop the run.
 
 Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-remote` 0 lands in **still on the remote**; scan 0 with `ls-remote` 2 lands in **branch is gone**:
 
-- **No trailer** → omit `--base` and let GitHub choose. This is the ordinary unstacked case, and the absence of a trailer is what says so.
+- **No trailer** → omit `--base` and let GitHub choose.
 - **A trailer whose branch is still on the remote** → open the PR against that branch, so the diff carries only this task's work.
-- **A trailer whose branch is gone** → omit `--base` as well. That prerequisite is finished with, and its commits are in the default branch already.
+- **A trailer whose branch is gone** → omit `--base` as well.
 
 ```bash
 gh pr create --draft --head <branch> --title <title> --body-file <file>                     # no trailer, or its branch is gone
