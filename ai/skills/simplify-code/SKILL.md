@@ -7,14 +7,15 @@ description: Use after implementation and before code review or PR creation to s
 
 Use after code changes and before `review-code`.
 
-One invocation is one simplification pass, and the pass owns its apply-verify loop: propose, apply, run the checks, propose again, until nothing actionable is left. What it does not own is re-entry — simplifying again after something else changes the code belongs to the caller; in the Change workflow, `implement-work`'s completion gate owns that.
+One invocation is one simplification pass, and the pass owns its apply-verify loop: propose, apply, run the checks, propose again, until nothing actionable is left. Re-entry is not part of it — that belongs to the caller, on the same terms as `review-code`.
 
-## Roles
+## Orchestration model
+
+**This skill dispatches proposers: read-only workers that may run in parallel.** Everything else runs in the main loop.
 
 - The orchestrator owns this pass: it dispatches proposers, judges what they return, applies the accepted proposals, verifies, and reports. It decides when nothing actionable remains — a proposer never does.
-- Proposers are read-only workers. Each gets the diff, the paths it touches, the standards that apply, and its assigned lenses, and returns proposals only. A proposer never edits code, never runs the project's checks, and never declares the pass clean.
-- Proposers stay read-only for two reasons: it matches how the other local skills treat workers (`pr-to-ready` keeps every code change, commit, and push in the orchestrator), and `superpowers:verification-before-completion` makes the orchestrator re-verify a worker's claims anyway — so letting a worker apply and self-verify buys nothing.
-- What a proposer buys is a fresh context: it reads the diff without having written it, so it is not anchored on why the code ended up this way.
+- Proposers are read-only workers, following the contract stated in `review-code`'s **Orchestration model** and bought for the same reason. Each gets the diff, the paths it touches, the standards that apply, and its assigned lenses. A proposer returns proposals only — never an edited file, never a run of the project's checks, and never a verdict that the pass is clean.
+- Proposers stay read-only for two reasons beyond that contract: it matches how the other local skills treat workers (`pr-to-ready` keeps every code change, commit, and push in the orchestrator), and `superpowers:verification-before-completion` makes the orchestrator re-verify a worker's claims anyway — so letting a worker apply and self-verify buys nothing.
 
 ## Scope
 
@@ -44,9 +45,9 @@ Each lens is a distinct kind of avoidable complexity, and every one is behavior-
 
 ## Dispatch
 
-Proposers are read-only and share no mutable state, so they may run in parallel (`superpowers:dispatching-parallel-agents` — this is independent fact-finding, not implementation). Splitting further than the diff warrants only pays handoff cost, so size the fan-out to the diff:
+Proposers are read-only and share no mutable state, so they may run in parallel (`superpowers:dispatching-parallel-agents` — this is independent fact-finding, not implementation). The fan-out follows the guidelines' **Subagents & worker safety**, sized to the diff:
 
-- **Default** — one proposer takes every lens. A diff is a smaller object than a plan, and delegation has to be worth its handoff.
+- **Default** — one proposer takes every lens.
 - **Large diff, or one spanning subsystems** — one proposer per lens, dispatched together.
 
 Dispatch a fresh proposer each round and give it the diff as it now stands, not the previous round's proposals — a proposer shown what was just applied anchors on it. Inline **Scope**, **Standards**, **Lenses**, and **Don't over-simplify** into the prompt so the proposer doesn't go hunting for them, and confine its searches to the project root or narrower.
@@ -67,7 +68,7 @@ Report "no proposals" explicitly rather than inventing one.
 1. Gather the inputs: the diff, the paths it touches, and the standards that apply.
 2. Dispatch proposers against the diff, sized per **Dispatch**.
 3. Evaluate every proposal with `superpowers:receiving-code-review`: reject — with a stated reason — anything that changes behavior, that needs a measurement to justify it (see **Don't over-simplify**), that reaches outside the diff (see **Scope**), or that only reflects proposer preference.
-4. Apply the accepted proposals yourself, then verify with the concrete commands the project defines — in the README, Makefile, package scripts, or CI — and read their actual output.
+4. Apply the accepted proposals yourself, then run the checks the project defines — in its README, Makefile targets, package scripts, or CI config — and read their actual output.
 5. Loop back to step 2 with a fresh proposer while actionable simplification remains.
 6. Report per **Report**.
 
@@ -76,5 +77,5 @@ Report "no proposals" explicitly rather than inventing one.
 - the fan-out used
 - what changed, and what behavior was preserved
 - proposals rejected, with the reason
-- what verification ran, and its actual result
+- the checks that ran, and what they actually printed
 - any simplification left undone, including anything reported instead of changed
