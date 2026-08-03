@@ -56,13 +56,13 @@ Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and repor
 
 Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
 
-Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**: `gh pr view` reads a selector made entirely of digits as a PR *number*, so a branch literally named `123` would resolve PR #123 instead. `--head` is a literal branch-name filter with no such ambiguity, and it already returns everything this check needs:
+Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**. The reason for that choice, and for how every `gh` result below is tested, is in `<skill-dir>/references/gh-mechanics.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
 
 ```bash
 gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, note its isDraft; [] = none
 ```
 
-Test it by **output and exit status together**. Exit 0 with `[]` is the only thing that means "no PR". A non-zero exit does **not** mean there is none: auth, network, and repo-context failures print nothing on stdout and look exactly like absence, and the message wording varies by `gh` version, so don't key off either alone. Treat a non-zero exit as "couldn't tell" and stop — never open a second PR on top of one you couldn't see.
+Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
 Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
 
@@ -113,7 +113,7 @@ Whichever path you took — found or just created — record the PR number befor
 gh pr list --head <branch> --json number,isDraft --jq '.[] | "PR=\(.number) draft=\(.isDraft)"'
 ```
 
-**Print every match with `.[]` and count the lines — don't reach for `.[0]`.** Two things go wrong with indexing. A branch can carry more than one open PR, since a second PR may target a different base, and `.[0]` would pick one of them arbitrarily and hand every later step the wrong `<PR>`. And on a branch with no PR at all, `.[0]` is `null`, which jq interpolates as text — printing `PR=null draft=null`, non-empty output that would bind `<PR>` to a string. `.[]` yields nothing for an empty list and one line per match, so the count answers both questions.
+**Print every match with `.[]` and count the lines — never `.[0]`.** `.[]` yields nothing for an empty list and one line per match, which is what makes the four outcomes below distinguishable.
 
 Read exit status and line count together, and stop on three of the four outcomes:
 
@@ -293,7 +293,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
-List unresolved threads / resolve one or more at once. `<skill-dir>` is wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
+List unresolved threads / resolve one or more at once:
 ```bash
 <skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <PR>
 <skill-dir>/scripts/resolve-thread.sh <owner> <repo> <PR> <comment-id> [comment-id...]
