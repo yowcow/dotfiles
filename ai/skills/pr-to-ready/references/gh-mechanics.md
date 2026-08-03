@@ -2,7 +2,7 @@
 
 This file holds the reasons behind `pr-to-ready`'s `gh` invocations — why a particular command is used over the obvious alternative, and why its result is tested the way it is. The commands themselves, and how each result is tested, stay in `SKILL.md`: a session that never reads this file must still not misread a `gh` result. What is lost by skipping this file is only the understanding of *why* a test is written that way.
 
-Every trap below has the same shape: **a `gh` failure and a genuine negative look identical on stdout.** Auth, network, and repo-context failures print nothing and exit non-zero; an empty result prints nothing and exits 0. Collapsing the two is how a run opens a second PR, drives the wrong one, or reports a reviewer as unavailable when the request was merely never read back.
+Every trap below has the same shape: **stdout alone never separates a `gh` failure from a genuine negative.** Auth, network, and repo-context failures print nothing and exit non-zero; a genuine negative exits 0 and prints either nothing or an empty structure such as `[]`, depending on the command. So neither an empty stdout nor a non-empty one settles which you are looking at — only reading it together with the exit status does. Collapsing the two is how a run opens a second PR, drives the wrong one, or reports a reviewer as unavailable when the request was merely never read back.
 
 ## Asking whether a PR exists — `gh pr list`, not `gh pr view`
 

@@ -249,7 +249,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 - **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
   ```bash
   <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON, 1 = no @claude workflow
-  <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = run finished
+  <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded, non-zero = it did not
   ```
   Then fetch the new comments it left.
 - **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.

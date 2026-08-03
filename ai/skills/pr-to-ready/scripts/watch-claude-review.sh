@@ -10,10 +10,12 @@
 #
 # Usage: watch-claude-review.sh <branch> [run-id]
 #
-# Exit: 0 = run finished, or the listing printed
-#       1 = no @claude workflow in this repository
+# Exit: 0 = the listing printed (list mode), or the watched run succeeded (watch mode)
+#       1 = no @claude workflow in this repository — and in watch mode, also what
+#           gh run watch --exit-status returns when the run it watched failed, so
+#           1 does not distinguish the two there
 #       2 = usage error
-#       other = gh run watch reporting the watched run's own failure
+#       other = gh run watch's own failure
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
