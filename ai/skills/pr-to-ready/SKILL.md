@@ -208,26 +208,19 @@ Request review from **both Claude and Copilot** when both are available — they
 
 ### 2-0. Verify PR body issue links
 
-Before requesting reviewers, verify that every issue link in the PR body points to the intended repository. This matters because a bare `#NNN` always resolves in the PR's repository, but the target issue may live in a different repository.
+The rule is the shared AI guidelines' **Git & PR workflow**: qualify a cross-repo reference as `owner/repo#NNN`, and keep the closing keyword even cross-repo. This step confirms the body already follows it, before reviewers are asked to read it.
 
-1. Read the PR body and the repository the PR lives in:
+1. Read the body and the repository the PR lives in:
    ```bash
    gh pr view <PR> --json body,url
    ```
    Take the repository from `url` (`https://github.com/<owner>/<repo>/pull/<PR>`) — a PR always lives in its base repository, which is the one a bare `#NNN` resolves in. There is no `baseRepository` field on `gh pr view`, and don't substitute `gh repo view`: it resolves the current directory's remote, which is the fork rather than the upstream when you're working from a fork clone.
-2. Inspect every issue reference in the body, especially references using closing keywords (`resolves`, `fixes`, `closes`). For each reference, determine the repository GitHub will link to:
-   - Bare `#NNN` resolves to the PR repository from `url`.
-   - Fully qualified `owner/repo#NNN` resolves to that explicit repository.
-3. Verify the resolved issue is the intended issue:
+2. For every issue reference in the body, resolve which repository GitHub will link to — a bare `#NNN` to the PR's own, `owner/repo#NNN` to the explicit one — then confirm it is the intended issue:
    ```bash
    gh issue view <number> --repo <owner/repo> --json url,title,state
    ```
-   Compare the resolved repository and issue title with the task context, branch name, commit messages, PR title/body, or linked planning issue. If the intended issue repository is ambiguous, ask the user before requesting review.
-4. If any issue link points to the wrong repository, update the PR body before continuing:
-   - Same-repository issue: bare `#NNN` is allowed.
-   - Cross-repository issue: use the fully qualified `owner/repo#NNN` form.
-   - If the PR body says it resolves an issue, keep the closing keyword even for cross-repo targets, e.g. `resolves owner/repo#NNN`.
-   - Use `gh pr edit <PR> --body-file <file>` or equivalent to apply the corrected body.
+   Compare the resolved repository and title against the task context: branch name, commit messages, PR title, or the linked planning issue. **Ask the user when the intended repository is ambiguous** rather than guessing.
+3. Correct any wrong link before continuing: `gh pr edit <PR> --body-file <file>`.
 
 ### 2-1. Request the reviewers
 
