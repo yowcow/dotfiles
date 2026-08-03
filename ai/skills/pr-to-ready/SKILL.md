@@ -56,29 +56,23 @@ Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and repor
 
 Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
 
-Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**: `gh pr view` reads a selector made entirely of digits as a PR *number*, so a branch literally named `123` would resolve PR #123 instead. `--head` is a literal branch-name filter with no such ambiguity, and it already returns everything this check needs:
+Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**. The reason for that choice, and for how every `gh` result below is tested, is in `<skill-dir>/references/gh-mechanics.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
 
 ```bash
 gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, note its isDraft; [] = none
 ```
 
-Test it by **output and exit status together**. Exit 0 with `[]` is the only thing that means "no PR". A non-zero exit does **not** mean there is none: auth, network, and repo-context failures print nothing on stdout and look exactly like absence, and the message wording varies by `gh` version, so don't key off either alone. Treat a non-zero exit as "couldn't tell" and stop — never open a second PR on top of one you couldn't see.
+Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself, not from a fresh look at the issue: `implement-work` records a non-default base as a trailer when it cuts the branch, so read that back rather than deriving it again — the relation it decided from can move between then and now.
-
-The trailer is `Base-Branch:`, on the task's own first commit. Where a stack runs deeper than one, the nearest one wins — an earlier task's sits further back in the same history.
+Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back rather than deriving it again. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings.
 
 The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
-git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop, see below
+git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
 trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)"   # 0 = history read; non-zero = stop
 printf '%s\n' "$trailers" | grep -m1 .                                         # 0 = recorded base on stdout, 1 = no trailer
 ```
-
-**Both reads are captured before anything is tested, because a pipe hides the failure.** `git log ... | grep -m1 .` reports only `grep`'s status, and `grep` exits 1 on empty input whether the trailer is genuinely absent or `git log` just failed — so the two are indistinguishable, and `set -o pipefail` does not separate them either (`grep` is the rightmost command and its 1 is a real exit code, not a masked one). The same trap sits one line up: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, which then makes the scan exit 1 as well. Reading either as "no trailer" would open the PR without `--base` against the wrong target, which is the one outcome the trailer exists to prevent.
-
-The scan reads `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
 
 When a trailer was found, check whether its branch survives:
 
@@ -86,13 +80,13 @@ When a trailer was found, check whether its branch survives:
 git ls-remote --exit-code --heads origin <recorded>   # 0 = still there, 2 = gone
 ```
 
-Any other non-zero exit is a network or auth failure rather than absence, and it stops the run — reading it as "gone" would silently open the PR against the default branch, which is the one outcome the trailer exists to prevent.
+Any other non-zero exit is a failure rather than absence: stop the run.
 
 Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-remote` 0 lands in **still on the remote**; scan 0 with `ls-remote` 2 lands in **branch is gone**:
 
-- **No trailer** → omit `--base` and let GitHub choose. This is the ordinary unstacked case, and the absence of a trailer is what says so.
+- **No trailer** → omit `--base` and let GitHub choose.
 - **A trailer whose branch is still on the remote** → open the PR against that branch, so the diff carries only this task's work.
-- **A trailer whose branch is gone** → omit `--base` as well. That prerequisite is finished with, and its commits are in the default branch already.
+- **A trailer whose branch is gone** → omit `--base` as well.
 
 ```bash
 gh pr create --draft --head <branch> --title <title> --body-file <file>                     # no trailer, or its branch is gone
@@ -113,7 +107,7 @@ Whichever path you took — found or just created — record the PR number befor
 gh pr list --head <branch> --json number,isDraft --jq '.[] | "PR=\(.number) draft=\(.isDraft)"'
 ```
 
-**Print every match with `.[]` and count the lines — don't reach for `.[0]`.** Two things go wrong with indexing. A branch can carry more than one open PR, since a second PR may target a different base, and `.[0]` would pick one of them arbitrarily and hand every later step the wrong `<PR>`. And on a branch with no PR at all, `.[0]` is `null`, which jq interpolates as text — printing `PR=null draft=null`, non-empty output that would bind `<PR>` to a string. `.[]` yields nothing for an empty list and one line per match, so the count answers both questions.
+**Print every match with `.[]` and count the lines — never `.[0]`.** `.[]` yields nothing for an empty list and one line per match, which is what makes the four outcomes below distinguishable.
 
 Read exit status and line count together, and stop on three of the four outcomes:
 
@@ -167,7 +161,7 @@ digraph pr_to_ready {
 }
 ```
 
-## Orchestration model (subagents)
+## Orchestration model
 
 Run this skill as an **orchestrator**. The main loop owns control flow, all decisions, and every state-mutating action; it delegates only self-contained, context-heavy work to subagents. The steps form a dependency chain (a loop), so they run **sequentially** — do not try to run different steps in parallel. Parallelism exists at exactly one point: evaluating independent review findings (2-3).
 
@@ -189,7 +183,7 @@ Every fix in this loop — for a CI failure (Step 1) or accepted review feedback
 
 **Before applying any fix, check that it is one.** A review finding — or a CI diagnosis — showing that the agreed design is itself what's wrong is not a fix waiting to be applied. Take **Escalation** instead.
 
-That check belongs here rather than in one of the two loops, because both reach the exit through this section. Step 2's stop conditions state it again as a stop condition of their own, since a loop needs one to stop on; Step 1 has no equivalent list, and routes every fix through here, so this is where its CI path gets the same exit. Wiring only the review loop would leave the CI path with a stated exception and nowhere to take it — the failure this section exists to close.
+This check sits here rather than in either loop because both reach the exit through this section: Step 2's stop conditions carry the trigger, because a loop needs a condition to stop on, and Step 1 has no equivalent list at all.
 
 The two prohibitions that follow from that are **not equally absolute**, and collapsing them into one is how that exit gets lost:
 
@@ -214,26 +208,19 @@ Request review from **both Claude and Copilot** when both are available — they
 
 ### 2-0. Verify PR body issue links
 
-Before requesting reviewers, verify that every issue link in the PR body points to the intended repository. This matters because a bare `#NNN` always resolves in the PR's repository, but the target issue may live in a different repository.
+This step confirms the PR body already follows the shared AI guidelines' **Git & PR workflow** rule on cross-repo references, before reviewers are asked to read it.
 
-1. Read the PR body and the repository the PR lives in:
+1. Read the body and the repository the PR lives in:
    ```bash
    gh pr view <PR> --json body,url
    ```
    Take the repository from `url` (`https://github.com/<owner>/<repo>/pull/<PR>`) — a PR always lives in its base repository, which is the one a bare `#NNN` resolves in. There is no `baseRepository` field on `gh pr view`, and don't substitute `gh repo view`: it resolves the current directory's remote, which is the fork rather than the upstream when you're working from a fork clone.
-2. Inspect every issue reference in the body, especially references using closing keywords (`resolves`, `fixes`, `closes`). For each reference, determine the repository GitHub will link to:
-   - Bare `#NNN` resolves to the PR repository from `url`.
-   - Fully qualified `owner/repo#NNN` resolves to that explicit repository.
-3. Verify the resolved issue is the intended issue:
+2. For every issue reference in the body, resolve which repository GitHub will link to — a bare `#NNN` to the PR's own, `owner/repo#NNN` to the explicit one — then confirm it is the intended issue:
    ```bash
    gh issue view <number> --repo <owner/repo> --json url,title,state
    ```
-   Compare the resolved repository and issue title with the task context, branch name, commit messages, PR title/body, or linked planning issue. If the intended issue repository is ambiguous, ask the user before requesting review.
-4. If any issue link points to the wrong repository, update the PR body before continuing:
-   - Same-repository issue: bare `#NNN` is allowed.
-   - Cross-repository issue: use the fully qualified `owner/repo#NNN` form.
-   - If the PR body says it resolves an issue, keep the closing keyword even for cross-repo targets, e.g. `resolves owner/repo#NNN`.
-   - Use `gh pr edit <PR> --body-file <file>` or equivalent to apply the corrected body.
+   Compare the resolved repository and title against the task context: branch name, commit messages, PR title, or the linked planning issue. **Ask the user when the intended repository is ambiguous** rather than guessing.
+3. Correct any wrong link before continuing: `gh pr edit <PR> --body-file <file>`.
 
 ### 2-1. Request the reviewers
 
@@ -255,26 +242,20 @@ Before requesting reviewers, verify that every issue link in the PR body points 
   gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
     -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
   ```
-  These are alternatives, not a sequence — running both unconditionally would post a needless request.
-  **Don't judge either form by its exit status, and don't chain them with `||`.** The flag can exit 0 and print the PR URL while adding nobody, so a `||` fallback never fires — and it is intermittent, so one success proves nothing about the next run. Confirm instead by reading back who is actually requested after each attempt, and only run the REST form when the flag didn't take. Read that back over REST as well: `gh pr view --json reviewRequests` omits bots and reports none even while Copilot is requested, so it can't answer this. Treat Copilot as unavailable only when it is still absent after the REST form — and note that failing to *read* the reviewers is not the same as none being requested, so stop on that rather than reporting unavailable.
+  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`** — the flag can exit 0 while adding nobody. Read back who is actually requested after each attempt, over REST (`gh pr view --json reviewRequests` omits bots and cannot answer this), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 
-- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts. Find the run the request triggered on this branch, then block on it:
+- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
   ```bash
-  wf=$(basename "$({ grep -rl '@claude' .github/workflows/ 2>/dev/null || true; } | head -1)")
-  if [ -z "$wf" ]; then
-    echo "no @claude workflow found — skip the Claude wait"
-  else
-    gh run list --workflow="$wf" --branch <branch> --limit 5 --json databaseId,status,headSha,conclusion
-    gh run watch <run-id> --exit-status   # blocks until the run finishes
-  fi
+  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; non-zero = no @claude workflow, or the gh call failed — stop and inspect
+  <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded; non-zero = it did not, or the gh call failed
   ```
   Then fetch the new comments it left.
 - **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
 
-**Login variance**: bot logins differ across surfaces — Copilot appears as `Copilot` and `copilot-pull-request-reviewer[bot]`; Claude as lowercase `claude`. Match on a substring and confirm the author login; don't attribute by timestamp alone (a human commenting in the same window can be misattributed).
+**Login variance**: match a substring of the author login — Copilot appears as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude` — and never attribute by timestamp alone.
 
 ### 2-3. Evaluate and address feedback
 
@@ -293,7 +274,7 @@ Before requesting reviewers, verify that every issue link in the PR body points 
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
-List unresolved threads / resolve one or more at once. `<skill-dir>` is wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
+List unresolved threads / resolve one or more at once:
 ```bash
 <skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <PR>
 <skill-dir>/scripts/resolve-thread.sh <owner> <repo> <PR> <comment-id> [comment-id...]
@@ -311,7 +292,7 @@ Treat human reviewer comments the same way (see receiving-code-review).
 **Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping).
 
 1. Clean per above.
-2. **A finding invalidates the agreed design** → stop and return to `plan-work`, per **Escalation**. Don't fix it here, and don't carry it into another round. This is where the ordering earns its keep: such a finding can survive three rounds of attempted fixes and so satisfy 4 as well, and 4's remedy — hand the disagreement to the user — is the wrong one for a design that needs re-approving. It can surface on **any** round, so this is not a cap; check it every round, the way `implement-work`'s completion gate checks for it before its own cap condition.
+2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4: such a finding can also satisfy 4, and 4's remedy — handing the disagreement to the user — is the wrong one for a design that needs re-approving.
 3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready.
 4. **Same feedback survives 3+ rounds** of fixes without resolving → stop and ask the user.
 
@@ -348,7 +329,7 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
 
 ## Escalation
 
-A Critical finding that invalidates the agreed design does not get fixed in this loop. Stop and return to `plan-work` — that flow owns the framing, and re-approving a design is its job, not something to improvise here. This matches the guidelines' **Escalation**, and it is the same exit `review-code` and `implement-work` take on the same finding: the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
+The rule is the shared AI guidelines' **Escalation**, and the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
 
 Hand `plan-work`'s entry for a re-approval the three things it asks for:
 
