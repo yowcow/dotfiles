@@ -334,7 +334,7 @@ Either way, **this run ends here.** The flow has two terminal states, **ready** 
 
 Nothing that depends on the merge can be a step here. Report these as the run's closing hand-over, and act on none of them:
 
-- **The parent issue, when the work was split into sub-issues.** Large work is planned as a parent issue with one sub-issue per PR (`plan-work` owns that split), and GitHub does **not** close a parent when its children close — so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
+- **The parent issue, whenever one backs this PR's sub-issue.** `plan-work` plans a tracked change as a parent issue with one sub-issue per PR, and GitHub does **not** close a parent when its children close — so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
 
   ```bash
   gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'

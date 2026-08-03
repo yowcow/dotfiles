@@ -1,6 +1,6 @@
 ---
 name: plan-work
-description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Researches the issue and the relevant code, reaches design agreement with `superpowers:brainstorming`, drafts the TODO list itself, runs the `review-plan` loop to convergence, publishes once as an issue comment (or in chat), and creates one sub-issue per item when the work spans two or more PRs. Triggers on "plan this", "plan issue #<n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
+description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Researches the issue and the relevant code, reaches design agreement with `superpowers:brainstorming`, drafts the TODO list itself, runs the `review-plan` loop to convergence, publishes once — as a comment on the tracking issue with one sub-issue per TODO item, or in chat when no issue tracks the work. Triggers on "plan this", "plan issue #<n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
 ---
 
 # Plan Work
@@ -26,7 +26,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 ## Entry
 
 - An issue number — read the issue and its comments before anything else.
-- A request to be planned with no tracking issue — proceed the same way, minus the issue read. Chat becomes the canonical record (see **Publish** and **Output contract**).
+- A request to be planned with no tracking issue — proceed the same way, minus the issue read. **Splitting into sub-issues** asks for a tracking issue before anything is published; chat becomes the canonical record only if that ask is declined (see **Publish** and **Output contract**).
 - **A design invalidated downstream** — `implement-work` or `pr-to-ready` stopped because a finding undid the agreed design, and sent it back for re-approval. It arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state (whether it is pushed, and whether a PR is open on it). Re-enter at **Design agreement** with those in hand: what needs re-approval is the design, so the flow restarts there rather than at a fresh research pass. Where an issue tracks the work it is still the canonical record, so the re-approved design updates that same comment in place rather than adding another, per **Publish**. What is new in this case is the existing branch — **Output contract** says how every TODO item has to account for it.
 
 ## Design agreement
@@ -61,9 +61,9 @@ When no issue tracks the work, the same contract binds the version posted in cha
 
 ## Splitting into sub-issues
 
-Two or more items means sub-issues, one per item — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR, and nothing records which PRs are still outstanding when someone comes to decide whether the parent can close.
+One sub-issue per item, whatever the count — and a sub-issue hangs off a tracking issue, so this presumes one exists. Where it does, they aren't optional: without them, `implement-work` has no named entry for a single PR, and nothing records which PRs are still outstanding when someone comes to decide whether the parent can close.
 
-**Two or more items and no tracking issue → ask before publishing anything.** Chat has nothing to hang a sub-issue from, and it cannot satisfy the guidelines' requirement that a hand-off stand on its own, so ask the user to create a tracking issue for this work and publish there instead. If they decline, proceed with no sub-issues and chat as the canonical record — and write the consequence into the artifact itself: with no named entry per PR, every item has to be carried to completion in this one session, because a later session inherits nothing to pick up. That premise is what declining accepts, so state it rather than leaving it implicit. One item and no tracking issue needs none of this — there is nothing to split either way.
+**No tracking issue → ask before publishing anything.** Chat has nothing to hang a sub-issue from, and it cannot satisfy the guidelines' requirement that a hand-off stand on its own, so ask the user to create a tracking issue for this work and publish there instead. If they decline, proceed with no sub-issues and chat as the canonical record — and write the consequence into the artifact itself: with no named entry per PR, every item has to be carried to completion in this one session, because a later session inherits nothing to pick up. That premise is what declining accepts, so state it rather than leaving it implicit.
 
 - **Parent issue comment**: the overall design, the split policy, and the list of sub-issues.
 - **Each sub-issue**: its purpose, its scope boundary, its completion criteria, its prerequisites, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
@@ -84,9 +84,9 @@ GitHub does not auto-close a parent issue when all its sub-issues close. Closing
 Publishing and splitting interleave, because each needs something from the other: a sub-issue body carries the design comment's URL, and the parent comment lists the sub-issues. Order them:
 
 1. Converge the `review-plan` loop.
-2. **Settle where it gets published.** Two or more items and no tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put a multi-item list in the wrong place and need it redone.
+2. **Settle where it gets published.** No tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put the list in the wrong place and need it redone.
 3. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
-4. **Create the sub-issues** if there are two or more items, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
+4. **Create the sub-issues** — one per item, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**. Create them in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
 5. **Edit the same comment in place** to append the list of sub-issues.
 
 "Publish once" means one comment for this work, not one per round — editing that comment in place is not a second publish.
@@ -94,7 +94,7 @@ Publishing and splitting interleave, because each needs something from the other
 - Don't commit planning artifacts.
 - Don't publish mid-loop — the draft stays in chat until the loop converges.
 - Write anything posted to GitHub in 標準語 (standard Japanese, never dialect).
-- No issue tracks the work → chat is the canonical record. With one item there is nothing to split; with two or more, **Splitting into sub-issues** asks the user for a tracking issue first, and only a declined ask publishes a multi-item list to chat. An issue tracks the work → a comment on that issue, updated in place rather than added to.
+- No issue tracks the work → **Splitting into sub-issues** asks the user for a tracking issue first; only a declined ask makes chat the canonical record. An issue tracks the work → a comment on that issue, updated in place rather than added to.
 - `gh issue comment <n> --edit-last --create-if-none --body-file <file>` covers both the first publish and later updates — but `--edit-last` targets your *most recent* comment on the issue, whatever it is. Once anything else (a reply, a review note) follows it, `--edit-last` would hit the wrong comment: edit by id instead, with `jq -Rs '{body: .}' <file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -` (`gh api` wants a JSON payload, not raw Markdown, hence the `jq -Rs` wrap).
 - Always pass the body from a file, never an inline flag string, so backticks never reach the shell.
 
@@ -122,6 +122,6 @@ This is clean when the published artifact satisfies **Output contract** and the 
 - where the result was published — the comment URL, or "posted in chat"
 - the number of `review-plan` rounds run, and the verdict of the final one
 - accepted findings folded in, and rejected findings with the reason
-- the sub-issues created, or why none were
+- the sub-issues created, or — when none were — that no tracking issue backs the work and the user declined to create one
 - when a design came back invalidated: which branch each item reuses, which items got a new branch name instead, and the branches and worktrees left for a person to clean up
 - assumptions made, and anything that could not be verified
