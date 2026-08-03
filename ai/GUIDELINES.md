@@ -119,7 +119,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
-- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance, so it doesn't rediscover context — or search the filesystem for the skill file — on its own.
+- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance, so it doesn't rediscover context on its own.
 
 ## Git & PR workflow
 
@@ -133,7 +133,9 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 ## Tool preferences
 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
-- Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly (e.g. `build/packages/<pkg>`, `node_modules/<pkg>`) instead of widening the scope. To find a binary use `command -v`, not a filesystem search; resolve a skill by its runtime mechanism (Claude Code's `Skill` tool, etc.), never by searching the filesystem for its file.
+- Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly (e.g. `build/packages/<pkg>`, `node_modules/<pkg>`) instead of widening the scope. To find a binary use `command -v`, not a filesystem search.
+- **Where you can invoke a skill, its content comes only from invoking it — never from locating its file.** Where a caller forbids invoking a named skill, you don't need its content at all: what that caller wrote about it is the contract, so depend on the name and nothing deeper. Where the runtime lacks the skill, **Skills & runtime adaptation** already settles what to do, and nothing here relaxes it.
+- **When you do have to locate an installed file** — to carry out that manual workflow, or to check what an install linked — the search stops at the agent's own config directory (`~/.claude`, `~/.codex`, and the like). Outside that ceiling the search becomes a whole-filesystem walk that hangs for minutes and comes back with nothing; and a plugin's copy is version-pinned, so even a hit is a path not worth depending on. This is the narrow exception, not the general way to learn what a skill does — that is the bullet above.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Technical preferences
