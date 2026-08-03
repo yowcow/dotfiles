@@ -75,9 +75,9 @@ A phase is *clean* when its checks pass: verification (the relevant test, lint, 
 
 Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
 
-When the work was split into sub-issues, `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the order the TODO list fixed, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
+When the work was split into sub-issues, `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the TODO list's order, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
 
-**The merge is a person's, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So the next sub-issue starts a separate session — the handoff rule above, applied to the loop.
+**Merging is a person's responsibility, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So the next sub-issue starts a separate session — the handoff rule above, applied to the loop.
 
 ### Investigation workflow
 
