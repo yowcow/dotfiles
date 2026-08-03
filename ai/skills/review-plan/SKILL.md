@@ -7,7 +7,13 @@ description: Use to review planning work itself, before implementation starts or
 
 Use on planning work before any code is written, or on a revision of it. This reviews the plan, not the code.
 
-One invocation is one review pass: dispatch reviewers, judge their findings, report. It never edits what it reviewed and never re-reviews on its own. Revising and re-running until it comes back clean belongs to the caller — `plan-work` for a TODO list, `implement-work` for an implementation plan.
+## Orchestration model
+
+**This skill dispatches workers.** Reviewers are read-only and do the reading; judging what they return and writing the report stay in the main loop.
+
+- A reviewer takes its assigned lenses, reports findings, and hands back. It never edits what it reviewed and never declares the plan clean. **Dispatch** sizes the fan-out.
+- The orchestrator accepts or rejects every finding and writes the report.
+- One invocation is one pass, and it never re-reviews on its own. Revising and re-running until it comes back clean belongs to the caller — `plan-work` for a TODO list, `implement-work` for an implementation plan.
 
 ## What counts as a finding
 
@@ -44,9 +50,9 @@ Each lens is a distinct failure mode, and none of them lowers the bar in **What 
 
 ## Dispatch
 
-Reviewers are read-only workers. Each gets its assigned lenses, the artifact under review, the original request, and the paths it touches. A reviewer reports findings and never edits anything, and never declares the plan clean. Every reviewer takes the same stance: try to make the plan fail. One you cannot break passes — but a finding you cannot evidence is not a finding.
+Each reviewer gets its assigned lenses, the artifact under review, the original request, and the paths it touches. Every reviewer takes the same stance: try to make the plan fail. One you cannot break passes — but a finding you cannot evidence is not a finding.
 
-Size the fan-out to the target, and keep it small. Both targets are small artifacts — a list of PR-sized items, or one PR's plan — and splitting further than that only pays hand-off cost.
+Size the fan-out to the target, per the guidelines' **Subagents & worker safety**. Both targets here are small artifacts — a list of PR-sized items, or one PR's plan — so keep it small.
 
 - **Default — one reviewer** takes the target's whole lens list.
 - **Two reviewers**, when the work is large, risky, or spans subsystems: split the lens list into the ones that need only the artifact and the original request, and the ones that need to read the repo. Independence is what the split buys — neither sees the other's findings, so neither anchors on them.
@@ -77,9 +83,9 @@ This pass is clean when no finding survives step 3.
 
 ## Report
 
-Report to the caller in chat. Never post this pass to GitHub — not even when the artifact under review lives in an issue or PR comment: a pass is an orchestrator-facing intermediate, and one comment per loop is noise. Report, for this pass:
+Report to the caller in chat, never to GitHub, per the guidelines' **Stage boundaries**. Report, for this pass:
 
 - the target reviewed, the fan-out used, and any lens skipped with why
 - accepted findings with lens, severity, evidence, and suggested change
 - rejected findings with the reason
-- the verdict: clean, or the blocking findings that remain — flagging separately any Critical finding that invalidates the approved design, since that needs design approval again rather than a plan edit
+- the verdict: clean, or the blocking findings that remain — flagging any Critical finding separately, since **Finding contract** puts its remedy outside a plan edit
