@@ -11,11 +11,14 @@
 # Usage: watch-claude-review.sh <branch> [run-id]
 #
 # Exit: 0 = the listing printed (list mode), or the watched run succeeded (watch mode)
-#       1 = no @claude workflow in this repository — and in watch mode, also what
-#           gh run watch --exit-status returns when the run it watched failed, so
-#           1 does not distinguish the two there
 #       2 = usage error
-#       other = gh run watch's own failure
+#       1 = no @claude workflow in this repository — but 1 is not unique to that:
+#           gh run watch --exit-status returns 1 for a run that failed, and any
+#           failing gh call exits with its own status under set -e
+#       other = the underlying gh call failed (gh run list, or gh run watch)
+#
+# Only 0 and 2 identify a cause on their own. Treat every other non-zero as
+# "stop and inspect" rather than as a specific answer.
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
