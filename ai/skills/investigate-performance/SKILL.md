@@ -14,7 +14,7 @@ Root-cause an observed performance shortfall. The deliverable is a findings repo
 - Account for variance and warm-up before trusting a delta.
 - Record every measurement in the evidence log, including refuting ones.
 
-## Orchestration (subagents)
+## Orchestration model
 
 When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only measurements; keep hypothesis selection, the evidence log, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
 
