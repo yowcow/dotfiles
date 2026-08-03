@@ -11,7 +11,9 @@ Use once the design is agreed and the work has been cut to one PR's worth. There
 
 This skill holds two gates: one on the detailed plan, before any code, and the completion gate at the end. It does not own the PR-side loop — once a branch is handed off, `pr-to-ready` runs its own completion path, and neither gate here is re-entered from there.
 
-## Roles
+## Orchestration model
+
+**This skill dispatches no workers of its own.** It runs in the main loop as the orchestrator, and every worker in this flow is dispatched by a sub-skill it calls — `review-plan` on the detailed plan, the execution method on the tasks, `simplify-code` and `review-code` in the completion gate. Each of those declares its own fan-out, so read what it dispatches from its own declaration rather than assuming — and add no fan-out here.
 
 - The orchestrator owns the task, the workspace, both gates, the execution-method choice, every commit, and the hand-off. It decides when a gate is clean — no worker declares that.
 - Workers do bounded, single-task work and hand back. A worker is never given an objective spanning more than one task, and never advances the plan or a gate itself.
@@ -28,20 +30,22 @@ Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. D
 
 ## Isolation
 
-Establish this **before drafting the plan**, because the plan file has to live inside the workspace the execution method will read it from. A workspace created afterwards would not contain it — a new working tree gets the tracked content, not ignored scratch files — and the execution method fails on the missing file.
+Establish this **before drafting the plan**: the plan file has to live inside the workspace the execution method will read it from, and a workspace created afterwards would not contain it — a new working tree gets the tracked content, not ignored scratch files.
 
 Use `superpowers:using-git-worktrees`, then set the project up and establish a verified baseline there.
 
-That skill detects existing isolation from the current directory only; it has no way to find a workspace by branch name, and its creation step assumes the branch is new. So on resumption, look before creating:
+The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and why each test below is written the way it is all live in `<skill-dir>/references/base-branch.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/implement-work`, `~/.agents/skills/implement-work`). The commands and their result tests stay here, so a session that never opens that file still takes the right branch.
 
-1. If `git worktree list --porcelain | grep -Fxq "branch refs/heads/<branch>"`, reuse that workspace. Its path comes from the same output: `git worktree list --porcelain | grep -Fx -B2 "branch refs/heads/<branch>" | sed -n 's/^worktree //p'` — each block is `worktree <path>` / `HEAD <sha>` / `branch <ref>`, so the branch line's two predecessors carry the path. `-F` and `-x` are load-bearing, and they replace the `^`/`$` anchors rather than joining them: a branch name may contain `.`, which as a regex matches any character, so an anchored pattern can match a *different* branch and hand back the wrong workspace.
-2. Otherwise, if the branch exists locally, attach a workspace to it with `git worktree add <path> <branch>` — no `-b`. Test existence with `git show-ref --verify --quiet refs/heads/<branch>`; **`git branch --list` exits 0 whether or not it matched**, so branching on its exit status is always true, and on a first run that would send you here to attach a branch that doesn't exist yet. An output-emptiness test works too: `[ -n "$(git branch --list <branch>)" ]`.
-3. Otherwise, if the branch exists only on the remote, attach a workspace that tracks it: `git fetch origin <branch>` first, since a fresh checkout may not have the ref yet, then test with `git show-ref --verify --quiet refs/remotes/origin/<branch>` and run `git worktree add --track -b <branch> <path> origin/<branch>`. Check this before falling through to creating a branch — a resumed task whose branch was already pushed, in a session or a checkout that never held it locally, has no local ref, and creating one afresh would start it from the default branch. It would then diverge from the pushed branch under the same name, and its first push would be rejected as a non-fast-forward; since force-pushing is barred, the earlier work is stranded rather than resumed.
+That skill detects existing isolation from the current directory only, and its creation step assumes the branch is new. So on resumption, look before creating:
+
+1. If `git worktree list --porcelain | grep -Fxq "branch refs/heads/<branch>"`, reuse that workspace. Its path comes from the same output: `git worktree list --porcelain | grep -Fx -B2 "branch refs/heads/<branch>" | sed -n 's/^worktree //p'` — each block is `worktree <path>` / `HEAD <sha>` / `branch <ref>`, so the branch line's two predecessors carry the path. Keep `-F` and `-x`; they replace the `^`/`$` anchors rather than joining them.
+2. Otherwise, if the branch exists locally, attach a workspace to it with `git worktree add <path> <branch>` — no `-b`. Test existence with `git show-ref --verify --quiet refs/heads/<branch>`, or by output emptiness: `[ -n "$(git branch --list <branch>)" ]`. Don't branch on `git branch --list`'s exit status — it exits 0 whether or not it matched.
+3. Otherwise, if the branch exists only on the remote, attach a workspace that tracks it: `git fetch origin <branch>` first, then test with `git show-ref --verify --quiet refs/remotes/origin/<branch>` and run `git worktree add --track -b <branch> <path> origin/<branch>`. Check this before falling through to creating a branch — creating one afresh would strand the pushed work.
 4. Otherwise create it normally, from the base that **Base branch** below settles.
 
 ### Base branch
 
-Only step 4 needs this — steps 1-3 attach to a branch that already exists. A task stacked on a prerequisite whose PR is still `OPEN` has to branch from that PR's head: branch from the default instead and the prerequisite's changes are simply absent, so the task's own tests fail for a reason that is nowhere in its diff. The other states don't lend a branch at all — the table below settles which of them stop.
+Only step 4 needs this — steps 1-3 attach to a branch that already exists. The table below settles every case, including which of them stop.
 
 A task with no tracking issue — the chat-only entry — has no relation to read at all: branch from the default branch. Everything below applies only when an issue backs the task.
 
@@ -53,7 +57,7 @@ gh issue view <prereq> --json closedByPullRequestsReferences   # → its PR
 gh pr view <pr> --json headRefName,state                       # → the branch, and which of the three states it is in
 ```
 
-Test the first two by **count, not presence** — both come back as `{nodes, totalCount}`, so "is it empty" cannot tell one prerequisite from three. Test the third by `state`, which is `OPEN`, `CLOSED`, or `MERGED`: "not merged" is not one case, because a PR closed without merging means abandoned work rather than work still in flight.
+Test the first two by **count**: both come back as `{nodes, totalCount}`. Test the third by `state`, which is `OPEN`, `CLOSED`, or `MERGED`.
 
 | Result | Base |
 | --- | --- |
@@ -64,9 +68,7 @@ Test the first two by **count, not presence** — both come back as `{nodes, tot
 | the prerequisite has no PR at all | **stop.** It isn't implemented yet, so this task cannot start; report that |
 | more than one prerequisite, or more than one PR reference | **stop and ask.** A branch takes exactly one base, so this is a human call |
 
-The three stop rows stop rather than fall through to the default branch, because falling through makes them indistinguishable from an independent task — and that only surfaces later, as a failure whose cause is not in the diff.
-
-**Record a non-default base**, as a single `Base-Branch: <base>` line in the trailer block of this task's **first** commit — `<base>` the bare branch name, no `origin/` prefix and no `refs/heads/` path, because two skills downstream parse this exact form. The first commit, specifically: the branch's history only grows from here, and both consumers scan it from HEAD backwards, stopping at the first hit, so a trailer added on a later commit would shadow this one for a task stacked on top. `pr-to-ready` reads it to pass as `gh pr create --base`; `review-code` reads it as the base of the range it reviews — neither derives the base again, so the decision is made once, here, from the relation as it stood when the branch was cut. Each of those consumers carries its own read-back commands, since either can be entered in a session that never ran this skill; what this section owns is the contract, not the read procedure. Branching from the default branch records nothing — that absence is what tells both consumers alike to fall back to the default branch.
+**Record a non-default base** as a single `Base-Branch: <base>` line in the trailer block of this task's **first** commit — `<base>` the bare branch name, no `origin/` prefix and no `refs/heads/` path. Branching from the default branch records nothing. The reference above says why it is the first commit, and what each reader does with it.
 
 Whenever an instruction names a command, say how its result is tested — a command that doesn't vary its exit status will otherwise get branched on wrongly.
 
@@ -79,7 +81,7 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted finding in yourself — except one that invalidates the agreed design, which is not folded in at all: stop and take the **Design invalidated** exit below. Then re-run `review-plan`, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
-   - **Design invalidated** — a Critical finding that undoes the agreed design → stop and return to `plan-work`. It doesn't get worked around here.
+   - **Design invalidated** — a Critical finding that undoes the agreed design → take **Escalation**.
    - **Capped** — three rounds run and a blocking finding survives that doesn't invalidate the design → stop, report the open findings and the disagreement, and let the user decide. Don't start a fourth round.
 
 Don't restate a quality bar for the plan here. `superpowers:writing-plans` owns what a good plan contains, and `review-plan`'s lenses find where a particular plan falls short.
@@ -150,4 +152,6 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 
 ## Escalation
 
-A Critical finding that invalidates the agreed design does not get fixed here — not in the plan gate and not in the completion gate. Stop and return to `plan-work`; the design needs re-approval, not a workaround.
+Per the guidelines' **Escalation**: a Critical finding that invalidates the agreed design goes back to `plan-work` for re-approval, and this skill is no exception — not in the plan gate, and not in the completion gate.
+
+What this flow hands over is the branch: its name, and whether it is pushed. `plan-work`'s **Entry** says what it does with that. Where the finding surfaced in the completion gate, the branch already carries the round's commits, since the gate commits before taking either exit.
