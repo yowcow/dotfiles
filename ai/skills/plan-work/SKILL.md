@@ -26,7 +26,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 ## Entry
 
 - An issue number — read the issue and its comments before anything else.
-- A request to be planned with no tracking issue — proceed the same way, minus the issue read. Chat becomes the canonical record (see **Publish** and **Output contract**).
+- A request to be planned with no tracking issue — proceed the same way, minus the issue read. **Splitting into sub-issues** asks for a tracking issue before anything is published; chat becomes the canonical record only if that ask is declined (see **Publish** and **Output contract**).
 - **A design invalidated downstream** — `implement-work` or `pr-to-ready` stopped because a finding undid the agreed design, and sent it back for re-approval. It arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state (whether it is pushed, and whether a PR is open on it). Re-enter at **Design agreement** with those in hand: what needs re-approval is the design, so the flow restarts there rather than at a fresh research pass. Where an issue tracks the work it is still the canonical record, so the re-approved design updates that same comment in place rather than adding another, per **Publish**. What is new in this case is the existing branch — **Output contract** says how every TODO item has to account for it.
 
 ## Design agreement
