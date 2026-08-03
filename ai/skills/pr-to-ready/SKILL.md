@@ -208,7 +208,7 @@ Request review from **both Claude and Copilot** when both are available — they
 
 ### 2-0. Verify PR body issue links
 
-The rule is the shared AI guidelines' **Git & PR workflow**: qualify a cross-repo reference as `owner/repo#NNN`, and keep the closing keyword even cross-repo. This step confirms the body already follows it, before reviewers are asked to read it.
+This step confirms the PR body already follows the shared AI guidelines' **Git & PR workflow** rule on cross-repo references, before reviewers are asked to read it.
 
 1. Read the body and the repository the PR lives in:
    ```bash
