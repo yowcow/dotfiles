@@ -11,7 +11,7 @@ One invocation runs the loop to completion: review, judge, fix, verify, review a
 
 ## Orchestration model
 
-**This skill dispatches one worker: a read-only reviewer.** Everything else runs in the main loop.
+**This skill dispatches one worker: a read-only reviewer.** Nothing else leaves the main loop.
 
 - The orchestrator owns the loop: it resolves the scope, dispatches the reviewer, judges findings, applies accepted fixes, verifies, and decides when the loop ends. A reviewer never declares the code clean.
 - The reviewer is a read-only worker, dispatched through `superpowers:requesting-code-review`. It gets the scope and the requirements and returns findings only. It never edits code, never runs the project's checks, and never commits.

@@ -68,7 +68,7 @@ Report "no proposals" explicitly rather than inventing one.
 1. Gather the inputs: the diff, the paths it touches, and the standards that apply.
 2. Dispatch proposers against the diff, sized per **Dispatch**.
 3. Evaluate every proposal with `superpowers:receiving-code-review`: reject — with a stated reason — anything that changes behavior, that needs a measurement to justify it (see **Don't over-simplify**), that reaches outside the diff (see **Scope**), or that only reflects proposer preference.
-4. Apply the accepted proposals yourself, then run the checks the project defines — its Makefile targets, package scripts, or CI config — and read their actual output.
+4. Apply the accepted proposals yourself, then run the checks the project defines — in its README, Makefile targets, package scripts, or CI config — and read their actual output.
 5. Loop back to step 2 with a fresh proposer while actionable simplification remains.
 6. Report per **Report**.
 
