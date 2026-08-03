@@ -71,9 +71,13 @@ Three flows, each of which can be entered on its own, and each with its own entr
 
 Detail belongs where it gets used. The pre-implementation artifact is coarse on purpose — writing exact paths and per-task verification before the design has settled makes a large artifact to review and re-review, which is what made planning expensive. The detailed plan is drafted one PR at a time, immediately before the work, for the workers who genuinely have no context; it is scratch, not a published deliverable.
 
-A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification (no behavior-preserving cleanup is left), and review (no blocking findings remain). That triad is what `implement-work`'s completion gate applies — and what that gate adds depends on the execution method, since it only covers ground the method left uncovered. `implement-work` also holds an earlier gate, on the detailed plan, before any code is written. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
+A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification with `simplify-code` (no behavior-preserving cleanup is left), and review with `review-code` (no blocking findings remain). That triad is what `implement-work`'s completion gate applies — and what that gate adds depends on the execution method, since it only covers ground the method left uncovered. `implement-work` also holds an earlier gate, on the detailed plan, before any code is written. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
 
 Since a handoff may cross sessions, the deliverable has to stand on its own: the receiving flow gets the named artifact and inherits nothing else.
+
+When the work was split into sub-issues, `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the order the TODO list fixed, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
+
+**The merge is a person's, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So the next sub-issue starts a separate session — which is the handoff rule above, applied to the loop: it picks up the named artifact and nothing this session was holding.
 
 ### Investigation workflow
 
