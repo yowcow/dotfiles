@@ -106,8 +106,9 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 ### Escalation
 
-- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing — or to Workflow selection if the task's type changed — instead of improvising an architectural decision. This holds wherever the finding surfaces, including the review of `implement-work`'s own detailed plan: a finding that invalidates the agreed design is not fixed in place.
-- Report what's uncertain, the options and trade-offs, and your recommendation.
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned rather than improvising an architectural decision — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing; and it is Workflow selection if the task's type changed.
+- **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces — either of `implement-work`'s gates, `pr-to-ready`'s CI or review loop, or a review sub-skill invoked inside one of those, which ends its pass and reports the finding separately rather than absorbing it. Such a finding can surface on any round, so check for it before any round cap: a cap's remedy is to hand the disagreement to the user, and that is the wrong remedy for a design that needs re-approving.
+- Report what's uncertain, the options and trade-offs, and your recommendation. What a flow hands over on this exit belongs to that skill's own **Escalation** section, since it differs per flow; the contract for receiving it is `plan-work`'s **Entry**.
 
 ## Subagents & worker safety
 
