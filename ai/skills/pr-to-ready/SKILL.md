@@ -185,7 +185,7 @@ Subagents only investigate and propose (read-only, advisory, no worktree); the o
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement → verify → simplify → review your own diff, applying `implement-work`'s implementation discipline. This skill's own loop is the PR-phase completion path, so an ordinary fix finishes here rather than by re-entering the workflow that got here.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement, verify, simplify with `simplify-code`, and review your own diff with `review-code`, applying `implement-work`'s implementation discipline. Running those two skills is not re-entering anything: what the prohibition below forbids is re-entering `implement-work`'s completion **gate** — the loop that decides when the work is done — not the individual skills that gate happens to call. This skill's own loop is the PR-phase completion path, so an ordinary fix finishes here rather than by re-entering the workflow that got here.
 
 **Before applying any fix, check that it is one.** A review finding — or a CI diagnosis — showing that the agreed design is itself what's wrong is not a fix waiting to be applied. Take **Escalation** instead.
 
