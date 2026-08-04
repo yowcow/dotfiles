@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: Use to review code and fix what the review finds — on a diff, a branch, or an uncommitted working tree — running the review-fix-review loop until no blocking finding remains. Resolves what to review itself, dispatches a read-only reviewer, judges its findings, applies the accepted fixes, and verifies them. Triggers on "review this code", "review and fix this", "run the review loop until it's clean".
+description: Use to review code and fix what the review finds — on a diff, a branch, or an uncommitted working tree — running the review-fix-review loop until no blocking finding remains. Resolves what to review itself, applies the accepted fixes, and verifies them. Triggers on "review this code", "review and fix this", "run the review loop until it's clean".
 ---
 
 # Review Code
