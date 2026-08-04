@@ -48,9 +48,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 The orchestrator owns the workflow's progression: it decides when each phase is complete and drives every transition to the next. Subagents do work within a single phase and always hand back — a worker is never given an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
 
-The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Skills state that transition emphatically, and emphasis doesn't transfer ownership. Restate this at each call site too.
-
-What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run.
+The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Skills state that transition emphatically, and emphasis doesn't transfer ownership. Restate this at each call site too. What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run.
 
 ### Workflow selection
 
@@ -127,13 +125,9 @@ Every loop that checks work and fixes what came back stops on the same condition
 - **Five rounds in total.**
 - **Either non-clean condition above stops the loop and hands the user the decision**, with the findings still open and where the disagreement stands. Never report clean on the strength of fixes nothing has re-checked.
 
-**Each loop defines two things for itself**: what one of its rounds is, and what makes two findings the same one. Nothing else about stopping is a skill's to set, and no skill carries its own number for the two conditions above.
+**Each loop defines two things for itself**: what one of its rounds is, and what makes two findings the same one. Nothing else about stopping is a skill's to set, and no skill carries its own number for the two conditions above. A skill may add a **stricter** condition on top of *clean* where its own inputs warrant it. It may not loosen one.
 
-A skill may add a **stricter** condition on top of *clean* where its own inputs warrant it. It may not loosen one.
-
-**A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it. So "the skill I call is bounded" is never evidence that this loop terminates.
-
-A wait bounded by clock time — polling for an answer that has not arrived yet — is not one of these loops. It is a timeout, and the skill that waits owns it.
+**A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it. So "the skill I call is bounded" is never evidence that this loop terminates. A wait bounded by clock time — polling for an answer that has not arrived yet — is not one of these loops. It is a timeout, and the skill that waits owns it.
 
 ### Escalation
 
