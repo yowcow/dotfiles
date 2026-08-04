@@ -82,7 +82,7 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
    - **Design invalidated** — a Critical finding that undoes the agreed design → take **Escalation**.
-   - **Stalled** — a stopping condition in the guidelines' **Loop convergence** fired while a blocking finding that doesn't invalidate the design survives → stop and let the user decide, per that rule. A round is one `review-plan` pass on this plan and the fold-in that follows it; two findings are the same when they fault the same step for the same reason.
+   - **Stalled** — one of the guidelines' **Loop convergence** non-clean stopping conditions fired while a blocking finding that doesn't invalidate the design survives → stop and let the user decide, per that rule. A round is one `review-plan` pass on this plan and the fold-in that follows it; two findings are the same when they fault the same step for the same reason.
 
 Don't restate a quality bar for the plan here. `superpowers:writing-plans` owns what a good plan contains, and `review-plan`'s lenses find where a particular plan falls short.
 
@@ -117,7 +117,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
 5. Take the first of these that applies, in order — they are not independent, since a `review-code` that stopped short of clean still applied and verified its fixes first, so "changed something" and "the inner pass stopped" can both be true at once:
    - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only when it stopped short of clean, so check for it before the conditions below.
    - **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
-   - **This gate's own rounds hit one of those conditions** → stop and hand the decision over the same way. This is the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop, and it is judged before the next condition because a round that changed something is exactly the case these conditions exist to bound — judged after it, the gate would loop instead of stopping.
+   - **This gate's own rounds hit one of those non-clean conditions** → stop and hand the decision over the same way. This is the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop, and it is judged before the next condition because a round that changed something is exactly the case these conditions exist to bound — judged after it, the gate would loop instead of stopping.
    - **Step 2 or step 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
    - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit, and it is *clean* per **Loop convergence**.
 
