@@ -11,7 +11,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk. Keep trivial tasks lightweight unless the risk of being wrong is high.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
 - These guidelines own the orchestration invariants — who owns control flow, and the duty to declare an execution method. A skill owns its own procedure: how many workers, on which lenses, and what may run in parallel. A skill that declares no orchestration model runs inline in the main loop — you remain the orchestrator, and never assume it dispatches workers on your behalf.
-- A skill's frontmatter `description` carries when to use it — its purpose and trigger words — and stops short of mechanism: a runtime selects the skill from the `description` before it reads the body, so it has to stand on its own. Whether it dispatches workers, how many, and on what contract belong to **Orchestration model** alone; a `description` that repeats them is a second copy that drifts.
+- A skill's frontmatter `description` carries when to use it — its purpose and trigger words — and stops short of mechanism: a runtime selects the skill from the `description` before it reads the body, so it has to stand on its own. **Orchestration model** is mechanism's single source, and a `description` that repeats it is a second copy that drifts.
 
 ## Core Principles
 
