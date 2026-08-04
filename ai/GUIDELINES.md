@@ -118,7 +118,7 @@ Several flows loop over "check the work, fix what came back": the loop `plan-wor
 
 A skill may add a **stricter** condition on top of *clean* where its inputs warrant it — `pr-to-ready` waits for two consecutive LGTM-equivalent rounds, because external reviewers vary from round to round. It may not loosen one.
 
-**A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it — `implement-work`'s completion gate re-invoking `review-code` each round is exactly that. Every loop counts its own rounds, and "the skill I call is bounded" is never evidence that this loop terminates.
+**A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it — `implement-work`'s completion gate re-invoking `review-code` each round is exactly that. So "the skill I call is bounded" is never evidence that this loop terminates.
 
 A wait bounded by clock time — polling for a reviewer or a CI run to answer — is not one of these loops. It is a timeout, and the skill that waits owns it.
 
