@@ -48,7 +48,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 The orchestrator owns the workflow's progression: it decides when each phase is complete and drives every transition to the next. Subagents do work within a single phase and always hand back — a worker is never given an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
 
-The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Several skills state that transition emphatically — as a hard gate, as the single terminal node of their process diagram, as "the only skill you invoke next is X". Emphasis doesn't transfer ownership. Restate this at each call site too: a sub-skill's terminal instruction is read exactly where it is invoked, so a rule living only here loses to it.
+The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Skills state that transition emphatically, and emphasis doesn't transfer ownership. Restate this at each call site too.
 
 What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run.
 
@@ -82,9 +82,9 @@ Three flows, each of which can be entered on its own, and each with its own entr
 - **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Deliverable: a pushed branch of verified commits, with no PR on it.
 - **`pr-to-ready`** — entry: a branch of verified commits. Deliverable: a PR whose CI passes and whose review is clean, left at ready or draft per the user's up-front choice.
 
-A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification with `simplify-code` (no behavior-preserving cleanup is left), and review with `review-code` (no blocking findings remain). That triad is what `implement-work`'s completion gate applies — and what that gate adds depends on the execution method, since it only covers ground the method left uncovered. `implement-work` also holds an earlier gate, on the detailed plan, before any code is written. A flow that produces no code sets its own bar instead — `plan-work` is clean on its output contract plus a `review-plan` pass with no blocking finding — and each skill defines its own.
+A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes), simplification with `simplify-code` (no behavior-preserving cleanup is left), and review with `review-code` (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead, and each skill defines its own.
 
-Where a tracking issue backs the work, `plan-work` splits it into one sub-issue per item whatever the count, so `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the TODO list's order, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through both of its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
+Where a tracking issue backs the work, `plan-work` splits it into one sub-issue per item whatever the count, so `implement-work` → `pr-to-ready` is a **loop, not a single pass**: those two run once per sub-issue, in the TODO list's order, while `plan-work` ran once for the whole split. Each turn takes one sub-issue from `implement-work`'s own entry and through its gates — a later PR is never a continuation of the previous turn, and never inherits its verification.
 
 **Merging is a person's responsibility, and so is everything that depends on it.** `pr-to-ready` ends at ready or draft; the merge itself, the parent issue's closure, and cleaning up the branch and worktree all come after that and belong to a human. So a remaining sub-issue starts a separate session — **Stage boundaries**' hand-off rule, applied to the loop.
 
@@ -116,7 +116,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
 - You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
 - A handoff between Change flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
-- **A loop's intermediate state is orchestrator-facing.** Report each round — a `review-plan` or `review-code` pass, a round's findings — to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment: one comment per round is noise. Only the converged result reaches the canonical record above.
+- **A loop's intermediate state is orchestrator-facing.** Report each round to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment. Only the converged result reaches the canonical record above.
 
 ### Loop convergence
 
@@ -138,7 +138,7 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 ### Escalation
 
 - When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned rather than improvising an architectural decision — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike; in an Investigation it is Explore and its framing; and it is Workflow selection if the task's type changed.
-- **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces — either of `implement-work`'s gates, `pr-to-ready`'s CI or review loop, or a review sub-skill invoked inside one of those, which ends its pass and reports the finding separately rather than absorbing it. Such a finding can surface on any round, so check for it before either of **Loop convergence**'s two non-clean stopping conditions: their remedy is to hand the disagreement to the user, and that is the wrong remedy for a design that needs re-approving.
+- **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces. Such a finding can surface on any round, so check for it before either of **Loop convergence**'s two non-clean stopping conditions.
 - Report what's uncertain, the options and trade-offs, and your recommendation. What a flow hands over on this exit belongs to that skill's own **Escalation** section; the contract for receiving it is `plan-work`'s **Entry**.
 
 ## Subagents & worker safety
@@ -146,7 +146,7 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 - These rules apply after choosing a worker-based execution method; they do not decide whether one is appropriate.
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
-- **Size the fan-out to the target.** Delegation has to be worth its hand-off, so splitting a target finer than it warrants only pays hand-off cost — a diff, or one PR's plan, is a small object, and one worker taking the whole lens list is the usual shape. The target's size bounds the fan-out; which shape to use within that bound is the skill's own procedure, per **Skills & runtime adaptation**.
+- **Size the fan-out to the target.** Splitting a target finer than it warrants only pays hand-off cost. The target's size bounds the fan-out; which shape to use within that bound is the skill's own procedure, per **Skills & runtime adaptation**.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
 - The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
 
@@ -156,7 +156,7 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
 - When a branch will be pushed, choose its local name as the intended remote branch name and push it under that same name. Use a different remote name only with an explicit reason or user instruction.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
-- `pr-to-ready` owns the PR from creation onward: it opens it as a draft and then handles CI, Claude and Copilot review, replies, resolution, and re-review. Don't create the PR yourself — `implement-work` ends at a pushed branch, and whether `pr-to-ready` runs next is the caller's decision.
+- `pr-to-ready` owns the PR from creation onward. Don't create the PR yourself — `implement-work` ends at a pushed branch, and whether `pr-to-ready` runs next is the caller's decision.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences
