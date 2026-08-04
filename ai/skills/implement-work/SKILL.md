@@ -72,7 +72,7 @@ Test the first two by **count**: both come back as `{nodes, totalCount}`. Test t
 
 Whenever an instruction names a command, say how its result is tested — a command that doesn't vary its exit status will otherwise get branched on wrongly.
 
-If the verified baseline contradicts what the plan assumes — an existing failure, missing tooling — go back to **Plan gate** before starting tasks.
+If the verified baseline contradicts what the plan assumes — an existing failure, missing tooling — go back to **Plan gate** before starting tasks, or take **Escalation** where the guidelines' small-change lane skipped that gate.
 
 ## Plan gate
 
