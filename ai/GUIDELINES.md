@@ -66,7 +66,7 @@ Match a named deliverable against the skills' `description`s, and where two coul
 
 For a Change, enter at the flow the work has actually reached: no agreed design or PR-sized split yet → `plan-work`; one PR-sized task in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
 
-**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, since the design that flow would agree is already settled, and `implement-work`'s plan gate, since the task statement is already the plan; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
+**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, and `implement-work`'s plan gate, since the task statement is already the plan; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
 
 ### Understand
 
