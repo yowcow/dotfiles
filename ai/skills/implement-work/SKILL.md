@@ -76,6 +76,8 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 
 ## Plan gate
 
+The guidelines' small-change lane skips this gate outright; what follows is for every other task.
+
 1. Read the task. Where the design lives depends on the entry: a **sub-issue** carries its own body plus a link to the parent's design comment; an **issue that fits one PR** carries its own comment; a **request with no issue** is itself the input, together with whatever `plan-work` left in chat.
 2. Draft the detailed plan with `superpowers:writing-plans`. It goes in the workspace, git-ignored, and is never committed or published — it is scratch for the execution method, not a deliverable. **That skill ends by choosing an execution method and starting it; don't follow it there.** Stop once the plan has been through the skill's own self-review — not the moment the file lands, since that self-review is what makes the plan usable and nothing else performs it.
 3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted finding in yourself — except one that invalidates the agreed design, which is not folded in at all: stop and take the **Design invalidated** exit below. Then re-run `review-plan`, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
@@ -92,7 +94,7 @@ Choose the method and say which you chose and why — explicitly, never by drift
 
 - **Default** → `superpowers:subagent-driven-development`.
 - **A separate session picking the plan up later** → `superpowers:executing-plans`.
-- **Manual** is an exception that needs a reason. Try first to replan the work into tasks that can each be verified on their own; do it yourself only when it genuinely won't split, or when workers aren't available. Name the reason.
+- **Manual** is the fitting method on the guidelines' small-change lane, and an exception that needs a reason anywhere else. Off that lane, try first to replan the work into tasks that can each be verified on their own; do it yourself only when it genuinely won't split, or when workers aren't available. Name the reason.
 
 This choice is wiring, so it lives here. `superpowers:writing-plans` would otherwise offer it, but the plan gate stops that skill before it gets there.
 

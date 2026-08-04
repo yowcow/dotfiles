@@ -15,7 +15,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 - Invoke each through your runtime's mechanism: Claude Code's `Skill` tool (and slash commands), Codex's `SKILL.md`, Gemini's `activate_skill`, Grok CLI's skill discovery (and `/skill-name` slash commands). If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
 - Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
-- A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk. Keep trivial tasks lightweight unless the risk of being wrong is high.
+- A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
 - These guidelines own the orchestration invariants — who owns control flow, and the duty to declare an execution method. A skill owns its own procedure: how many workers, on which lenses, and what may run in parallel. A skill that declares no orchestration model runs inline in the main loop — you remain the orchestrator, and never assume it dispatches workers on your behalf.
 - A skill's frontmatter `description` carries when to use it — its purpose and trigger words — and stops short of mechanism: a runtime selects the skill from the `description` before it reads the body, so it has to stand on its own. The body's **Orchestration model** is mechanism's single source, and a `description` that repeats it is a second copy that drifts.
@@ -58,10 +58,15 @@ Classify the task first:
 
 - **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Three flows: `plan-work` → `implement-work` → `pr-to-ready`.
 - **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, an unexplained metric or cost change, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
+- **A named deliverable** — the request names what one skill produces: a review's findings, a simplified diff, a plan, a PR taken to ready. That naming settles the classification, even where running the skill produces a diff: run it directly, with no flow wrapped around it.
 
-Both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is neither — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
+Change and Investigation both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is none of these — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
+
+Match a named deliverable against the skills' `description`s, and where two could fit, let the deliverable named decide rather than the topic: "review this PR" is `review-code` on its diff, "take this PR to ready" is `pr-to-ready`. Where the run turns up work beyond that deliverable, report it and let the user pick the flow instead of widening the run.
 
 For a Change, enter at the flow the work has actually reached: no agreed design or PR-sized split yet → `plan-work`; one PR-sized task in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
+
+**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, since the design that flow would agree is already settled, and `implement-work`'s plan gate, since the task statement is already the plan; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
 
 ### Understand
 
