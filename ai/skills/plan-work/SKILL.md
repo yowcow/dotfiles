@@ -7,13 +7,15 @@ description: Use to turn an issue or a planning request into an agreed design an
 
 Use to turn an issue or a planning request into work `implement-work` can pick up one PR at a time — before any worktree exists and before any code is touched.
 
-One invocation runs the whole flow to convergence: research, design agreement, a numbered TODO list at PR granularity, and the loop around `review-plan` — up to three rounds — until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop, including its three-round cap. `review-plan` is one pass with no cap of its own — it reports judged findings and never edits what it reviewed — so folding findings in and re-running belongs here.
+One invocation runs the whole flow to convergence: research, design agreement, a numbered TODO list at PR granularity, and the loop around `review-plan` until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop and its cap — **Escalation** sets it. `review-plan` is one pass with no cap of its own — it reports judged findings and never edits what it reviewed — so folding findings in and re-running belongs here.
 
 **This flow stops short of per-task detail** — see **Output contract** for what that excludes. `implement-work` writes that detail one PR at a time, immediately before the work.
 
-## Roles
+## Orchestration model
 
-- This skill is the orchestrator: it drives research, invokes `superpowers:brainstorming` and `review-plan`, drafts the TODO list itself, judges `review-plan`'s findings, folds the accepted ones in, decides when the loop converges or must escalate, and publishes on convergence.
+**This skill dispatches no workers of its own.** It runs in the main loop as the orchestrator, and the only workers in this flow are the reviewers `review-plan` dispatches under its own declaration.
+
+- The orchestrator drives research, invokes `superpowers:brainstorming` and `review-plan`, drafts the TODO list itself, judges `review-plan`'s findings, folds the accepted ones in, decides when the loop converges or must escalate, and publishes on convergence.
 - `superpowers:brainstorming` and `review-plan` each own their own internal procedure — dispatch model, lenses, self-review, user-review gate. This skill supplies their inputs and acts on their outputs; it does not reach inside them, dispatch reviewers itself, or reimplement what they already do.
 - **Nothing else drafts the TODO list.** No sub-skill produces a PR-granularity breakdown, so don't go looking for one to delegate to — write it here, against **Output contract**.
 
@@ -21,7 +23,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 
 - Never touch the working tree: no worktree, no branch, no commits, no code edits. Establishing an isolated environment belongs to `implement-work`.
 - The canonical record is the tracking issue's comment — chat only when no issue tracks the work. A sub-skill that assumes it should write a file and commit it does neither here: redirect that output to the comment. When a sub-skill asks to self-review its output or to have the user confirm it, run those against the draft comment body (or the chat draft) — those steps are the point of calling it, so keep them.
-- Never post an individual `review-plan` pass to GitHub — a pass is orchestrator-facing, and one comment per round is noise. Only the converged result gets published, per **Publish**.
+- Never post an individual `review-plan` pass to GitHub, per the guidelines' **Stage boundaries**. Only the converged result gets published, per **Publish**.
 
 ## Entry
 
@@ -68,8 +70,8 @@ One sub-issue per item, whatever the count — and a sub-issue hangs off a track
 - **Parent issue comment**: the overall design, the split policy, and the list of sub-issues.
 - **Each sub-issue**: its purpose, its scope boundary, its completion criteria, its prerequisites, and the URL of the parent's design comment. Nothing more — no exact paths, no verification commands, no per-task plan. Writing a PR-sized plan into the child issue would put the detail back where it was and defeat the split.
 - **The prerequisite line is always present**, and it carries the reason: either the sub-issues that must merge first (`#12 のマージが先行して必要（同一ファイルを触るため）`), or `なし（並列に着手できる）` when the item is independent — that phrasing, parenthetical included. A bare `なし`, or no line at all, reads as an omission rather than as independence, and telling those two apart at a glance is the whole point.
-- **When the item has a prerequisite, also set the native relation**: `gh issue edit <child> --add-blocked-by <prerequisite>`. The body line is for the human and carries the why; the native relation is what `implement-work` reads, so it never has to parse prose. Neither replaces the other. Confirm it took — `gh issue view <child> --json blockedBy` should come back with `<prerequisite>` among `nodes` and a non-zero `totalCount`. A relation that didn't stick leaves the count at 0, which `implement-work` reads as "independent": the silent misclassification this whole line exists to prevent.
-- **An independent item gets no relation at all** — its `なし（並列に着手できる）` line is the entire record. Setting one anyway would leave `blockedBy.totalCount` non-zero, and `implement-work` would branch on that and treat the item as stacked.
+- **When the item has a prerequisite, also set the native relation**: `gh issue edit <child> --add-blocked-by <prerequisite>`. The body line is for the human and carries the why; the native relation is what `implement-work` reads, so it never has to parse prose. Neither replaces the other. Confirm it took — `gh issue view <child> --json blockedBy` should come back with `<prerequisite>` among `blockedBy.nodes` and a non-zero `blockedBy.totalCount`. `implement-work`'s **Base branch** branches on that count, so a relation that didn't stick misclassifies the item silently rather than failing visibly.
+- **An independent item gets no relation at all** — its `なし（並列に着手できる）` line is the entire record. Setting one anyway leaves `blockedBy.totalCount` non-zero, which is that same silent misclassification in the other direction.
 - Converge the `review-plan` loop against the whole, undivided TODO list before splitting.
 - A body too large for one comment is itself a signal to split further. The observed ceiling is 65536 characters — this is not in GitHub's REST reference; it's the API's own error text (`Body is too long (maximum is 65536 characters)`), so treat it as an observation, not a contract.
 
@@ -105,7 +107,7 @@ Publishing and splitting interleave, because each needs something from the other
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
 5. Dispatch `review-plan` with the target declared as the TODO list.
-6. Fold every accepted finding in yourself — `review-plan` never edits what it reviewed — except one that invalidates the agreed design, which is not folded in at all: stop and return to **Design agreement**, per **Escalation**. Then re-run `review-plan`, handing over the record of the previous pass (findings accepted and fixed, findings rejected with the reason) so it doesn't re-litigate what was already rejected.
+6. Fold every accepted finding in yourself — `review-plan` never edits what it reviewed — except one that invalidates the agreed design, which is not folded in at all: stop and take **Escalation**. Then re-run `review-plan`, handing over the record of the previous pass (findings accepted and fixed, findings rejected with the reason) so it doesn't re-litigate what was already rejected.
 7. Don't leave this pass until `review-plan` comes back with no blocking finding. Return to step 5 while one remains, subject to **Escalation**.
 8. Publish and split, per **Publish**.
 

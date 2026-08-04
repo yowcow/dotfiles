@@ -14,7 +14,7 @@ Root-cause an observed anomaly: a failure, an incident, or an unexplained change
 - Investigation is read-only: never mutate production state (restarts, config, data) without explicit user approval.
 - Preserve volatile evidence before anything else.
 
-## Orchestration (subagents)
+## Orchestration model
 
 When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only evidence-gathering; keep hypothesis selection, conclusions, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
 
