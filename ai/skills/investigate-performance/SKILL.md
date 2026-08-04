@@ -1,25 +1,22 @@
 ---
 name: investigate-performance
-description: Use when diagnosing an observed performance shortfall — a slow endpoint, job, or query, a latency/throughput regression, or CPU/memory growth — to root-cause it with measurements before any fix is proposed. Establishes a baseline and reproduction, profiles layer by layer (system → runtime → application → query/IO), keeps an evidence log, and produces a findings report. Triggers on "why is this slow", "latency spiked", "perf regression", "high CPU", "memory keeps growing", "find the bottleneck".
+description: Use when diagnosing an observed performance shortfall — a slow endpoint, job, or query, a latency/throughput regression, or CPU/memory growth — to root-cause it with measurements before any fix is proposed. Establishes a baseline and reproduction, profiles layer by layer (system → runtime → application → query/IO), and produces a findings report. Triggers on "why is this slow", "latency spiked", "perf regression", "high CPU", "memory keeps growing", "find the bottleneck".
 ---
 
 # Investigate Performance
 
-Root-cause an observed performance shortfall. The deliverable is a findings report, not a diff. The hypothesis discipline is `superpowers:systematic-debugging` — this skill does not restate it; it adds the performance-specific layers: what to measure, in what order, and how to report.
+Root-cause an observed performance shortfall. This skill adds the performance-specific layers: what to measure, in what order, and how to report.
 
 ## Rules
 
 - Measure before guessing: no fix proposal without a number behind it.
 - Change one variable per measurement.
 - Account for variance and warm-up before trusting a delta.
-- Record every measurement in the evidence log, including refuting ones.
 
 ## Orchestration model
 
-When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only measurements; keep hypothesis selection, the evidence log, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
-
 - Descending the layers (Step 3) stays sequential by design — which layer to drill into depends on the previous measurement.
-- Within a layer, independent measurements (CPU vs memory vs IO saturation; several common suspects) can each go to a worker; workers return numbers and observations only, never verdicts.
+- Within a layer, independent measurements (CPU vs memory vs IO saturation; several common suspects) can each go to a worker.
 
 ## Step 1: Frame and baseline
 
@@ -49,13 +46,6 @@ Descend the layers, measuring each one's share of the total cost; stop at the fi
 - retry storms; oversized payloads
 - cold cache in the measurement itself; measuring the wrong thing (client vs server time)
 
-## Evidence log
-
-Keep a running table — it is the backbone of the report:
-
-| hypothesis | measurement taken | result | verdict (confirmed/refuted/inconclusive) |
-|---|---|---|---|
-
 ## Exit criteria
 
 - A named bottleneck whose measured contribution explains the observed shortfall's magnitude — not just "found something slow"; or
@@ -69,5 +59,3 @@ Keep a running table — it is the backbone of the report:
 4. **Contributing factors**
 5. **Fix options** — expected gain and cost of each.
 6. **Open questions**
-
-Implementing any fix goes through the Change workflow in the shared AI guidelines — do not start editing from this skill.

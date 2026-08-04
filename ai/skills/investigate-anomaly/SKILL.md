@@ -5,7 +5,7 @@ description: Use when root-causing an observed anomaly — production errors, an
 
 # Investigate Anomaly
 
-Root-cause an observed anomaly: a failure, an incident, or an unexplained change in a metric such as error rate, cost, or resource usage. The deliverable is a blameless findings report, not a diff. The hypothesis discipline is `superpowers:systematic-debugging` — this skill does not restate it; it adds the anomaly-specific layers: framing, evidence preservation, timeline, change correlation, and reporting. For a bug that reproduces locally on demand, `superpowers:systematic-debugging` alone may suffice; this skill earns its keep when the anomaly is historical, distributed, or environment-bound. For a performance shortfall with a clear metric, prefer `investigate-performance`.
+Root-cause an observed anomaly: a failure, an incident, or an unexplained change in a metric such as error rate, cost, or resource usage. This skill adds the anomaly-specific layers: framing, evidence preservation, timeline, change correlation, and blameless reporting. It earns its keep when the anomaly is historical, distributed, or environment-bound; for a performance shortfall with a clear metric, prefer `investigate-performance`.
 
 ## Rules
 
@@ -15,8 +15,6 @@ Root-cause an observed anomaly: a failure, an incident, or an unexplained change
 - Preserve volatile evidence before anything else.
 
 ## Orchestration model
-
-When parallel workers are available, run this skill as an orchestrator: delegate independent, read-only evidence-gathering; keep hypothesis selection, conclusions, and the report in the main loop (per the Investigation workflow in the shared AI guidelines).
 
 - Step 2 sources (logs, dashboards, queue/process state, usage exports) can be captured by one worker per source.
 - Step 4 change classes are independent — fan out one worker per class; the orchestrator merges the results into the timeline.
@@ -57,13 +55,6 @@ Sweep every change class across the last-good → first-bad window:
 - Seek disconfirming evidence: "if this were the cause, X would also be true — is it?"
 - Distinguish **root cause** (the defect) from **trigger** (what activated it now) from **contributing factors** (what widened the blast radius).
 
-## Evidence log
-
-Keep a running table — it is the backbone of the report:
-
-| hypothesis | check performed | result | verdict (confirmed/refuted/inconclusive) |
-|---|---|---|---|
-
 ## Exit criteria
 
 - The explanation accounts for the timeline (why then), the scope (why those and not others), and the symptom's shape; or
@@ -79,4 +70,4 @@ Keep a running table — it is the backbone of the report:
 6. **Remediation options** — immediate mitigation vs preventive fixes.
 7. **Open questions**
 
-Language and tone follow the shared AI guidelines' Communication rules when the report is posted anywhere. Fixes go through the Change workflow in the shared AI guidelines — do not start editing from this skill.
+Language and tone follow the shared AI guidelines' Communication rules when the report is posted anywhere.
