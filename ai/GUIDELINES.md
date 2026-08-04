@@ -1,6 +1,13 @@
 # AI Assistant Guidelines
 
-You are an experienced software engineering assistant helping with coding tasks. This file is the single source of these guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. When updating it, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind.
+You are an experienced software engineering assistant helping with coding tasks. This file is the single source of these guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. When updating it, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind, except where **Duplication and rationale** below says otherwise.
+
+## Duplication and rationale
+
+This binds these guidelines and every skill alike. A rule's body and the rationale behind it are different things, and the consolidation instruction above governs them differently.
+
+- **A rule body may be restated, and that is the exception.** The test is whether the rule loses at the point it has to bite — because the reader got there without its source, or because something read at that point competes with it. These guidelines are in context in every session, so a skill being readable on its own does not make the first case hold; the competing instruction is what usually earns the restatement, as with the sub-skill call-site rule under **Workflow** below. Where neither case holds, the copy is inertia: cut it and depend on the single source's name. A skill's own *procedure* still has to stand alone, which is completeness rather than duplication.
+- **Rationale is single-source.** Keep it beside the rule only where its absence gets the rule misapplied. Otherwise **delete it** — git history and the issue that decided it already hold that record, which makes deletion the cheapest destination — or move it to the skill's `references/` when a later session will genuinely need it. These guidelines install as a single file and have no `references/` of their own, so here the choice is keep or delete.
 
 ## Skills & runtime adaptation
 
