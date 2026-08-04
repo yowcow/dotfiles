@@ -58,9 +58,7 @@ gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, no
 
 Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back rather than deriving it again. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings.
-
-The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
+Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
 git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
@@ -74,12 +72,10 @@ When a trailer was found, check whether its branch survives:
 git ls-remote --exit-code --heads origin <recorded>   # 0 = still there, 2 = gone
 ```
 
-Any other non-zero exit is a failure rather than absence: stop the run.
-
-Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-remote` 0 lands in **still on the remote**; scan 0 with `ls-remote` 2 lands in **branch is gone**:
+Any other non-zero exit is a failure rather than absence: stop the run. Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-remote` 0 lands in **still on the remote**; scan 0 with `ls-remote` 2 lands in **branch is gone**:
 
 - **No trailer** → omit `--base` and let GitHub choose.
-- **A trailer whose branch is still on the remote** → open the PR against that branch, so the diff carries only this task's work.
+- **A trailer whose branch is still on the remote** → open the PR against that branch.
 - **A trailer whose branch is gone** → omit `--base` as well.
 
 ```bash
@@ -87,28 +83,24 @@ gh pr create --draft --head <branch> --title <title> --body-file <file>         
 gh pr create --draft --head <branch> --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
 ```
 
-**`--head <branch>` is not optional here**, whichever line you take: `gh pr create` defaults the head to the *current* branch, and this step exists precisely because `<branch>` may not be the one checked out. Omitting it opens the PR from the wrong head — and the readback below, which filters on `<branch>`, then comes back empty and reports that creation didn't take, when in fact it did and left a stray draft PR behind.
+**`--head <branch>` is not optional here**, whichever line you take: `gh pr create` defaults the head to the *current* branch, and this step exists precisely because `<branch>` may not be the one checked out.
 
-That is the whole rule — don't build compensation on top of it. A stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch, because a closing keyword only fires on a merge into the default branch. Leave it open: the work genuinely isn't done until it reaches the default branch, so the open issue is accurate rather than a gap, and closing it is a person's call.
+A closing keyword only fires on a merge into the default branch, so a stacked PR's sub-issue stays open when that PR merges into its prerequisite's branch. Leave it open, and don't build compensation on top of the keyword.
 
-Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Getting this right at creation is cheaper than correcting it in 2-0.
+Title and body in **standard Japanese** (標準語, never dialect), following the repo's PR template when it has one. The body must carry the issue links Step 2-0 verifies — a closing keyword (`fixes`/`closes`/`resolves`) on the issue this work resolves, fully qualified as `owner/repo#NNN` when that issue lives in another repository. Draft, not ready: if a PR already exists but is not a draft, don't convert it — say so and continue, and record that it came in non-draft, since Step 3 has nothing to flip in that case.
 
-Draft, not ready: the whole point of the loop below is that CI and review run before the PR is presented as finished. If a PR already exists but is not a draft, don't convert it — say so and continue; someone chose that deliberately. Record that it came in non-draft: Step 3 has nothing to flip in that case.
-
-Whichever path you took — found or just created — record the PR number before moving on. `<branch>` is already bound at the top of this step, so this records `<PR>` only; every later step takes both as given, and on a first-time run nothing else has bound `<PR>` yet. As with the existence check above, name `<branch>` explicitly rather than relying on the current checkout:
+Whichever path you took — found or just created — record `<PR>` before moving on. As with the existence check above, name `<branch>` explicitly rather than relying on the current checkout:
 
 ```bash
 gh pr list --head <branch> --json number,isDraft --jq '.[] | "PR=\(.number) draft=\(.isDraft)"'
 ```
 
-**Print every match with `.[]` and count the lines — never `.[0]`.** `.[]` yields nothing for an empty list and one line per match, which is what makes the four outcomes below distinguishable.
-
-Read exit status and line count together, and stop on three of the four outcomes:
+**Print every match with `.[]` and count the lines — never `.[0]`.** Read exit status and line count together, and stop on three of the four outcomes:
 
 - **non-zero exit** → the query failed, and it prints nothing on stdout, so stop and report *that* — never misreport a failed lookup as a failed creation;
 - **exit 0, no lines** → no open PR on the branch, so creation did not take; stop and surface it rather than continuing with `<PR>` unbound;
 - **exit 0, exactly one line** → bind `<PR>` from it;
-- **exit 0, more than one line** → stop and ask which PR this run should drive. A branch takes one `<PR>` here, so this is a human call.
+- **exit 0, more than one line** → stop and ask which PR this run should drive.
 
 ### 0-2. Ask whether to mark ready on clean
 
