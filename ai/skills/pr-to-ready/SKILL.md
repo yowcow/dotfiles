@@ -179,7 +179,7 @@ The two prohibitions that follow are **not equally absolute**:
 1. Watch with `gh pr checks <PR> --watch`. If every check passes, go to Step 2.
 2. On any failure:
    - Identify the failed run: `gh run list --branch <branch> --limit 5`
-   - **Delegate diagnosis to a subagent**: give it `<run-id>` and have it run `gh run view <run-id> --log-failed`, apply **superpowers:systematic-debugging**, and return *only* the root cause + a concrete fix plan (not the raw logs). This keeps the log dump out of the orchestrator's context.
+   - **Delegate diagnosis to a subagent**: give it `<run-id>` and have it run `gh run view <run-id> --log-failed`, apply **superpowers:systematic-debugging**, and return *only* the root cause + a concrete fix plan (not the raw logs).
    - Apply the fix in the orchestrator, per *Making fixes* above.
    - commit → push (follow the git rules in the shared AI guidelines; never push directly to master/main)
    - Go back to 1.
@@ -188,7 +188,7 @@ The two prohibitions that follow are **not equally absolute**:
 
 ## Step 2: Request review, then loop on feedback
 
-Request review from **both Claude and Copilot** when both are available — they catch different things (Copilot catches bugs Claude misses). Skip whichever isn't available; if neither is, still run 2-0 (the PR body is worth verifying regardless of reviewers), then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
+Request review from **both Claude and Copilot** when both are available — they catch different things. Skip whichever isn't available; if neither is, still run 2-0, then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
 
 ### 2-0. Verify PR body issue links
 
@@ -198,7 +198,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
    ```bash
    gh pr view <PR> --json body,url
    ```
-   Take the repository from `url` (`https://github.com/<owner>/<repo>/pull/<PR>`) — a PR always lives in its base repository, which is the one a bare `#NNN` resolves in. There is no `baseRepository` field on `gh pr view`, and don't substitute `gh repo view`: it resolves the current directory's remote, which is the fork rather than the upstream when you're working from a fork clone.
+   Take the repository from `url` (`https://github.com/<owner>/<repo>/pull/<PR>`) — a PR always lives in its base repository, which is the one a bare `#NNN` resolves in. Don't substitute `gh repo view`: it resolves the current directory's remote, not the PR's repository.
 2. For every issue reference in the body, resolve which repository GitHub will link to — a bare `#NNN` to the PR's own, `owner/repo#NNN` to the explicit one — then confirm it is the intended issue:
    ```bash
    gh issue view <number> --repo <owner/repo> --json url,title,state
@@ -226,7 +226,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
     -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
   ```
-  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`** — the flag can exit 0 while adding nobody. Read back who is actually requested after each attempt, over REST (`gh pr view --json reviewRequests` omits bots and cannot answer this), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
+  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`.** Read back who is actually requested after each attempt, over REST (not `gh pr view --json reviewRequests`, which omits bots), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 
@@ -243,7 +243,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 ### 2-3. Evaluate and address feedback
 
-**Collect (subagent).** Delegate comment collection to a subagent: it gathers every reviewer comment left after your latest push (Claude + Copilot + any human), dedupes, and returns a structured list of actionable findings — each with `file:line`, the thread/comment id, and a one-line summary. This keeps the raw review text out of the orchestrator.
+**Collect (subagent).** Delegate comment collection to a subagent: it gathers every reviewer comment left after your latest push (Claude + Copilot + any human), dedupes, and returns a structured list of actionable findings — each with `file:line`, the thread/comment id, and a one-line summary.
 
 **Evaluate (fan-out subagents).** Launch **one subagent per finding in a single message** so they run concurrently — findings are independent. Each applies **superpowers:receiving-code-review** to its single finding and returns a verdict:
 - `accept` — change warranted, with the proposed fix
@@ -254,7 +254,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 1. For each `accept`, fix the code where a change is warranted, per *Making fixes* above.
 2. commit → push
-3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect** (a frank, casual tone is fine, but dialect has slipped in before). **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
+3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect.** **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
@@ -263,7 +263,6 @@ List unresolved threads / resolve one or more at once:
 <skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <PR>
 <skill-dir>/scripts/resolve-thread.sh <owner> <repo> <PR> <comment-id> [comment-id...]
 ```
-(GitHub's REST API has no resolve endpoint, so these wrap the GraphQL mutation.)
 
 ### Clean judgment & stop conditions
 
@@ -273,11 +272,11 @@ List unresolved threads / resolve one or more at once:
 
 Treat human reviewer comments the same way (see receiving-code-review).
 
-**Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping). A round here is one 2-1 → 2-2 → 2-3 cycle, and feedback is the same when a later round makes the same claim about the same place, whichever reviewer raises it.
+**Stop the loop when any of these holds** — read them **in order** and take the first that applies; otherwise keep looping. A round here is one 2-1 → 2-2 → 2-3 cycle, and feedback is the same when a later round makes the same claim about the same place, whichever reviewer raises it.
 
 1. Clean per above.
-2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4: such a finding can also satisfy 4, and 4's remedy — handing the disagreement to the user — is the wrong one for a design that needs re-approving.
-3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*.
+2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4.
+3. **LGTM-equivalent twice in a row** — two consecutive rounds with no must-fix feedback, even if each keeps surfacing *fresh optional nits*. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*.
 4. **A non-clean stopping condition in the guidelines' Loop convergence fires** — the same feedback surviving repeated rounds, or the total round ceiling → stop and hand the user the decision, per that rule.
 
 ## Step 3: Finish, per the ready-on-clean flag
