@@ -7,7 +7,7 @@ description: Use to take verified commits to a reviewed PR — this skill opens 
 
 Take a branch of verified commits to a reviewed PR: open the draft PR if it isn't there yet, then loop until CI passes and the review is clean, and finally either flip it to **ready** or leave it as **draft**, per the user's up-front choice.
 
-Precondition: a branch whose commits are already verified — in the Change workflow, `implement-work` hands one over after its completion gate comes back clean — and whose ref exists **on the remote**, since `gh pr create` opens a PR from a remote ref and an unpushed branch has nothing to open one from. An unpushed branch is not a blocker: push it (`git push -u origin <branch>`) rather than stopping. Step 0-1 performs this check once `<branch>` is bound. A PR need not exist yet; this skill owns creating it.
+Precondition: a branch whose commits are already verified — in the Change workflow, `implement-work` hands one over after its completion gate comes back clean — and whose ref exists **on the remote**. An unpushed branch is not a blocker: push it (`git push -u origin <branch>`) rather than stopping. Step 0-1 performs this check once `<branch>` is bound. A PR need not exist yet; this skill owns creating it.
 
 ## Step 0: Set up the run
 
@@ -25,18 +25,16 @@ Bind `<branch>` before anything below uses it.
 git branch --show-current      # empty output = detached HEAD
 ```
 
-Tested by **output emptiness, not exit status** — it exits 0 and prints nothing on a detached HEAD.
+Tested by **output emptiness, not exit status** — it exits 0 and prints nothing on a detached HEAD. **Two answers from the fallback are refusals, not results**: empty output, and the default branch. Stop and ask which branch to take to a PR rather than proceeding.
 
-**Two answers from the fallback are refusals, not results**: empty output, and the default branch. Stop and ask which branch to take to a PR rather than proceeding — a session handed no name may be sitting in the main checkout on the default branch, whose HEAD carries none of the task's work, and driving a PR from there would target someone else's branch, or open none at all.
-
-Recognizing the default branch takes a command of its own. Use the same three-rung ladder `review-code`'s **Scope** uses — `symbolic-ref`, then `gh repo view`, then ask — rather than inventing a second answer, with flags suited to this comparison, which needs a bare branch name:
+Recognizing the default branch takes a command of its own. Three rungs, in order — `symbolic-ref`, then `gh repo view`, then ask — with flags suited to this comparison, which needs a bare branch name:
 
 ```bash
 git symbolic-ref --short refs/remotes/origin/HEAD          # exit 0 prints origin/<default>
 gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
 ```
 
-`symbolic-ref` exits 0 and prints `origin/<default>` — strip the `origin/` prefix before comparing it with `<branch>`. A non-zero exit means the remote HEAD is not set in this checkout, **not** that there is no default branch: fall to `gh repo view`, and if that fails too, ask. **Never guess a branch name** — the same rule `review-code` states, for the same reason.
+`symbolic-ref` exits 0 and prints `origin/<default>` — strip the `origin/` prefix before comparing it with `<branch>`. A non-zero exit means the remote HEAD is not set in this checkout, **not** that there is no default branch: fall to `gh repo view`, and if that fails too, ask.
 
 Once `<branch>` is bound, check it exists on the remote:
 
@@ -44,17 +42,13 @@ Once `<branch>` is bound, check it exists on the remote:
 git ls-remote --exit-code --heads origin <branch>   # 0 = present, 2 = absent, 128 = failure
 ```
 
-Exit 0 → go on. Exit 128 is a network or auth failure — surface it and stop, rather than reading it as absence and pushing over something you could not see.
-
-Exit 2 has two remedies, because pushing needs something to push and a session may hold no local ref for a branch it was handed by name:
+Exit 0 → go on. Exit 128 is a network or auth failure — surface it and stop. Exit 2 has two remedies, depending on whether a local ref exists:
 
 ```bash
 git show-ref --verify --quiet refs/heads/<branch>   # 0 = local ref exists, 1 = it does not
 ```
 
-Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and reporting if the push itself exits non-zero. Exit 1 → **stop and report**: the branch named exists neither in this checkout nor on the remote, so there is nothing to push and nothing to open a PR from — inventing or creating a branch here would manufacture the very state the precondition asks the caller to bring.
-
-Every command below in this step takes `<branch>` as an argument, which is why it is bound here rather than at the end.
+Exit 0 → push it (`git push -u origin <branch>`) and go on, stopping and reporting if the push itself exits non-zero. Exit 1 → **stop and report**: the branch named exists neither in this checkout nor on the remote. Don't create one here.
 
 Ask whether a PR is already tied to the branch with `gh pr list --head <branch>`, **not `gh pr view <branch>`**. The reason for that choice, and for how every `gh` result below is tested, is in `<skill-dir>/references/gh-mechanics.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/pr-to-ready`, `~/.agents/skills/pr-to-ready`):
 
