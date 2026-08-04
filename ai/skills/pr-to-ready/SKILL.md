@@ -149,7 +149,7 @@ digraph pr_to_ready {
 
 ## Orchestration model
 
-Run this skill as an **orchestrator**. The main loop owns control flow, all decisions, and every state-mutating action; it delegates only self-contained, context-heavy work to subagents. The steps form a dependency chain (a loop), so they run **sequentially** — do not try to run different steps in parallel. Parallelism exists at exactly one point: evaluating independent review findings (2-3).
+Run this skill as an **orchestrator**. The main loop owns control flow, all decisions, and every state-mutating action; it delegates only self-contained, context-heavy work to subagents. The steps run **sequentially** — do not try to run different steps in parallel. Parallelism exists at exactly one point: evaluating independent review findings (2-3).
 
 **Keep in the main loop — never delegate:**
 - clean judgment & stop conditions (Step 2 stop conditions)
@@ -159,22 +159,20 @@ Run this skill as an **orchestrator**. The main loop owns control flow, all deci
 **Delegate to a subagent** (it returns findings only, keeping the orchestrator's context lean; each is detailed in its step):
 - **CI-failure diagnosis** (Step 1).
 - **Review-comment collection** (Step 2-3).
-- **Per-finding evaluation, fan-out** (Step 2-3) — one subagent per finding, launched together; genuine parallelism, since findings are independent.
+- **Per-finding evaluation, fan-out** (Step 2-3) — one subagent per finding, launched together; findings are independent.
 
 Subagents only investigate and propose (read-only, advisory, no worktree); the orchestrator applies the change, commits, and pushes.
 
 ## Making fixes
 
-Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement, verify, simplify with `simplify-code`, and review your own diff with `review-code`, applying `implement-work`'s implementation discipline. Running those two skills is not re-entering anything: what the prohibition below forbids is re-entering `implement-work`'s completion **gate** — the loop that decides when the work is done — not the individual skills that gate happens to call. This skill's own loop is the PR-phase completion path, so an ordinary fix finishes here rather than by re-entering the workflow that got here.
+Every fix in this loop — for a CI failure (Step 1) or accepted review feedback (Step 2-3) — is an ordinary code change: implement, verify, simplify with `simplify-code`, and review your own diff with `review-code`, applying `implement-work`'s implementation discipline. Running those two skills is not re-entering anything: the prohibition below forbids re-entering `implement-work`'s completion **gate**, not the individual skills that gate happens to call.
 
 **Before applying any fix, check that it is one.** A review finding — or a CI diagnosis — showing that the agreed design is itself what's wrong is not a fix waiting to be applied. Take **Escalation** instead.
 
-This check sits here rather than in either loop because both reach the exit through this section: Step 2's stop conditions carry the trigger, because a loop needs a condition to stop on, and Step 1 has no equivalent list at all.
+The two prohibitions that follow are **not equally absolute**:
 
-The two prohibitions that follow from that are **not equally absolute**, and collapsing them into one is how that exit gets lost:
-
-- **`implement-work`'s completion gate — never re-run it**, no exception. That gate ends by handing off to this skill, so re-entering it from here would loop.
-- **`plan-work` — don't go back for an ordinary fix.** A finding that invalidates the agreed design is the exception, because this loop cannot absorb it: per the check above, it is not a fix at all.
+- **`implement-work`'s completion gate — never re-run it**, no exception.
+- **`plan-work` — don't go back for an ordinary fix.** A finding that invalidates the agreed design is the exception: per the check above, it is not a fix at all.
 
 ## Step 1: Get CI clean
 
