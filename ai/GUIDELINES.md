@@ -43,7 +43,7 @@ The orchestrator owns the workflow's progression: it decides when each phase is 
 
 The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Several skills state that transition emphatically — as a hard gate, as the single terminal node of their process diagram, as "the only skill you invoke next is X". Emphasis doesn't transfer ownership. Restate this at each call site too: a sub-skill's terminal instruction is read exactly where it is invoked, so a rule living only here loses to it.
 
-What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run — what you called it for is a reviewed, confirmed artifact, not a raw file, and nobody else is assigned that cleanup.
+What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run — what you called it for is a reviewed, confirmed artifact, not a raw file, and nobody else is assigned that housekeeping.
 
 ### Workflow selection
 
