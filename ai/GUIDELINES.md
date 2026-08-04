@@ -107,7 +107,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 ### Loop convergence
 
-Several flows loop over "check the work, fix what came back": the loop `plan-work` and `implement-work` each run around `review-plan`, `review-code`'s review-fix loop, `simplify-code`'s propose-apply loop, `implement-work`'s completion gate, and both of `pr-to-ready`'s loops — CI and review. They all stop on the same conditions, and the numbers live only here:
+Several flows loop over "check the work, fix what came back": `plan-work`'s loop and `implement-work`'s plan gate, both run around `review-plan`; `review-code`'s review-fix loop; `simplify-code`'s propose-apply loop; `implement-work`'s completion gate; and both of `pr-to-ready`'s loops — CI and review. They all stop on the same conditions, and the numbers live only here:
 
 - **Clean** — a round comes back with nothing blocking: no blocking finding, or a failing check that now passes. This is the normal exit.
 - **The same finding survives three rounds** of fixes without resolving. This is the main condition — it catches "this isn't converging" directly, where a round count only stands in for it.
