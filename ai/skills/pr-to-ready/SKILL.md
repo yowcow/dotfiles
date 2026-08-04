@@ -289,37 +289,33 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   gh pr ready <PR>   # only when isDraft is true
   ```
   When it is already ready, skip `gh pr ready` and say so — there is nothing to flip.
-  **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. If the repo has branch protection requiring an approving review, un-drafting won't unblock merge; flag this to the user (a human approver may be needed).
+  **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. Where branch protection requires an approving review, un-drafting won't unblock merge: flag it to the user, since a human approver may be needed.
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
 
-Either way, **this run ends here.** The flow has two terminal states, **ready** and **draft** — the same two the flow diagram ends on — and reaching one is this flow's completion, not a pause partway through something longer. Everything that depends on the merge belongs to a person, because the merge itself does: what follows is what this run hands them.
+Either way, **this run ends here.** The flow's two terminal states are **ready** and **draft**, and reaching one is this flow's completion. Everything that depends on the merge belongs to a person: what follows is what this run hands them.
 
 ### What this run hands back
 
 Nothing that depends on the merge can be a step here. Report these as the run's closing hand-over, and act on none of them:
 
-- **The parent issue, whenever one backs this PR's sub-issue.** `plan-work` plans a tracked change as a parent issue with one sub-issue per PR, and GitHub does **not** close a parent when its children close — so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
+- **The parent issue, whenever one backs this PR's sub-issue.** GitHub does **not** close a parent when its children close, so a decision about the parent comes due on that merge, not before. Hand over the material for it rather than the decision:
 
   ```bash
   gh api repos/{owner}/{repo}/issues/<parent>/sub_issues --jq '.[] | {number, state}'
   ```
 
-  Read that as of now and say so: this PR's own sub-issue still shows open, because the merge that closes it hasn't happened yet. If it is the last one open, the parent becomes closable on that merge — report that, and leave it. Closing an issue is a person's call, whoever is counting.
-- **The worktree and the branch.** Both outlive this run and nothing here removes them: the PR is open, so the branch is still needed, and PR feedback gets fixed in that worktree. Name both, so neither becomes litter nobody can identify later.
-- **The next sub-issue, when children remain open.** Say which one is next. It is a fresh run of `implement-work` over `plan-work`'s output — from that flow's own entry, not a continuation of this one.
+  Read that as of now and say so: this PR's own sub-issue still shows open, because the merge that closes it hasn't happened yet. If it is the last one open, the parent becomes closable on that merge — report that, and leave it.
+- **The worktree and the branch.** Both outlive this run and nothing here removes them. Name both, so neither becomes litter nobody can identify later.
+- **The next sub-issue, when children remain open.** Say which one is next.
 
-**Don't start any of it.** Reaching **ready** or **draft** ended the run, and carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR. Even then **this run still ends here**: what such an instruction licenses is *starting* the next run — from its own flow's entry and through every one of its gates — not extending this one past its terminus. Follow it, because the user has said what happens next rather than leaving it to be inferred.
+**Don't start any of it.** Carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR: follow it, but **this run still ends here** — what it licenses is *starting* the next run, from its own flow's entry and through every one of its gates, not extending this one past its terminus.
 
 ## Escalation
 
-The rule is the shared AI guidelines' **Escalation**, and the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over.
-
-Hand `plan-work`'s entry for a re-approval the three things it asks for:
+The rule is the shared AI guidelines' **Escalation**, and the PR phase is not an exception to it. The loop's stop conditions carry the trigger; this section says what leaving with it hands over. Hand `plan-work`'s entry for a re-approval the three things it asks for:
 
 - **the finding** — what it showed, and which part of the agreed design it undoes;
 - **the branch name**;
 - **the branch's state** — whether it is pushed, and the `<PR>` this run was driving.
 
-Add where the review had got to: the round the finding surfaced on, and the findings already fixed and pushed. Re-approval is judged against the branch as it now stands, not as it was handed over.
-
-Leave the PR as it is. Don't close it, and don't change its draft state: whether that branch is reused or discarded is `plan-work`'s call, and closing a PR is a person's. Report that it is still open and that its draft state is unchanged, so neither is mistaken for done.
+Add where the review had got to: the round the finding surfaced on, and the findings already fixed and pushed. Leave the PR as it is: don't close it, and don't change its draft state. Report that it is still open and that its draft state is unchanged.
