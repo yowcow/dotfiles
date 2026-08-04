@@ -105,10 +105,27 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 - A handoff between Change flows may land in a different session, which has no chat to fall back on. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up (the published design and TODO list, the sub-issue for one PR, the pushed branch of verified commits, the PR), so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not one of these: it is scratch inside `implement-work`, rewritten from the task rather than carried across — detail belongs where it gets used, and writing it before the design has settled is what made planning expensive.
 - **A loop's intermediate state is orchestrator-facing.** Report each round — a `review-plan` or `review-code` pass, a round's findings — to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment: one comment per round is noise. Only the converged result reaches the canonical record above.
 
+### Loop convergence
+
+Several flows loop over "check the work, fix what came back": the loop `plan-work` and `implement-work` each run around `review-plan`, `review-code`'s review-fix loop, `simplify-code`'s propose-apply loop, `implement-work`'s completion gate, and both of `pr-to-ready`'s loops — CI and review. They all stop on the same conditions, and the numbers live only here:
+
+- **Clean** — a round comes back with nothing blocking: no blocking finding, or a failing check that now passes. This is the normal exit.
+- **The same finding survives three rounds** of fixes without resolving. This is the main condition — it catches "this isn't converging" directly, where a round count only stands in for it.
+- **Five rounds in total** — the backstop for churn, where every round changes something and every round's findings are new, so the condition above never fires. Two sub-skills each declaring their own convergence while ping-ponging over the same code is the shape to expect.
+- Either of those two **stops the loop and hands the user the decision**, with the findings still open and where the disagreement stands. Never report clean on the strength of fixes nothing has re-checked.
+
+**Each loop defines two things for itself**: what one of its rounds is, and what makes two findings the same one. Nothing else about stopping is a skill's to set, and no skill carries its own number for the two conditions above.
+
+A skill may add a **stricter** condition on top of *clean* where its inputs warrant it — `pr-to-ready` waits for two consecutive LGTM-equivalent rounds, because external reviewers vary from round to round. It may not loosen one.
+
+**A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it — `implement-work`'s completion gate re-invoking `review-code` each round is exactly that. Every loop counts its own rounds, and "the skill I call is bounded" is never evidence that this loop terminates.
+
+A wait bounded by clock time — polling for a reviewer or a CI run to answer — is not one of these loops. It is a timeout, and the skill that waits owns it.
+
 ### Escalation
 
 - When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned rather than improvising an architectural decision — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing; and it is Workflow selection if the task's type changed.
-- **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces — either of `implement-work`'s gates, `pr-to-ready`'s CI or review loop, or a review sub-skill invoked inside one of those, which ends its pass and reports the finding separately rather than absorbing it. Such a finding can surface on any round, so check for it before any round cap: a cap's remedy is to hand the disagreement to the user, and that is the wrong remedy for a design that needs re-approving.
+- **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces — either of `implement-work`'s gates, `pr-to-ready`'s CI or review loop, or a review sub-skill invoked inside one of those, which ends its pass and reports the finding separately rather than absorbing it. Such a finding can surface on any round, so check for it before either of **Loop convergence**'s two stopping conditions: their remedy is to hand the disagreement to the user, and that is the wrong remedy for a design that needs re-approving.
 - Report what's uncertain, the options and trade-offs, and your recommendation. What a flow hands over on this exit belongs to that skill's own **Escalation** section, since it differs per flow; the contract for receiving it is `plan-work`'s **Entry**.
 
 ## Subagents & worker safety
