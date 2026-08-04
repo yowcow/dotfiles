@@ -7,7 +7,7 @@ You are an experienced software engineering assistant helping with coding tasks.
 This binds these guidelines and every skill alike. A rule's body and the rationale behind it are different things, and the consolidation instruction above governs them differently.
 
 - **A rule body may be restated, and that is the exception.** The test is whether the rule loses at the point it has to bite — because the reader got there without its source, or because something read at that point competes with it. These guidelines are in context in every session, so a skill being readable on its own does not make the first case hold; the competing instruction is what usually earns the restatement, as with the sub-skill call-site rule under **Workflow** below. Where neither case holds, the copy is inertia: cut it and depend on the single source's name. A skill's own *procedure* still has to stand alone, which is completeness rather than duplication.
-- **Rationale is single-source.** Keep it beside the rule only where its absence gets the rule misapplied. Otherwise **delete it** — git history and the issue that decided it already hold that record, which makes deletion the cheapest destination — or move it to the skill's `references/` when a later session will genuinely need it. These guidelines install as a single file and have no `references/` of their own, so here the choice is keep or delete.
+- **Rationale is single-source.** Keep it beside the rule only where its absence gets the rule misapplied. Otherwise **delete it**, or move it to the skill's `references/` when a later session will genuinely need it. These guidelines have no `references/` of their own, so here the choice is keep or delete.
 
 ## Skills & runtime adaptation
 
@@ -18,7 +18,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
 - These guidelines own the orchestration invariants — who owns control flow, and the duty to declare an execution method. A skill owns its own procedure: how many workers, on which lenses, and what may run in parallel. A skill that declares no orchestration model runs inline in the main loop — you remain the orchestrator, and never assume it dispatches workers on your behalf.
-- A skill's frontmatter `description` carries when to use it — its purpose and trigger words — and stops short of mechanism: a runtime selects the skill from the `description` before it reads the body, so it has to stand on its own. The body's **Orchestration model** is mechanism's single source, and a `description` that repeats it is a second copy that drifts.
+- A skill's frontmatter `description` carries when to use it — its purpose and trigger words — and stops short of mechanism: it has to stand on its own. The body's **Orchestration model** is mechanism's single source.
 
 ## Core Principles
 
@@ -50,7 +50,7 @@ The orchestrator owns the workflow's progression: it decides when each phase is 
 
 The same holds for a skill you invoke: **when a sub-skill's own procedure ends by moving on to the next skill, don't follow it.** What runs next is the caller's decision, not the sub-skill's. Several skills state that transition emphatically — as a hard gate, as the single terminal node of their process diagram, as "the only skill you invoke next is X". Emphasis doesn't transfer ownership. Restate this at each call site too: a sub-skill's terminal instruction is read exactly where it is invoked, so a rule living only here loses to it.
 
-What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run — what you called it for is a reviewed, confirmed artifact, not a raw file, and nobody else is assigned that housekeeping.
+What this cuts is the **transition, and only the transition**. A sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run.
 
 ### Workflow selection
 
@@ -66,7 +66,7 @@ Match a named deliverable against the skills' `description`s, and where two coul
 
 For a Change, enter at the flow the work has actually reached: no agreed design or PR-sized split yet → `plan-work`; one PR-sized task in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
 
-**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, and `implement-work`'s plan gate, since the task statement is already the plan; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
+**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, and `implement-work`'s plan gate; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
 
 ### Understand
 
@@ -115,7 +115,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
 - You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
-- A handoff between Change flows may land in a different session, which has no chat to fall back on. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up (the published design and TODO list, the sub-issue for one PR, the pushed branch of verified commits, the PR), so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not one of these: it is scratch inside `implement-work`, rewritten from the task rather than carried across — detail belongs where it gets used, and writing it before the design has settled is what made planning expensive.
+- A handoff between Change flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
 - **A loop's intermediate state is orchestrator-facing.** Report each round — a `review-plan` or `review-code` pass, a round's findings — to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment: one comment per round is noise. Only the converged result reaches the canonical record above.
 
 ### Loop convergence
@@ -123,13 +123,13 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 Every loop that checks work and fixes what came back stops on the same conditions, and the numbers live only here. The rule binds a skill's own check-fix loop and the loop that re-invokes it alike:
 
 - **Clean** — a round comes back with nothing blocking: no blocking finding, or a failing check that now passes. This is the normal exit.
-- **The same finding survives three rounds** of fixes without resolving. This is the main condition — it catches "this isn't converging" directly, where a round count only stands in for it.
-- **Five rounds in total** — the backstop for churn, where every round changes something and every round's findings are new, so the condition above never fires.
+- **The same finding survives three rounds** of fixes without resolving.
+- **Five rounds in total.**
 - **Either non-clean condition above stops the loop and hands the user the decision**, with the findings still open and where the disagreement stands. Never report clean on the strength of fixes nothing has re-checked.
 
 **Each loop defines two things for itself**: what one of its rounds is, and what makes two findings the same one. Nothing else about stopping is a skill's to set, and no skill carries its own number for the two conditions above.
 
-A skill may add a **stricter** condition on top of *clean* where its own inputs warrant it — a checker whose output varies from round to round makes one quiet round weaker evidence than it is elsewhere. It may not loosen one.
+A skill may add a **stricter** condition on top of *clean* where its own inputs warrant it. It may not loosen one.
 
 **A bounded inner pass does not bound the loop around it.** These conditions are counted per loop, so an outer loop hands the inner skill a fresh budget every time it invokes it. So "the skill I call is bounded" is never evidence that this loop terminates.
 
@@ -137,9 +137,9 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 
 ### Escalation
 
-- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned rather than improvising an architectural decision — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike, since planning is a separate flow rather than a phase you can rewind to in place; in an Investigation it is Explore and its framing; and it is Workflow selection if the task's type changed.
+- When uncertainty is high, requirements conflict, multiple viable designs exist, or new facts invalidate the current plan, stop and go back to where the framing is owned rather than improvising an architectural decision — in a Change that is `plan-work`, from `implement-work` or `pr-to-ready` alike; in an Investigation it is Explore and its framing; and it is Workflow selection if the task's type changed.
 - **A Critical finding that invalidates the agreed design is never fixed in place, and never worked around.** It goes back to `plan-work` for re-approval wherever it surfaces — either of `implement-work`'s gates, `pr-to-ready`'s CI or review loop, or a review sub-skill invoked inside one of those, which ends its pass and reports the finding separately rather than absorbing it. Such a finding can surface on any round, so check for it before either of **Loop convergence**'s two non-clean stopping conditions: their remedy is to hand the disagreement to the user, and that is the wrong remedy for a design that needs re-approving.
-- Report what's uncertain, the options and trade-offs, and your recommendation. What a flow hands over on this exit belongs to that skill's own **Escalation** section, since it differs per flow; the contract for receiving it is `plan-work`'s **Entry**.
+- Report what's uncertain, the options and trade-offs, and your recommendation. What a flow hands over on this exit belongs to that skill's own **Escalation** section; the contract for receiving it is `plan-work`'s **Entry**.
 
 ## Subagents & worker safety
 
@@ -148,7 +148,7 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 - A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - **Size the fan-out to the target.** Delegation has to be worth its hand-off, so splitting a target finer than it warrants only pays hand-off cost — a diff, or one PR's plan, is a small object, and one worker taking the whole lens list is the usual shape. The target's size bounds the fan-out; which shape to use within that bound is the skill's own procedure, per **Skills & runtime adaptation**.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
-- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance, so it doesn't rediscover context on its own.
+- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
 
 ## Git & PR workflow
 
@@ -164,7 +164,7 @@ A wait bounded by clock time — polling for an answer that has not arrived yet 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
 - Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly (e.g. `build/packages/<pkg>`, `node_modules/<pkg>`) instead of widening the scope. To find a binary use `command -v`, not a filesystem search.
 - **Where you can invoke a skill, its content comes only from invoking it — never from searching the filesystem for its file.** Where a caller forbids invoking a named skill, you don't need its content at all: what that caller wrote about it is the contract, so depend on the name and nothing deeper. Where the runtime lacks the skill, **Skills & runtime adaptation** already settles what to do, and nothing here relaxes it.
-- **When you do have to locate an installed file** — to carry out that manual workflow, or to check what an install linked — the search stops at the agent's own config directory (`~/.claude`, `~/.codex`, and the like). Outside that ceiling the search becomes a whole-filesystem walk that hangs for minutes and comes back with nothing; and a plugin's copy is version-pinned, so even a hit is a path not worth depending on. This is the narrow exception, not the general way to learn what a skill does — that is the bullet above.
+- **When you do have to locate an installed file** — to carry out that manual workflow, or to check what an install linked — the search stops at the agent's own config directory (`~/.claude`, `~/.codex`, and the like); a plugin's copy there is version-pinned, so don't depend on that path. This is the narrow exception, not the general way to learn what a skill does — that is the bullet above.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Technical preferences
