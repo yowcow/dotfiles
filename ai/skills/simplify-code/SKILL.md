@@ -69,8 +69,14 @@ Report "no proposals" explicitly rather than inventing one.
 2. Dispatch proposers against the diff, sized per **Dispatch**.
 3. Evaluate every proposal with `superpowers:receiving-code-review`: reject — with a stated reason — anything that changes behavior, that needs a measurement to justify it (see **Don't over-simplify**), that reaches outside the diff (see **Scope**), or that only reflects proposer preference.
 4. Apply the accepted proposals yourself, then run the checks the project defines — in its README, Makefile targets, package scripts, or CI config — and read their actual output.
-5. Loop back to step 2 with a fresh proposer while actionable simplification remains.
+5. Loop back to step 2 with a fresh proposer while actionable simplification remains, subject to **Convergence**.
 6. Report per **Report**.
+
+## Convergence
+
+This pass's loop stops per the guidelines' **Loop convergence**. A round here is one dispatch → judge → apply → verify cycle, and a proposal is the same finding when it targets the same location with the same change, however the wording moved — including one re-raised after it was rejected.
+
+**The bound on this pass is not a bound on re-entry.** Re-entry belongs to the caller, as the top of this file says, so the caller's loop counts its own rounds under that same rule.
 
 ## Report
 

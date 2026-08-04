@@ -7,7 +7,7 @@ description: Use to turn an issue or a planning request into an agreed design an
 
 Use to turn an issue or a planning request into work `implement-work` can pick up one PR at a time — before any worktree exists and before any code is touched.
 
-One invocation runs the whole flow to convergence: research, design agreement, a numbered TODO list at PR granularity, and the loop around `review-plan` until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop and its cap — **Escalation** sets it. `review-plan` is one pass with no cap of its own — it reports judged findings and never edits what it reviewed — so folding findings in and re-running belongs here.
+One invocation runs the whole flow to convergence: research, design agreement, a numbered TODO list at PR granularity, and the loop around `review-plan` until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop; **Escalation** says where its stopping conditions live. `review-plan` is one pass and owns no loop of its own — it reports judged findings and never edits what it reviewed — so folding findings in and re-running belongs here.
 
 **This flow stops short of per-task detail** — see **Output contract** for what that excludes. `implement-work` writes that detail one PR at a time, immediately before the work.
 
@@ -115,7 +115,7 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Escalation
 
-- Three rounds at most. If the third round's `review-plan` pass still returns a blocking finding, stop instead of dispatching a fourth: report the open findings and the disagreement, and let the user decide. A TODO list that won't converge in three rounds usually has a design problem, not a list problem.
+- This loop's stopping conditions are the guidelines' **Loop convergence**. One round is one `review-plan` pass plus the fold-in that follows it, and a finding repeats when a later pass makes the same objection to the same item, whatever words it arrives in. A TODO list that won't converge usually has a design problem, not a list problem.
 - A Critical finding that invalidates the agreed design does not get fixed in the loop. Stop and return to **Design agreement** for approval, per the guidelines' **Escalation**.
 
 ## Report
