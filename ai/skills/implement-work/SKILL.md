@@ -82,7 +82,7 @@ If the verified baseline contradicts what the plan assumes — an existing failu
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
    - **Design invalidated** — a Critical finding that undoes the agreed design → take **Escalation**.
-   - **Capped** — three rounds run and a blocking finding survives that doesn't invalidate the design → stop, report the open findings and the disagreement, and let the user decide. Don't start a fourth round.
+   - **Stalled** — one of the guidelines' **Loop convergence** non-clean stopping conditions fired while a blocking finding that doesn't invalidate the design survives → stop and let the user decide, per that rule. A round is one `review-plan` pass on this plan and the fold-in that follows it; two findings are the same when they fault the same step for the same reason.
 
 Don't restate a quality bar for the plan here. `superpowers:writing-plans` owns what a good plan contains, and `review-plan`'s lenses find where a particular plan falls short.
 
@@ -104,7 +104,7 @@ Two judgements stay here: delegation only pays when a task is big enough to cove
 
 ## Completion gate
 
-Add only what the execution method left undone. Loop until nothing changes, then hand off:
+Add only what the execution method left undone. A round is one pass of steps 1-4, and this loop stops per the guidelines' **Loop convergence** — step 5 orders those conditions against this gate's own. A finding is the same one when step 2 or step 3 brings back the same claim about the same location a previous round already tried to resolve.
 
 1. **Verify** — `superpowers:verification-before-completion`.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
@@ -114,11 +114,12 @@ Add only what the execution method left undone. Loop until nothing changes, then
    - **Confirm it worked** — `git status --porcelain`, tested by **output emptiness, not exit status**, since it exits 0 whether or not anything is pending. **Don't leave this step while the tree is dirty**; that is precisely what would break the guarantee in the last bullet.
    - **Account for anything still left, rather than sweeping it in** — work this task produced belongs in the commit; a byproduct of step 1's checks belongs in `.gitignore`, and the byproduct itself is never committed; anything you cannot account for stops the gate and goes to the user, since committing an edit that isn't yours is worse than halting.
    - **Why this precedes the exits** — both of them hand over the branch rather than the worktree. **Hand off** pushes the branch, and a push carries *commits*, so an uncommitted edit never reaches the remote — and it goes down with the worktree whenever that is removed. **Escalation** hands `plan-work` a branch name, and re-approval is judged against what that branch contains, so an edit left uncommitted is simply absent from what the next flow reads.
-5. Take the first of these that applies, in order — they are not independent, since a capped `review-code` still applies and verifies its fixes before stopping, so "changed something" and "hit its cap" can both be true at once:
-   - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only at its cap, so check for it before the cap condition.
-   - **`review-code` stopped at its own cap with blocking findings open** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
+5. Take the first of these that applies, in order — they are not independent, since a `review-code` that stopped short of clean still applied and verified its fixes first, so "changed something" and "the inner pass stopped" can both be true at once:
+   - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only when it stopped short of clean, so check for it before the conditions below.
+   - **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
+   - **This gate's own rounds hit one of those non-clean conditions** → stop and hand the decision over the same way. This is the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop, and it is judged before the next condition because a round that changed something is exactly the case these conditions exist to bound — judged after it, the gate would loop instead of stopping.
    - **Step 2 or step 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
-   - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit.
+   - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit, and it is *clean* per **Loop convergence**.
 
 ## Hand off
 
@@ -145,6 +146,7 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 - the base branch the task was created from, and which of **Base branch**'s outcomes chose it
 - the `review-plan` rounds run on the detailed plan, and the final verdict
 - whether the completion gate ran `review-code`, and on what basis if it didn't
+- the completion gate's rounds, and the condition it exited on
 - the concrete checks run, and any that couldn't be
 - what changed and why
 - the pushed branch, and `pr-to-ready` named as the next entry

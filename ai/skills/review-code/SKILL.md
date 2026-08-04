@@ -81,7 +81,7 @@ A round is one review → judge → fix → verify cycle. The pass is clean when
 
 ## Escalation
 
-- Five rounds at most. If the fifth round's review still produces blocking findings, apply and verify them as usual, then stop instead of starting a sixth review: report those fixes as applied but not re-reviewed, along with the disagreement, and let the user decide. Never report clean on the strength of fixes no review has seen.
+- This loop stops per the guidelines' **Loop convergence**. **Pass** says what a round is here, and two findings are the same when a later round faults the same location on the same grounds, however the wording moved — including a claim restated after a fix meant to resolve it. A round that trips a stopping condition still applies and verifies its accepted findings before the loop ends; it just doesn't start another review.
 - A Critical finding that invalidates the approved design is not fixed in this loop. Per the guidelines' **Escalation** it goes back to `plan-work` for re-approval, and this skill is no exception. What this pass hands over is the finding itself, reported separately from the ordinary verdict so the caller routes it rather than reading the pass as merely unfinished.
 
 ## Report

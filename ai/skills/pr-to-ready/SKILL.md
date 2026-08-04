@@ -200,7 +200,7 @@ The two prohibitions that follow from that are **not equally absolute**, and col
    - commit → push (follow the git rules in the shared AI guidelines; never push directly to master/main)
    - Go back to 1.
 
-**Clean = every check in `gh pr checks` passes.** If even one is fail/pending, keep looping.
+**Clean = every check in `gh pr checks` passes.** If even one is fail/pending, keep looping — subject to the guidelines' **Loop convergence**, whose other conditions bound the fixing. A round here is one watch → diagnose → fix → push cycle, and a failure is the same one when the same check fails for the same reason a previous round's fix targeted.
 
 ## Step 2: Request review, then loop on feedback
 
@@ -289,12 +289,12 @@ List unresolved threads / resolve one or more at once:
 
 Treat human reviewer comments the same way (see receiving-code-review).
 
-**Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping).
+**Stop the loop when any of these holds** — read them **in order** and take the first that applies, not as an unordered set: two can hold at once, and then only one of their remedies is right (otherwise keep looping). A round here is one 2-1 → 2-2 → 2-3 cycle, and feedback is the same when a later round makes the same claim about the same place, whichever reviewer raises it.
 
 1. Clean per above.
 2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4: such a finding can also satisfy 4, and 4's remedy — handing the disagreement to the user — is the wrong one for a design that needs re-approving.
-3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready.
-4. **Same feedback survives 3+ rounds** of fixes without resolving → stop and ask the user.
+3. **LGTM-equivalent twice in a row** — even if each round keeps surfacing *fresh optional nits*, once you've gotten two consecutive rounds with no must-fix feedback, stop; endless optional-nit chasing is not required for ready. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*.
+4. **A non-clean stopping condition in the guidelines' Loop convergence fires** — the same feedback surviving repeated rounds, or the total round ceiling → stop and hand the user the decision, per that rule.
 
 ## Step 3: Finish, per the ready-on-clean flag
 
