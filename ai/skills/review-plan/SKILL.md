@@ -31,7 +31,7 @@ One invocation reviews exactly one target, and **the caller declares which**. Th
   - *Skip* **Assumptions** and **Executability**, and say so in the report: there is no task-level detail yet for either to bite on.
 - **Implementation plan** — from `implement-work`: the detailed plan for one PR. Lenses: **Completeness, Consistency, Reality, Assumptions, Executability, Risk**.
   - *Skip* **Necessity**, and say so in the report: whether the work is warranted was settled when the TODO list was reviewed. If this plan reaches past the scope boundary of the item it implements, that is not Necessity reopening — raise it under Consistency, against that item's stated completion criteria.
-  - Don't redo the self-review the plan-writing skill already performs on its own output — spec coverage, placeholder scanning, name and type consistency. Completeness and Consistency here cover what that self-review cannot see: error paths, migration and rollback, and ordering between tasks.
+  - Completeness and Consistency here also cover error paths, migration and rollback, and ordering between tasks.
 
 ## Lenses
 
