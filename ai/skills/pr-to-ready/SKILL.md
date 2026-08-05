@@ -224,7 +224,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   ```bash
   <skill-dir>/scripts/request-copilot-review.sh <owner> <repo> <PR>   # 0 = requested; 3 = unavailable here, so skip Copilot; 4 = the reviewers couldn't be read — stop; other = a gh call failed — stop
   ```
-  **Only exit 3 licenses treating Copilot as unavailable.** Failing to *read* who is requested is not the same as nobody being requested, which is why 4 stops the run instead of reporting unavailable. Why the request has to be asked twice and read back rather than judged on a status: `<skill-dir>/references/gh-mechanics.md`.
+  Why the request has to be asked twice and read back rather than judged on a status — and why a readback that fails stops the run instead of reporting Copilot unavailable — is in `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 

@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 # Request a Copilot review on a PR and confirm the request actually took.
 #
-# This exists as a command because the request cannot be judged from a single
-# call's exit status. The reviewer flag and the requested_reviewers REST
-# endpoint ask for the same thing two ways; they are alternatives rather than a
-# sequence, the flag can exit 0 while adding nobody, and so neither may be
-# chained with || or trusted on its status. The only test that works is reading
-# back who is actually requested — over REST, since `gh pr view --json
-# reviewRequests` omits bots. Why each of those is the only test that works:
-# ../references/gh-mechanics.md.
+# This exists as a command because the request cannot be judged from any single
+# call's exit status. The reviewer flag and the requested_reviewers REST endpoint
+# are alternatives rather than a sequence: neither may be trusted on its status
+# or chained with ||, and only a readback over REST settles whether the request
+# took. Why that is the only test that works: ../references/gh-mechanics.md.
 #
 # The readback matches a lowercased substring of the login rather than one exact
 # spelling, because the bot's login differs across GitHub's surfaces.
