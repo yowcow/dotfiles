@@ -149,12 +149,17 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    - **Confirm it worked** — `git status --porcelain`, tested by **output emptiness, not exit status**, since it exits 0 whether or not anything is pending. **Don't leave this step while the tree is dirty**; that is precisely what would break the guarantee in the last bullet.
    - **Account for anything still left, rather than sweeping it in** — work this task produced belongs in the commit; a byproduct of step 1's checks belongs in `.gitignore`, and the byproduct itself is never committed; anything you cannot account for stops the gate and goes to the user, since committing an edit that isn't yours is worse than halting.
    - **Why this precedes the exits** — both of them hand over the branch rather than the worktree. **Hand off** pushes the branch, and a push carries *commits*, so an uncommitted edit never reaches the remote — and it goes down with the worktree whenever that is removed. **Escalation** hands `plan-work` a branch name, and re-approval is judged against what that branch contains, so an edit left uncommitted is simply absent from what the next flow reads.
-5. Take the first of these that applies, in order — they are not independent, since a `review-code` that stopped short of clean still applied and verified its fixes first, so "changed something" and "the inner pass stopped" can both be true at once:
-   - **The agreed design is what has to change** — `review-code` reported a Critical finding that invalidates it, or step 1 recorded a criterion that the scope boundary puts out of reach, or one that contradicts another criterion or the agreed design → stop the gate and return to `plan-work`, per **Escalation**. Any of these can surface on any round, not only when something stopped short of clean, so check for them before the conditions below.
-   - **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
-   - **This gate's own rounds hit one of those non-clean conditions** → stop and hand the decision over the same way. This is the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop, and it is judged before the next condition because a round that changed something is exactly the case these conditions exist to bound — judged after it, the gate would loop instead of stopping.
-   - **Step 1, 2 or 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
-   - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit, and it is *clean* per **Loop convergence**.
+5. Take the first row that applies:
+
+   | # | Condition | Where it goes |
+   | --- | --- | --- |
+   | 1 | **The agreed design is what has to change** — `review-code` reported a Critical finding that invalidates it, or step 1 recorded a criterion that the scope boundary puts out of reach, or one that contradicts another criterion or the agreed design | Stop the gate and return to `plan-work`, per **Escalation** |
+   | 2 | **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** | The whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code` |
+   | 3 | **This gate's own rounds hit one of those non-clean conditions** — the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop | Stop and hand the decision over the same way |
+   | 4 | **Step 1, 2 or 3 changed anything** | Back to step 1 — verification and simplification have to run against the code as it now stands |
+   | 5 | **Nothing changed and step 3 came back clean or was correctly skipped** | **Hand off** — the loop's only normal exit, and *clean* per **Loop convergence** |
+
+   The order is what makes this correct: a `review-code` that stopped short of clean still applied and verified its fixes first, so rows 2-4 can be true at once, and row 1 can surface on any round — in any other order the gate would loop where it has to stop, or carry a design-invalidating finding forward.
 
 ## Hand off
 
