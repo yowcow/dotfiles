@@ -29,4 +29,4 @@ That readback has to go over REST as well. `gh pr view --json reviewRequests` om
 
 ## Identifying a bot — match the login, not the timestamp
 
-Bot logins differ across surfaces: Copilot appears both as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude`. Matching a substring of the author login covers the variants. Attributing by timestamp instead misreads a human who happened to comment in the same window as the reviewer.
+Bot logins differ across surfaces: Copilot appears both as `Copilot` and as `copilot-pull-request-reviewer[bot]`. Matching a substring of the author login covers the variants. Attributing by timestamp instead misreads a human who happened to comment in the same window as the reviewer.
