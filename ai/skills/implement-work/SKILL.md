@@ -33,7 +33,7 @@ Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. D
 **Isolation** below reads `<branch>` as already known, so bind it to one concrete name here, before that ladder runs. Take the first rung that applies:
 
 1. **The caller named one** — a user invoking this skill directly, or a hand-off that carries a name.
-2. **The task carries one** — an item that came back from `plan-work` with its design invalidated names its branch in the sub-issue body, per that skill's **Output contract**. No other entry carries one.
+2. **The task carries one** — an item that came back from `plan-work` with its design invalidated names its branch in the sub-issue body, which that skill's **Splitting into sub-issues** admits there on the strength of the **Output contract** that put the name in the item. No other entry carries one.
 3. **Neither** — derive a new name: `<issue-number>-<slug>` where an issue backs the task, `<slug>` where none does. `<slug>` is a short kebab-case description of the change.
 
 Then resolve that name against the branches that already exist — **once, and only for a name from rung 3**:
@@ -43,8 +43,8 @@ Then resolve that name against the branches that already exist — **once, and o
 - **A rung-3 name with an issue behind it gets one search**, by the `<issue-number>-` prefix, local and remote alike:
 
 ```bash
-git branch --list '<n>-*' --format='%(refname:short)'   # names on stdout; empty output = no match
-git ls-remote --exit-code --heads origin '<n>-*'        # 0 = matches on stdout, 2 = none, any other non-zero = failure, stop
+git branch --list '<issue-number>-*' --format='%(refname:short)'   # names on stdout; empty output = no match
+git ls-remote --exit-code --heads origin '<issue-number>-*'        # 0 = matches on stdout, 2 = none, any other non-zero = failure, stop
 ```
 
 Test the first by **output emptiness, not exit status**, for the reason step 2 of the ladder gives. `git ls-remote` prints the sha and `refs/heads/<name>` separated by a tab, so strip the `refs/heads/` prefix from what follows the tab — what is left is the bare name the local list already prints, and only bare names compare. It needs no fetch, which is why the search sits here rather than inside the ladder — a prefix cannot be fetched. The pattern matches the last path component in full, so `94-*` finds `94-foo` and not `worktree-94-foo`: a branch whose name merely contains the number is not a match.
