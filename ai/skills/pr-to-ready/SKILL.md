@@ -121,6 +121,8 @@ digraph pr_to_ready {
   "Request review (Claude + Copilot)" [shape=box];
   "Any actionable feedback?" [shape=diamond];
   "Address -> push -> reply -> resolve" [shape=box];
+  "Checks green on this HEAD?" [shape=diamond];
+  "Diagnose -> fix -> push (Step 2)" [shape=box];
   "ready-on-clean?" [shape=diamond];
   "gh pr ready" [shape=doublecircle];
   "Leave as draft" [shape=doublecircle];
@@ -139,7 +141,11 @@ digraph pr_to_ready {
   "Request review (Claude + Copilot)" -> "Any actionable feedback?";
   "Any actionable feedback?" -> "Address -> push -> reply -> resolve" [label="yes"];
   "Address -> push -> reply -> resolve" -> "Request review (Claude + Copilot)";
-  "Any actionable feedback?" -> "ready-on-clean?" [label="no (clean)"];
+  "Any actionable feedback?" -> "Checks green on this HEAD?" [label="no"];
+  "Checks green on this HEAD?" -> "ready-on-clean?" [label="yes (clean)"];
+  "Checks green on this HEAD?" -> "Diagnose -> fix -> push (Step 2)" [label="no"];
+  "Diagnose -> fix -> push (Step 2)" -> "Request review (Claude + Copilot)";
+  "Diagnose -> fix -> push (Step 2)" -> "Return to plan-work" [label="design invalidated"];
   "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
   "Diagnose the failure" -> "Return to plan-work" [label="design invalidated"];
   "ready-on-clean?" -> "gh pr ready" [label="yes"];
@@ -152,12 +158,12 @@ digraph pr_to_ready {
 Run this skill as an **orchestrator**. The main loop owns control flow, all decisions, and every state-mutating action; it delegates only self-contained, context-heavy work to subagents. The steps run **sequentially** — do not try to run different steps in parallel. Parallelism exists at exactly one point: evaluating independent review findings (2-3).
 
 **Keep in the main loop — never delegate:**
-- clean judgment & stop conditions (Step 2 stop conditions)
+- clean judgment & stop conditions (Step 2 stop conditions) — including reading `gh pr checks` to decide whether a HEAD is clean
 - code fixes that touch the worktree, and `git commit` / `git push`
 - `gh pr comment`, thread replies, thread resolve, `gh pr ready`
 
 **Delegate to a subagent** (it returns findings only, keeping the orchestrator's context lean; each is detailed in its step):
-- **CI-failure diagnosis** (Step 1).
+- **CI-failure diagnosis** — the root cause behind a failed check, wherever it surfaces: Step 1, or Step 2's clean judgment. Deciding *whether* the checks are green stays above; only the diagnosis of a red one is delegated.
 - **Review-comment collection** (Step 2-3).
 - **Per-finding evaluation, fan-out** (Step 2-3) — one subagent per finding, launched together; findings are independent.
 
@@ -188,7 +194,7 @@ The two prohibitions that follow are **not equally absolute**:
 
 ## Step 2: Request review, then loop on feedback
 
-Request review from **both Claude and Copilot** when both are available — they catch different things. Skip whichever isn't available; if neither is, still run 2-0, then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3.
+Request review from **both Claude and Copilot** when both are available — they catch different things. Skip whichever isn't available; if neither is, still run 2-0, then skip the request/wait (2-1, 2-2, 2-3) and go to Step 3. That path pushes nothing, so the HEAD Step 1 watched green is still the tip and the invariant below already holds — don't add a check of your own here.
 
 ### 2-0. Verify PR body issue links
 
@@ -267,18 +273,27 @@ List unresolved threads / resolve one or more at once:
 
 ### Clean judgment & stop conditions
 
-**Clean =**
+**Clean =** all three hold **on the same commit** — the tip of `<branch>` at the moment you judge:
 - Claude leaves only "looks good" / "LGTM"-equivalent comments with no outstanding actionable feedback, AND
-- Copilot's latest round produced **no new actionable comments** (not "APPROVED") and there are **zero unresolved threads**.
+- Copilot's latest round produced **no new actionable comments** (not "APPROVED") and there are **zero unresolved threads**, AND
+- every check passes: `gh pr checks <PR>`, on that same commit.
 
 Treat human reviewer comments the same way (see receiving-code-review).
 
-**Stop the loop when any of these holds** — read them **in order** and take the first that applies; otherwise keep looping. A round here is one 2-1 → 2-2 → 2-3 cycle, and feedback is the same when a later round makes the same claim about the same place, whichever reviewer raises it.
+**Clean is a property of one commit, not a total accumulated over rounds.** A push invalidates all three at once — the reviewers have not read the new diff, and the checks have not run on it — so a green result from before a push is not evidence about what the branch carries now. Every exit to Step 3 therefore requires the checks to be green on the HEAD it leaves from, condition 3 below included.
+
+**When the reviewer conditions hold but a check does not**, this round is not clean. Get the root cause the way Step 1 does — delegating the diagnosis, per **Orchestration model** — fix it per *Making fixes*, commit → push, and go back to **2-1**: the push has staled the review, so the reviewers have to see the new tip. What this borrows from Step 1 is the diagnosis, **not its loop** — don't return to `Watch CI`, and don't count the failure against Step 1's rounds.
+
+**Stop the loop when any of these holds** — read them **in order** and take the first that applies; otherwise keep looping.
 
 1. Clean per above.
 2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4.
-3. **LGTM-equivalent twice in a row** — two consecutive rounds with no must-fix feedback, even if each keeps surfacing *fresh optional nits*. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*.
+3. **LGTM-equivalent twice in a row, with the checks green on the HEAD it leaves from** — two consecutive rounds with no must-fix feedback, even if each keeps surfacing *fresh optional nits*. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*, and being stricter it carries clean's check requirement too: an exit looser than condition 1 on any axis is what that rule forbids. A red check means this condition does not hold — take the failure path above instead.
 4. **A non-clean stopping condition in the guidelines' Loop convergence fires** — the same feedback surviving repeated rounds, or the total round ceiling → stop and hand the user the decision, per that rule.
+
+A round here is one 2-1 → 2-2 → 2-3 → clean judgment cycle. **The check confirmation and the fix it may force sit inside that round**, with the return to 2-1 starting the next one — so this is no new loop and carries no number of its own; the ceiling condition 4 names is what bounds it.
+
+Two rounds raise the same finding when a later round makes the same claim about the same place, whichever reviewer raises it — and, for a round that went non-clean on a check rather than on a comment, when both the check that failed and the cause behind it are the ones a previous round's fix set out to remove. Step 1 tests its own failures for sameness the same way.
 
 ## Step 3: Finish, per the ready-on-clean flag
 

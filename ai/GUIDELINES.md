@@ -76,7 +76,7 @@ For a Change, enter at the flow the work has actually reached: no agreed design 
 Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
 - **`plan-work`** — entry: an issue number, or a request to be planned. Deliverable: the agreed design plus a numbered TODO list at PR granularity, published once — as a comment on the tracking issue, plus one sub-issue per item; or in chat, with no sub-issues, when no issue tracks the work.
-- **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Deliverable: a pushed branch of verified commits, with no PR on it.
+- **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Deliverable: a pushed branch of verified commits.
 - **`pr-to-ready`** — entry: a branch of verified commits. Deliverable: a PR whose CI passes and whose review is clean, left at ready or draft per the user's up-front choice.
 
 A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes, and the deliverable meets the requirements the task itself states), simplification with `simplify-code` (no behavior-preserving cleanup is left), and review with `review-code` (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead, and each skill defines its own.
