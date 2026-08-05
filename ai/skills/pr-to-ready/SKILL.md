@@ -58,7 +58,13 @@ gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, no
 
 Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. That trailer's contract, and the reasons behind every test below, belong to `implement-work` — the skill that writes it. The commands and their result tests stay here, so this step needs nothing from there. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
+Create only when the list comes back empty — and settle the base first, because three of its outcomes stop before anything is created.
+
+#### Resolving the base
+
+**Step 1 re-runs this entire block on every round**, so the commands live here and that step points back at them.
+
+The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. That trailer's contract, and the reasons behind every test below, belong to `implement-work` — the skill that writes it. The commands and their result tests stay here, so this step needs nothing from there. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
 git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
@@ -66,21 +72,28 @@ trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)
 printf '%s\n' "$trailers" | grep -m1 .                                         # 0 = recorded base on stdout, 1 = no trailer
 ```
 
-When a trailer was found, check whether its branch survives:
+Exit 1 from the scan is the **no trailer** row below. Exit 0 puts the recorded name in `<recorded>` — and what settles the base from there is **the state of that prerequisite's PR, never whether its branch still exists**. Look the PR up by head branch name:
 
 ```bash
-git ls-remote --exit-code --heads origin <recorded>   # 0 = still there, 2 = gone
+gh pr list --head <recorded> --state all --json number,state --jq '.[] | "\(.number) \(.state)"'
 ```
 
-Any other non-zero exit is a failure rather than absence: stop the run. Exit 1 from the scan lands in the **No trailer** bullet below; scan 0 with `ls-remote` 0 lands in **still on the remote**; scan 0 with `ls-remote` 2 lands in **branch is gone**:
+Test it by **exit status and line count together**, printing every match with `.[]` and never indexing `.[0]` — the same discipline as the readback below, for the reasons `implement-work` keeps along with the rest of this test's rationale. A non-zero exit is "couldn't tell", not "no PR": stop on it.
 
-- **No trailer** → omit `--base` and let GitHub choose.
-- **A trailer whose branch is still on the remote** → open the PR against that branch.
-- **A trailer whose branch is gone** → omit `--base` as well.
+| trailer / prerequisite PR state | `--base` |
+| --- | --- |
+| no trailer | omit, and let GitHub choose |
+| one line, `OPEN` | `<recorded>` |
+| one line, `MERGED` | omit — the default branch |
+| one line, `CLOSED` without merging | **stop** |
+| zero lines — no PR on that branch | **stop** and report it |
+| two or more lines | **stop and ask** |
+
+**On this path those three stop rows stop before the PR is created, not after it.** Deciding any later would leave a draft PR aimed at the wrong base, and clearing that up falls to a person. 1-1 runs this same table again once the PR does exist, where a stop row has a destination of its own — that step names it.
 
 ```bash
-gh pr create --draft --head <branch> --title <title> --body-file <file>                     # no trailer, or its branch is gone
-gh pr create --draft --head <branch> --base <recorded> --title <title> --body-file <file>   # trailer's branch still on the remote
+gh pr create --draft --head <branch> --title <title> --body-file <file>                     # the table omitted --base
+gh pr create --draft --head <branch> --base <resolved> --title <title> --body-file <file>   # the table gave one
 ```
 
 **`--head <branch>` is not optional here**, whichever line you take: `gh pr create` defaults the head to the *current* branch, and this step exists precisely because `<branch>` may not be the one checked out.
@@ -113,8 +126,11 @@ digraph pr_to_ready {
   "Draft PR exists?" [shape=diamond];
   "gh pr create --draft" [shape=box];
   "Ask: ready on clean?" [shape=box];
+  "Settle the base" [shape=box];
+  "Base clean?" [shape=diamond];
   "Watch CI" [shape=box];
   "CI green?" [shape=diamond];
+  "Step 1 clean? (base + mergeable)" [shape=diamond];
   "Diagnose the failure" [shape=box];
   "Fix -> push" [shape=box];
   "Verify PR body issue links" [shape=box];
@@ -123,27 +139,37 @@ digraph pr_to_ready {
   "Address -> push -> reply -> resolve" [shape=box];
   "Checks green on this HEAD?" [shape=diamond];
   "Diagnose -> fix -> push (Step 2)" [shape=box];
+  "Recheck base (test-only)" [shape=box];
   "ready-on-clean?" [shape=diamond];
   "gh pr ready" [shape=doublecircle];
   "Leave as draft" [shape=doublecircle];
+  "Hand back: base follow needed" [shape=doublecircle];
   "Return to plan-work" [shape=doublecircle];
 
   "Draft PR exists?" -> "gh pr create --draft" [label="no"];
   "gh pr create --draft" -> "Ask: ready on clean?";
   "Draft PR exists?" -> "Ask: ready on clean?" [label="yes"];
-  "Ask: ready on clean?" -> "Watch CI";
+  "Ask: ready on clean?" -> "Settle the base";
+  "Settle the base" -> "Base clean?";
+  "Base clean?" -> "Watch CI" [label="yes"];
+  "Base clean?" -> "Hand back: base follow needed" [label="table stopped / conflict / no checkout"];
   "Watch CI" -> "CI green?";
   "CI green?" -> "Diagnose the failure" [label="no"];
   "Diagnose the failure" -> "Fix -> push" [label="a fix"];
-  "Fix -> push" -> "Watch CI";
-  "CI green?" -> "Verify PR body issue links" [label="yes"];
+  "Fix -> push" -> "Settle the base";
+  "CI green?" -> "Step 1 clean? (base + mergeable)" [label="yes"];
+  "Step 1 clean? (base + mergeable)" -> "Verify PR body issue links" [label="yes"];
+  "Step 1 clean? (base + mergeable)" -> "Settle the base" [label="base moved"];
+  "Step 1 clean? (base + mergeable)" -> "Hand back: base follow needed" [label="conflicting"];
   "Verify PR body issue links" -> "Request review (Claude + Copilot)";
   "Request review (Claude + Copilot)" -> "Any actionable feedback?";
   "Any actionable feedback?" -> "Address -> push -> reply -> resolve" [label="yes"];
   "Address -> push -> reply -> resolve" -> "Request review (Claude + Copilot)";
   "Any actionable feedback?" -> "Checks green on this HEAD?" [label="no"];
-  "Checks green on this HEAD?" -> "ready-on-clean?" [label="yes (clean)"];
+  "Checks green on this HEAD?" -> "Recheck base (test-only)" [label="yes (clean)"];
   "Checks green on this HEAD?" -> "Diagnose -> fix -> push (Step 2)" [label="no"];
+  "Recheck base (test-only)" -> "ready-on-clean?" [label="unchanged"];
+  "Recheck base (test-only)" -> "Hand back: base follow needed" [label="base moved"];
   "Diagnose -> fix -> push (Step 2)" -> "Request review (Claude + Copilot)";
   "Diagnose -> fix -> push (Step 2)" -> "Return to plan-work" [label="design invalidated"];
   "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
@@ -180,17 +206,85 @@ The two prohibitions that follow are **not equally absolute**:
 - **`implement-work`'s completion gate — never re-run it**, no exception.
 - **`plan-work` — don't go back for an ordinary fix.** A finding that invalidates the agreed design is the exception: per the check above, it is not a fix at all.
 
-## Step 1: Get CI clean
+## Step 1: Get CI clean and the base settled
 
-1. Watch with `gh pr checks <PR> --watch`. If every check passes, go to Step 2.
-2. On any failure:
+1. **Settle the base** — 1-1 below. It runs at the top of every round, because a prerequisite can merge while this run is going.
+2. Watch with `gh pr checks <PR> --watch`. **Leave for Step 2 only once *Clean* (1-2) holds** — all three of its conditions, never the checks on their own.
+3. On any failed check:
    - Identify the failed run: `gh run list --branch <branch> --limit 5`
    - **Delegate diagnosis to a subagent**: give it `<run-id>` and have it run `gh run view <run-id> --log-failed`, apply **superpowers:systematic-debugging**, and return *only* the root cause + a concrete fix plan (not the raw logs).
    - Apply the fix in the orchestrator, per *Making fixes* above.
    - commit → push (follow the git rules in the shared AI guidelines; never push directly to master/main)
    - Go back to 1.
 
-**Clean = every check in `gh pr checks` passes.** If even one is fail/pending, keep looping — subject to the guidelines' **Loop convergence**, whose other conditions bound the fixing. A round here is one watch → diagnose → fix → push cycle, and a failure is the same one when the same check fails for the same reason a previous round's fix targeted.
+### 1-1. Settle the base
+
+**The guard comes before the merge it guards** — read this sequence in order. A session that reached the merge first would merge the base into whatever branch happens to be checked out, and push it.
+
+1. **Resolve it again** with **Resolving the base** in 0-1 — that whole block, table included. **A stop row reached here hands back for base following** (Step 3's third terminal state) instead of stopping the way 0-1 does: the PR exists by now, so what a person needs handed over is that PR and what changed underneath it. A prerequisite that went `CLOSED` without merging part-way through the run arrives this way.
+2. **Retarget the PR** when it points elsewhere:
+   ```bash
+   gh pr view <PR> --json baseRefName --jq '.baseRefName'   # non-zero = couldn't tell, so stop
+   gh pr edit <PR> --base <resolved>                        # only when the two differ; non-zero = the retarget failed, so stop and report
+   ```
+   Where the table omitted `--base`, compare against the default branch, resolved by the three rungs in 0-1. **Don't skip that result test**: a retarget that silently failed leaves every later step — the merge below, and 1-2's condition 2 — measuring against a base the PR isn't actually on.
+3. **Take the two tips** per *Reading the two tips*, then ask whether the branch already carries the base:
+   ```bash
+   git merge-base --is-ancestor <base-tip> <head-tip>   # 0 = already carried, so nothing to do; 1 = not yet, go to 4; 128 = stop
+   ```
+4. **Not carried yet — test the guard first.** Taking the base in needs `<branch>` checked out here:
+   ```bash
+   git branch --show-current   # empty output = detached HEAD
+   ```
+   Tested by **comparing the output against `<branch>`, not by exit status**.
+   - **It doesn't match** → **don't merge.** Hand back for base following — Step 3's third terminal state — saying why. Step 0-1 admits a session holding no local ref at all, so this path is real. Creating a worktree is not this skill's job.
+   - **It matches** → `git merge --no-edit <base-tip>`. **Never rebase, and never force-push.** Read its exit status in three cases, because they need different handling:
+     - **0** → push, and the watch in 2 runs against the new tip.
+     - **1 — a conflict** → `git merge --abort`, then hand back the same way. Resolving the conflict is not this skill's job.
+     - **any other non-zero** → **stop and report; don't abort.** The merge never started, so there is nothing to abort and `git merge --abort` fails too. A dirty working tree exits 2 this way and leaves its changes in place — which is somebody's uncommitted work, so it is theirs to deal with.
+
+#### Reading the two tips
+
+```bash
+git fetch --quiet origin <base>                            # 0 = fetched; non-zero = stop
+base_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
+git fetch --quiet origin <branch>                          # 0 = fetched; non-zero = stop
+head_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
+```
+
+Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HEAD` for both — the reason is in `<skill-dir>/references/gh-mechanics.md`. Fetch `<branch>` as well as `<base>`, because 0-1's fetch runs only on the creation path: a session that picked up an existing PR may hold no local ref for it.
+
+### 1-2. Clean
+
+**Clean =** all three hold, on the same commit:
+
+1. **Every check passes**:
+   ```bash
+   gh pr checks <PR>   # 0 = all passed; 8 = some still pending, so not clean yet; other non-zero = a check failed, or the call did
+   ```
+   Read the output to tell a failed check from a failed call, since both land outside 0 and 8.
+2. **The PR points at the base the table resolved** — compare `baseRefName`, read as in 1-1, against what **Resolving the base** returned; where the table omitted `--base`, compare against the default branch.
+3. **Mergeability is not `CONFLICTING`**:
+   ```bash
+   gh pr view <PR> --json mergeable --jq '.mergeable'   # MERGEABLE / CONFLICTING / UNKNOWN; non-zero exit = stop
+   ```
+   `UNKNOWN` is not a verdict to act on. **Re-read it on a bound** — a few seconds apart, up to roughly 30 seconds; that bound is a clock this skill owns, not one of the guidelines' **Loop convergence** loops. Why it is that small, and why `mergeable` rather than `mergeStateStatus`, is in `<skill-dir>/references/gh-mechanics.md`.
+
+   Still `UNKNOWN` when the bound runs out → settle it locally, which is the last rung: the path closes here instead of waiting on GitHub. Take the two tips **again**, then:
+   ```bash
+   git merge-tree --write-tree <base-tip> <head-tip>   # 0 = no conflict, 1 = conflict
+   ```
+   *Reading the two tips* has already resolved both refs, so this exit status means a conflict and never an unresolved ref — the reason that matters is in `<skill-dir>/references/gh-mechanics.md`.
+
+**Where a failed condition goes** — the base can move while the watch runs for minutes, so none of these is redundant:
+
+- **A red check** → item 3 of Step 1.
+- **Condition 2** → back to 1-1, which retargets, and takes the base in where the branch has fallen behind.
+- **`CONFLICTING`** → hand back for base following, Step 3's third terminal state. Don't loop: settling the base again will not resolve it.
+
+**Falling behind the base is not itself a failed condition**, which is why it is absent from the three — `<skill-dir>/references/gh-mechanics.md` says why gating on it would be wrong. 1-1 takes the base in at the top of the next round regardless.
+
+Otherwise keep looping, subject to the guidelines' **Loop convergence**, whose other conditions bound the fixing. A round here is one settle → watch → diagnose → fix → push cycle, and a failure is the same one when the same check fails for the same reason a previous round's fix targeted.
 
 ## Step 2: Request review, then loop on feedback
 
@@ -282,6 +376,12 @@ Treat human reviewer comments the same way (see receiving-code-review).
 
 **Clean is a property of one commit, not a total accumulated over rounds.** A push invalidates all three at once — the reviewers have not read the new diff, and the checks have not run on it — so a green result from before a push is not evidence about what the branch carries now. Every exit to Step 3 therefore requires the checks to be green on the HEAD it leaves from, condition 3 below included.
 
+**Re-check the base as well, and only measure it.** This loop runs for minutes at a time, so the base can move after 1-1 last settled it, and `gh pr ready` asserts that a person can merge. So before declaring clean, read 1-2's conditions 2 and 3 once more.
+
+- **Measure, don't repair.** Taking the base in here would change the diff and invalidate the review that just finished. Whether that warrants another review round is the caller's call, not this run's, so hand it back instead of quietly adding one.
+- **Take the two tips again if condition 3 falls through to `merge-tree`.** This loop never fetches, so `FETCH_HEAD` still holds whatever 1-1 left there — stale by the whole review wait. Re-run *Reading the two tips* at this point. Fetching changes neither the diff nor the branch, so it is still only measuring.
+- **Either condition failing** → hand back for base following, Step 3's third terminal state.
+
 **When the reviewer conditions hold but a check does not**, this round is not clean. Get the root cause the way Step 1 does — delegating the diagnosis, per **Orchestration model** — fix it per *Making fixes*, commit → push, and go back to **2-1**: the push has staled the review, so the reviewers have to see the new tip. What this borrows from Step 1 is the diagnosis, **not its loop** — don't return to `Watch CI`, and don't count the failure against Step 1's rounds.
 
 **Stop the loop when any of these holds** — read them **in order** and take the first that applies; otherwise keep looping.
@@ -308,7 +408,7 @@ Once the review is clean (or no reviewer was available), branch on the flag reco
   **Note on approval vs LGTM**: Claude's ✅ "LGTM" is a *comment*, not a formal GitHub approval — `reviewDecision` can stay `REVIEW_REQUIRED`. Where branch protection requires an approving review, un-drafting won't unblock merge: flag it to the user, since a human approver may be needed.
 - **ready-on-clean = no**: leave the PR as draft. Do not run `gh pr ready`. Report to the user that CI and review are clean and the PR is left as draft per their earlier choice.
 
-Either way, **this run ends here.** The flow's two terminal states are **ready** and **draft**, and reaching one is this flow's completion. Everything that depends on the merge belongs to a person: what follows is what this run hands them.
+Either way, **this run ends here.** The flow has three terminal states — **ready**, **draft**, and **handed back for base following** — and reaching any of them is this flow's completion. Everything that depends on the merge belongs to a person: what follows is what this run hands them.
 
 ### What this run hands back
 
@@ -325,6 +425,17 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
 - **The next sub-issue, when children remain open.** Say which one is next.
 
 **Don't start any of it.** Carrying on into the next sub-issue would do a fresh `implement-work`'s worth of work with none of its gates. The single exception is an explicit instruction already in the chat covering what comes after this PR: follow it, but **this run still ends here** — what it licenses is *starting* the next run, from its own flow's entry and through every one of its gates, not extending this one past its terminus.
+
+### Handed back for base following
+
+The third terminal state, reached from five places: a stop row in the table when 1-1 re-resolves the base, `<branch>` not being checked out in 1-1, a merge conflict in 1-1, `mergeable` coming back `CONFLICTING` in 1-2, and the test-only re-check in Step 2 finding the base moved. It is a terminus rather than a failure — the run stops with the work intact, and a person takes the next decision.
+
+Leave the PR as it stands: **don't flip its draft state**, whatever the ready-on-clean flag says, and don't close it. Then report
+
+- **what moved** — which of the five entries this was, and the base 0-1's table now resolves to;
+- **what was and wasn't done** — a retarget that already went through, a merge that was aborted, or a merge never attempted for want of a checkout;
+- **the branch and the `<PR>`**, saying that the draft state is unchanged;
+- **the way back** — take the base in, then re-enter `pr-to-ready`; its 1-1 picks the work up from there.
 
 ## Escalation
 

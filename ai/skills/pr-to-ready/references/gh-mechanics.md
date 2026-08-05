@@ -1,6 +1,6 @@
 # gh mechanics
 
-This file holds the reasons behind `pr-to-ready`'s `gh` invocations — why a particular command is used over the obvious alternative, and why its result is tested the way it is.
+This file holds the reasons behind `pr-to-ready`'s `gh` invocations, and behind the local commands that back them up — why a particular command is used over the obvious alternative, and why its result is tested the way it is.
 
 Every trap below has the same shape: **stdout alone never separates a `gh` failure from a genuine negative.** Auth, network, and repo-context failures print nothing and exit non-zero; a genuine negative exits 0 and prints either nothing or an empty structure such as `[]`, depending on the command. So neither an empty stdout nor a non-empty one settles which you are looking at — only reading it together with the exit status does. Collapsing the two is how a run opens a second PR, drives the wrong one, or reports a reviewer as unavailable when the request was merely never read back.
 
@@ -30,3 +30,23 @@ That readback has to go over REST as well. `gh pr view --json reviewRequests` om
 ## Identifying a bot — match the login, not the timestamp
 
 Bot logins differ across surfaces: Copilot appears both as `Copilot` and as `copilot-pull-request-reviewer[bot]`. Matching a substring of the author login covers the variants. Attributing by timestamp instead misreads a human who happened to comment in the same window as the reviewer.
+
+## Mergeability — `mergeable`, never `mergeStateStatus`
+
+`gh pr view --json` offers both, and only one of them can be branched on.
+
+**`mergeStateStatus` varies with the caller's push permission**, so it describes the reader as much as the PR. Across `cli/cli`'s eight open PRs, draft and non-draft alike, it came back `BLOCKED` on every one while `mergeable` returned `MERGEABLE` for those same PRs. A gate keyed on it would therefore stop every PR, for a reason having nothing to do with the branch. Record it as context in a report if it helps; never decide anything with it.
+
+Its `BEHIND` value is no better as a trigger for taking the base in, and for a second reason on top of that one: sitting behind the base is the ordinary condition of a branch rather than a defect, so gating on it would hold up PRs with nothing wrong. What actually warrants taking the base in is *the prerequisite having merged*, which is a different question altogether.
+
+## Why `mergeable` gets a bounded re-read, and what backs it up
+
+`mergeable` has three values, and `UNKNOWN` is not one of the answers — GitHub computes mergeability lazily, so it means "not worked out yet". Reading it as either verdict is wrong, which is why it is re-read rather than settled on the spot.
+
+That re-read is bounded by a clock, and a small one. The bound has nothing in common with waiting on a reviewer: the computation is a background job that finishes in seconds, so anything near 2-2's review wait would leave the run idle for no reason.
+
+**`git merge-tree` sits after `mergeable`, not in place of it.** It is permission-independent and answers at once with no polling, which is what a last rung wants — but the question being asked is what GitHub's merge button will say, and `mergeable` is the authority on that. So the local check settles what GitHub was too slow to settle, instead of pre-empting it.
+
+**Resolve both refs before reading `merge-tree`'s exit status.** It exits 1 for a genuine conflict *and* for a ref that fails to resolve — measured on git 2.43.0, where a nonexistent ref produced exit 1 exactly as a real conflict did, the two separated only by a message on stderr. Read on its own, that exit status turns a mistyped or never-fetched ref into a reported conflict, halting the run over something that was never wrong with the branch at all. Resolving each tip through `git rev-parse --verify --quiet` first removes that case before the exit status is read.
+
+**Capture the two tips as shas, one per fetch.** `git fetch` rewrites `FETCH_HEAD` on every call, so fetching the base and then the branch leaves `FETCH_HEAD` holding only the second of them. Passing it as both arguments would compare the branch with itself and find no conflict — a clean answer to a question nobody asked.
