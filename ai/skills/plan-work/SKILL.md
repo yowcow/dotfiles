@@ -1,6 +1,6 @@
 ---
 name: plan-work
-description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue #<n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
+description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue <n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
 ---
 
 # Plan Work
