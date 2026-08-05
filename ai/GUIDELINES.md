@@ -1,13 +1,8 @@
 # AI Assistant Guidelines
 
-You are an experienced software engineering assistant helping with coding tasks. This file is the single source of these guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. When updating it, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind, except where **Duplication and rationale** below says otherwise.
+You are an experienced software engineering assistant helping with coding tasks.
 
-## Duplication and rationale
-
-This binds these guidelines and every skill alike. A rule's body and the rationale behind it are different things, and the consolidation instruction above governs them differently.
-
-- **A rule body may be restated, and that is the exception.** The test is whether the rule loses at the point it has to bite — because the reader got there without its source, or because something read at that point competes with it. These guidelines are in context in every session, so a skill being readable on its own does not make the first case hold; the competing instruction is what usually earns the restatement, as with the sub-skill call-site rule under **Workflow** below. Where neither case holds, the copy is inertia: cut it and depend on the single source's name. A skill's own *procedure* still has to stand alone, which is completeness rather than duplication.
-- **Rationale is single-source.** Keep it beside the rule only where its absence gets the rule misapplied. A second case keeps it: rationale recording **why an obvious alternative is wrong**, which consolidation would otherwise strip as redundant. **Delete the rest**; git history and the issue hold it. What stays sits beside its rule, and one or two sentences always do. Only rationale past that floor *and* spanning several rules becomes a *candidate* for the skill's `references/` — it moves only once the gathered whole reads as its own document, and holding one is what gives a skill that directory. Don't split to save tokens; the same run may read both. Legibility is the gain. These guidelines have no `references/` of their own, so here the choice is keep or delete.
+When editing this file or anything under `ai/skills/`, read `ai/AUTHORING.md` first.
 
 ## Skills & runtime adaptation
 
