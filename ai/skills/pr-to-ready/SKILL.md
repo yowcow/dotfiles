@@ -228,7 +228,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 ### 2-2. Wait for the review (bound the wait)
 
-- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
+- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it. `<run-id>` is that run's **`databaseId`**, the id field the listing carries:
   ```bash
   <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; 3 = no @claude workflow; other = the gh call failed — stop and inspect
   <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded; non-zero = it did not, or the gh call failed
@@ -238,7 +238,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   ```bash
   <skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>   # 0 = Copilot's reviews printed as JSON, one per line (empty = none yet); other = the gh call failed — stop and inspect
   ```
-  **"An id I haven't handled yet" is not the test.** A PR that already carried a Copilot review when this run started satisfies that on the first round immediately, so the loop would judge an older diff's feedback and reach *clean* with no reviewer having seen this push.
+  The `id`s are the right criterion; **the baseline is what they must be compared against, not your own handling history.** An id you merely haven't handled yet also matches a review that predates this run, so a PR that already carried a Copilot review satisfies that on the first round immediately — and the loop would judge an older diff's feedback and reach *clean* with no reviewer having seen this push.
   The script identifies the reviewer **by author login**; never attribute a review by timestamp. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
 
