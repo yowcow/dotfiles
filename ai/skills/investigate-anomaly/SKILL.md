@@ -20,23 +20,29 @@ Root-cause an observed anomaly: a failure, an incident, or an unexplained change
 - Step 4 change classes are independent — fan out one worker per class; the orchestrator merges the results into the timeline.
 - Hypothesis testing (Step 5) stays sequential in the orchestrator: each verdict informs the next hypothesis choice.
 
-## Step 1: Frame the symptom
+## Entry
+
+An observed symptom and where it was observed: the error text or metric values, plus the log, dashboard, alert, or report that surfaced them. Closing any gap against the guidelines' **Understand** is Step 1's job — the first work here, not a precondition for starting.
+
+## Explore
+
+### Step 1: Frame the symptom
 
 - Turn a vague concern ("costs keep growing", "something has felt off lately") into a measurable statement: which metric, where, since when, at what scope, and how large the deviation is against what baseline or expectation.
 - If no number can be attached yet, producing one is the first evidence-gathering task — an anomaly that cannot be measured cannot be root-caused.
 
-## Step 2: Capture and preserve
+### Step 2: Capture and preserve
 
 - Record the symptom as observed: exact error text/codes or metric values and their source, first and last occurrence, scope (which users/hosts/requests/services), and current status (ongoing vs recovered).
 - Snapshot anything that rotates or expires: logs, dashboards, queue depths, process state, billing/usage exports.
 
-## Step 3: Reconstruct the timeline
+### Step 3: Reconstruct the timeline
 
 - Use a single stated timezone.
 - Anchor **last known good** and **first known bad**, then interleave symptoms with events.
 - A gap you cannot narrow between last-good and first-bad is itself a finding — record it.
 
-## Step 4: Correlate with changes
+### Step 4: Correlate with changes
 
 Sweep every change class across the last-good → first-bad window:
 
@@ -49,25 +55,32 @@ Sweep every change class across the last-good → first-bad window:
 - time-based expiries: certs, tokens, TTLs, quotas, disk filling
 - pricing, plan, or quota changes (for cost anomalies)
 
-## Step 5: Test hypotheses
+## Validate
+
+### Step 5: Test hypotheses
 
 - Cheapest decisive check first; one variable at a time.
 - Seek disconfirming evidence: "if this were the cause, X would also be true — is it?"
 - Distinguish **root cause** (the defect) from **trigger** (what activated it now) from **contributing factors** (what widened the blast radius).
 
-## Exit criteria
+## Synthesize
+
+### Exit criteria
 
 - The explanation accounts for the timeline (why then), the scope (why those and not others), and the symptom's shape; or
 - the unknowns are explicitly documented, with the monitoring or logging needed to catch the next occurrence.
 
-## Report format (blameless)
+### Report format (blameless)
 
 1. **Summary** — one paragraph.
 2. **Impact** — who/what, duration, severity.
 3. **Timeline**
 4. **Root cause / Trigger / Contributing factors**
 5. **Detection gaps** — why it wasn't caught sooner.
-6. **Remediation options** — immediate mitigation vs preventive fixes.
-7. **Open questions**
+6. **Reproduction or observation baseline** — what makes the symptom observable again: the steps that reproduce it, or the window and metrics that show it.
+7. **Remediation options** — immediate mitigation vs preventive fixes.
+8. **Open questions**
+
+**Reproduction or observation baseline** and **Remediation options** are what the guidelines' **Investigation → Change transition** hands to `plan-work` — that flow's input, not work this one starts.
 
 Language and tone follow the shared AI guidelines' Communication rules when the report is posted anywhere.

@@ -18,18 +18,26 @@ Root-cause an observed performance shortfall. This skill adds the performance-sp
 - Descending the layers (Step 3) stays sequential by design — which layer to drill into depends on the previous measurement.
 - Within a layer, independent measurements (CPU vs memory vs IO saturation; several common suspects) can each go to a worker.
 
-## Step 1: Frame and baseline
+## Entry
+
+An observed shortfall and where it was observed: the endpoint, job, or query that is slow, or the metric that moved, together with the measurement, trace, dashboard, or report it came from. Where that falls short of what the guidelines' **Understand** asks for, pinning it down is the first task here rather than a precondition for starting — Step 1 is where it happens.
+
+## Explore
+
+### Step 1: Frame and baseline
 
 - Define the exact metric (p50/p99 latency, throughput, RSS, CPU%) and the target or prior value it is measured against.
 - Fix the environment: hardware, dataset size, concurrency.
 - Record the baseline numbers and the exact command that produced them.
 
-## Step 2: Reproduce reliably
+### Step 2: Reproduce reliably
 
 - Build a minimal reproduction with a realistic load shape; run it at least 3 times and note variance.
 - If it only reproduces in production, define the observation window and metrics instead — never load-test production without explicit user approval.
 
-## Step 3: Profile layer by layer
+## Validate
+
+### Step 3: Profile layer by layer
 
 Descend the layers, measuring each one's share of the total cost; stop at the first layer that accounts for the shortfall before drilling in.
 
@@ -38,7 +46,7 @@ Descend the layers, measuring each one's share of the total cost; stop at the fi
 3. **Application** — hot paths, repeated work in loops, lock contention, serialization cost, chatty external calls.
 4. **Query/IO** — slow queries and their plans, missing indexes, N+1 patterns, round-trip counts, payload sizes.
 
-## Common suspects
+### Common suspects
 
 - N+1 queries; missing or unused index
 - unbounded concurrency or pool exhaustion
@@ -46,16 +54,21 @@ Descend the layers, measuring each one's share of the total cost; stop at the fi
 - retry storms; oversized payloads
 - cold cache in the measurement itself; measuring the wrong thing (client vs server time)
 
-## Exit criteria
+## Synthesize
+
+### Exit criteria
 
 - A named bottleneck whose measured contribution explains the observed shortfall's magnitude — not just "found something slow"; or
 - documented dead ends, each with the measurement that would settle it.
 
-## Report format
+### Report format
 
 1. **Summary** — one paragraph.
 2. **Numbers** — baseline vs observed vs target.
-3. **Root cause** — with the decisive measurement.
-4. **Contributing factors**
-5. **Fix options** — expected gain and cost of each.
-6. **Open questions**
+3. **Reproduction** — the minimal reproduction or the observation window, with the exact command behind the numbers.
+4. **Root cause** — with the decisive measurement.
+5. **Contributing factors**
+6. **Fix options** — expected gain and cost of each.
+7. **Open questions**
+
+What a fix carries into `plan-work` is **Reproduction** and **Fix options**, per the guidelines' **Investigation → Change transition** — input to that flow, never work started from here.
