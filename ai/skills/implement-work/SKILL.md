@@ -34,7 +34,7 @@ Establish this **before drafting the plan**: the plan file has to live inside th
 
 Use `superpowers:using-git-worktrees`, then set the project up and establish a verified baseline there.
 
-The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and why each test below is written the way it is all live in `<skill-dir>/references/base-branch.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/implement-work`, `~/.agents/skills/implement-work`). The commands and their result tests stay here, so a session that never opens that file still takes the right branch.
+The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and why each test below is written the way it is all live in `<skill-dir>/references/base-branch.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/implement-work`, `~/.agents/skills/implement-work`).
 
 That skill detects existing isolation from the current directory only, and its creation step assumes the branch is new. So on resumption, look before creating:
 
