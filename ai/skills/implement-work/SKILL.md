@@ -143,7 +143,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    - **The scope boundary is part of that source, not commentary on it.** What it excludes never becomes a checklist row, so an exclusion cannot come back as a gap.
    - **An unmet criterion routes on one test: does meeting it require touching what the scope boundary excludes?** No → it is this task's work, so implement it in this round. Yes → don't implement it; record it and leave by step 5's first exit. Criteria that contradict each other, or the agreed design, are outside this test — no checklist can be built from them at all — and take the guidelines' **Escalation** by that route, recorded and exited the same way.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
-3. **Review** — skip `review-code` only when the method's own branch-wide review came back **clean**. Run it when any of these holds: findings were left unresolved or parked; no branch-wide review ran at all; or step 2 produced a diff nobody has reviewed. Record the call and its basis in **Report**.
+3. **Review** — run `review-code`. The execution method's own branch-wide review is no substitute: this gate runs after that method's cleanup has deleted the record of what it covered, so its verdict cannot be checked here.
 4. **Commit** the round's work, in the same round that produced it, so the tree is clean before any exit below is taken. A round that changed nothing commits nothing.
    - **What goes in** — whatever steps 2 and 3 changed, plus any `.gitignore` entry added under the third bullet: that entry is part of leaving the tree clean, not a separate concern.
    - **Confirm it worked** — `git status --porcelain`, tested by **output emptiness, not exit status**, since it exits 0 whether or not anything is pending. **Don't leave this step while the tree is dirty**; that is precisely what would break the guarantee in the last bullet.
@@ -157,7 +157,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    | 2 | **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** | The whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code` |
    | 3 | **This gate's own rounds hit one of those non-clean conditions** — the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop | Stop and hand the decision over the same way |
    | 4 | **Step 1, 2 or 3 changed anything** | Back to step 1 — verification and simplification have to run against the code as it now stands |
-   | 5 | **Nothing changed and step 3 came back clean or was correctly skipped** | **Hand off** — the loop's only normal exit, and *clean* per **Loop convergence** |
+   | 5 | **Nothing changed and step 3 came back clean** | **Hand off** — the loop's only normal exit, and *clean* per **Loop convergence** |
 
    The order is what makes this correct: a `review-code` that stopped short of clean still applied and verified its fixes first, so rows 2-4 can be true at once, and row 1 can surface on any round — in any other order the gate would loop where it has to stop, or carry a design-invalidating finding forward.
 
@@ -186,7 +186,7 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 - the execution method chosen, and why
 - the base branch the task was created from, and which of **Base branch**'s outcomes chose it
 - the `review-plan` rounds run on the detailed plan, and the final verdict
-- whether the completion gate ran `review-code`, and on what basis if it didn't
+- the completion gate's `review-code` verdict, and any blocking finding left open
 - the completion gate's rounds, and the condition it exited on
 - the completion criteria checked against the entry artifact: which were met, and any gap with how it was routed
 - the concrete checks run, and any that couldn't be
