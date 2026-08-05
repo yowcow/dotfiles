@@ -38,15 +38,23 @@ Resolve what to review in this order, and declare the resolved scope before disp
    printf '%s\n' "$trailers" | grep -m1 .                                        # 0 = recorded base on stdout, 1 = no trailer
    ```
 
-   When a trailer was found, check whether its branch survives:
+   No trailer → `<base>` is the default branch. Resolve it rather than assuming `main`, three rungs in order: `git symbolic-ref refs/remotes/origin/HEAD` (0 = prints the ref; non-zero = fall to the next rung, it does not mean there is no default branch), then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
+
+   A trailer found means `<base>` turns on **what state the prerequisite's PR is now in**, not on whether its branch still exists — which says nothing about that state. Look the PR up by head branch name:
 
    ```bash
-   git ls-remote --exit-code --heads origin <recorded>   # 0 = still there, 2 = gone; any other non-zero = stop, it is a network or auth failure
+   gh pr list --head <recorded> --state all --json number,state --jq '.[] | "\(.number) \(.state)"'
    ```
 
-   Two outcomes decide `<base>`:
-   - trailer found and its branch still on the remote → `git fetch origin <recorded>` (non-zero = stop), then `<base>` is **`FETCH_HEAD`**, not `origin/<recorded>`;
-   - no trailer, or its branch is gone → `<base>` is the default branch. Resolve it rather than assuming `main`, three rungs in order: `git symbolic-ref refs/remotes/origin/HEAD` (0 = prints the ref; non-zero = fall to the next rung, it does not mean there is no default branch), then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
+   Take the exit status and the line count together: non-zero = stop, it means "couldn't tell" rather than "no PR"; 0 lines = no PR found, stop and report it; 1 line = the number and the state; 2 or more = stop and ask which prerequisite is meant.
+
+   | prerequisite PR state | `<base>` |
+   | --- | --- |
+   | `OPEN` | `git fetch origin <recorded>`, then **`FETCH_HEAD`** |
+   | `MERGED` | `git fetch origin refs/pull/<n>/head`, then **`FETCH_HEAD`** |
+   | `CLOSED` without merging | **stop** — that prerequisite was abandoned |
+
+   `<n>` is the number the lookup printed. Either fetch exiting non-zero stops the run, and `<base>` is `FETCH_HEAD` rather than `origin/<recorded>` in both rows.
 
    If the range turns out empty — HEAD is already at `<base>` — fall through to 4.
 4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` that item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
