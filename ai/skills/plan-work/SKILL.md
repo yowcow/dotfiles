@@ -1,6 +1,6 @@
 ---
 name: plan-work
-description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue <n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
+description: Use to turn an issue, a planning request, or an investigation's findings into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue <n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
 ---
 
 # Plan Work
@@ -29,6 +29,7 @@ One invocation runs the whole flow to convergence: research, design agreement, a
 
 - An issue number — read the issue and its comments before anything else.
 - A request to be planned with no tracking issue — proceed the same way, minus the issue read. **Splitting into sub-issues** asks for a tracking issue before anything is published; chat becomes the canonical record only if that ask is declined (see **Publish** and **Output contract**).
+- **Investigation findings** — an investigation reached a root cause and a fix is wanted, per the guidelines' **Investigation → Change transition**. It arrives with three things: the findings report, the reproduction or observation baseline, and the fix options the investigation proposed. Enter at the research pass like the first two entries rather than at **Design agreement**: the root cause is established, so what research settles is the shape of the fix, not the diagnosis — and those fix options are input to that agreement, never the agreement itself. **Output contract** says where the reproduction lands. Should research contradict the root cause, don't re-diagnose it here: the framing belongs to the investigation's Explore, so take the guidelines' **Escalation** back there.
 - **A design invalidated downstream** — `implement-work` or `pr-to-ready` stopped because a finding undid the agreed design, and sent it back for re-approval. It arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state (whether it is pushed, and whether a PR is open on it). Re-enter at **Design agreement** with those in hand: what needs re-approval is the design, so the flow restarts there rather than at a fresh research pass. Where an issue tracks the work it is still the canonical record, so the re-approved design updates that same comment in place rather than adding another, per **Publish**. What is new in this case is the existing branch — **Output contract** says how every TODO item has to account for it.
 
 ## Design agreement
@@ -49,6 +50,7 @@ The published artifact is the design plus a numbered list of PR-sized items. It 
 - a **numbered** TODO list, one item per PR. Each item states its purpose, its scope boundary (including what it excludes), and its completion criteria.
 - for each item, whether it can be started in parallel or must be stacked on an earlier item — named, not implied — plus the dependency order when anything stacks. Every item must be **verifiable** on its own; being **startable** on its own is what stacking gives up, so a stacked item names the item it waits for and why.
 - affected area at module or directory granularity
+- **only when entering from investigation findings** — the reproduction, written into the completion criteria of the item that owns the fix, per the guidelines' **Investigation → Change transition**. It takes one of two forms and they are written differently: a reproduction becomes a regression test that fails before the fix and passes after; a symptom observable only in production becomes the observation window and the metric that shows it. The steps behind either stay in the findings report, so **cite that report here**. On an issue that means its URL — already on that issue where the guidelines' **Stage boundaries** made it the canonical record, or posted per **Publish** step 2 where the issue is new — and citing it is why **Splitting into sub-issues** gets no new item: a sub-issue carries this comment's URL and nothing else, so an uncited report is one it cannot reach. Where chat is the canonical record there is no sub-issue and no URL, and **Splitting into sub-issues** already confines that case to one session, so naming the report in the thread is the whole of it.
 - **only when entering from a design invalidated downstream** — what the previous approval left behind:
   - **How each item treats the existing branch.** This is not one convention but two, and they are written differently:
     - **Reuse it** → write that branch's name in the item. `implement-work`'s **Isolation** finds it and attaches a workspace to it, so the item carries on from those commits.
@@ -115,7 +117,7 @@ GitHub does not auto-close a parent issue when all its sub-issues close. Closing
 Publishing and splitting interleave, because each needs something from the other: a sub-issue body carries the design comment's URL, and the parent comment lists the sub-issues. Order them:
 
 1. Converge the `review-plan` loop.
-2. **Settle where it gets published.** No tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put the list in the wrong place and need it redone.
+2. **Settle where it gets published.** No tracking issue → ask per **Splitting into sub-issues**, before anything is posted. The answer decides whether the artifact lands on a new tracking issue or in chat, and publishing first would put the list in the wrong place and need it redone. **On the findings entry the report goes there too**, posted before the design comment — so the URL **Output contract** requires that comment to cite already exists when it is written. Where the issue is new that is also the first moment it can exist, so the draft the `review-plan` loop reviewed names the report and this step is what supplies its URL. A declined ask needs nothing extra: **Splitting into sub-issues** already makes that case one session's work.
 3. **Publish** the design, the split policy, and the numbered TODO list. The comment URL now exists.
 4. **Land the sub-issues** — one per item, each carrying that URL, per **Splitting into sub-issues** and **Sub-issue linking**.
    - **First publish** → create them all, in TODO order: a stacked item's body cites its prerequisite's *issue number*, and dependencies always point back at earlier items, so working in order means that number already exists — and `--add-blocked-by` can be set as each child lands.
@@ -128,12 +130,13 @@ Publishing and splitting interleave, because each needs something from the other
 - Don't publish mid-loop — the draft stays in chat until the loop converges.
 - Write anything posted to GitHub in 標準語 (standard Japanese, never dialect).
 - No issue tracks the work → **Splitting into sub-issues** asks the user for a tracking issue first; only a declined ask makes chat the canonical record. An issue tracks the work → a comment on that issue, updated in place rather than added to.
-- `gh issue comment <n> --edit-last --create-if-none --body-file <file>` covers both the first publish and later updates — but `--edit-last` targets your *most recent* comment on the issue, whatever it is. Once anything else (a reply, a review note) follows it, `--edit-last` would hit the wrong comment: edit by id instead, with `jq -Rs '{body: .}' <file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -` (`gh api` wants a JSON payload, not raw Markdown, hence the `jq -Rs` wrap).
+- **Two commands, not one.** The first publish is a plain post — `gh issue comment <n> --body-file <file>`. Every later in-place edit goes by id: `jq -Rs '{body: .}' <file> | gh api --method PATCH repos/{owner}/{repo}/issues/comments/<comment-id> --input -` (`gh api` wants a JSON payload, not raw Markdown, hence the `jq -Rs` wrap). Don't reinstate a flag that edits *your last comment on the issue, whatever it is*: on the findings entry the report is already your comment, so the first publish would silently overwrite it — and a flag that only posts when you have no comment at all doesn't save you, because the report is one.
+- `<comment-id>` is the **numeric** id. The post above prints the comment's URL, and its `#issuecomment-<id>` fragment is that number — take it there, **before creating any sub-issue**, and reuse it for every later edit. Two things make this the only safe moment: `gh issue view <n> --json comments` returns the GraphQL node id (`IC_...`), which this path rejects; and re-reading "the issue's last comment" later hits whatever is last by then, since sub-issue creation runs item by item and anyone may comment in that span.
 - Always pass the body from a file, never an inline flag string, so backticks never reach the shell.
 
 ## Pass
 
-1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
+1. Resolve **Entry**: an issue number, a planning request with no tracking issue, investigation findings, or a design invalidated downstream. The last enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**. Entering from a design invalidated downstream, do **Reconciling with existing sub-issues**' read half here, as part of drafting, and settle it before step 5 hands the list to `review-plan`.
@@ -151,7 +154,7 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Report
 
-- the entry: issue number, the chat request when no issue tracks the work, or a design invalidated downstream — for the third, name the finding that invalidated it and the branch it came back with
+- the entry: issue number, the chat request when no issue tracks the work, investigation findings, or a design invalidated downstream — for the findings entry, name the investigation's report; for the last, name the finding that invalidated it and the branch it came back with
 - where the result was published — the comment URL, or "posted in chat"
 - the number of `review-plan` rounds run, and the verdict of the final one
 - accepted findings folded in, and rejected findings with the reason

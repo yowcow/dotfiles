@@ -105,14 +105,14 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 #### Investigation → Change transition
 
-- An investigation never starts editing. When a fix is wanted, enter `plan-work` with the findings as input — the fix still needs design approval, even when the investigation proposed it.
+- An investigation never starts editing. When a fix is wanted, enter `plan-work` with the findings as input — the fix still needs design approval, even when the investigation proposed it. This hop is a handoff between flows like any other, so where the findings report belongs is **Stage boundaries**' canonical record rather than a rule of this section's own.
 - Carry the reproduction forward: it becomes the regression test for the fix.
 
 ### Stage boundaries
 
 - At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
 - You own this summary even when the runtime can't compact on its own; when context is heavy and only the user can trigger compaction (e.g. Claude Code's `/compact`), prompt them to run it. Never let a summary or compaction relax a gate.
-- A handoff between Change flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
+- A handoff between flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
 - **A loop's intermediate state is orchestrator-facing.** Report each round to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment. Only the converged result reaches the canonical record above.
 
 ### Loop convergence
