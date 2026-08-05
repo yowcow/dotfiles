@@ -39,6 +39,11 @@ PR="$3"
 # rather than answering "no" — which is why this is called as a statement and
 # never inside $(...): there, the exit would leave the caller reading an empty
 # string as "not requested".
+#
+# This endpoint is NOT interchangeable with the more obvious `gh pr view --json
+# reviewRequests`, which omits bots: it reports none even while Copilot is
+# requested, so swapping it in would make this script report Copilot
+# permanently unavailable without ever failing.
 REQUESTED=""
 read_requested() {
   if ! REQUESTED="$(gh api "repos/$OWNER/$REPO/pulls/$PR/requested_reviewers" \
