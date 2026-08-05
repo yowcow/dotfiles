@@ -2,7 +2,7 @@
 
 The `Base-Branch:` trailer is a **shared mechanism with one writer and two readers**. `implement-work` writes it when it cuts a branch; `pr-to-ready` reads it to pass as `gh pr create --base`; `review-code` reads it as the base of the range it reviews. Neither reader derives the base again — the decision is made once, by the writer, from the relation as it stood when the branch was cut.
 
-This file holds the contract and the reasons. The commands, and how each command's result is tested, stay in each skill's own `SKILL.md`.
+This file holds the contract and the reasons. The snippets below illustrate them; each skill keeps the command it runs in its own `SKILL.md`.
 
 ## The contract
 
