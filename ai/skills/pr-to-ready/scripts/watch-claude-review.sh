@@ -12,12 +12,13 @@
 #
 # Exit: 0 = the listing printed (list mode), or the watched run succeeded (watch mode)
 #       2 = usage error
-#       1 = no @claude workflow in this repository — but 1 is not unique to that:
-#           gh run watch --exit-status returns 1 for a run that failed, and any
-#           failing gh call exits with its own status under set -e
-#       other = the underlying gh call failed (gh run list, or gh run watch)
+#       3 = no @claude workflow in this repository. This is the availability
+#           answer and nothing else exits 3, so a caller may skip Claude on it
+#       other = the underlying gh call failed, or in watch mode the run itself
+#           did not succeed: gh run watch --exit-status returns 1 for a failed
+#           run, and any failing gh call exits with its own status under set -e
 #
-# Only 0 and 2 identify a cause on their own. Treat every other non-zero as
+# Only 0, 2, and 3 identify a cause on their own. Treat every other non-zero as
 # "stop and inspect" rather than as a specific answer.
 set -euo pipefail
 
@@ -34,7 +35,7 @@ RUN_ID="${2:-}"
 wf="$({ grep -rl '@claude' .github/workflows/ 2>/dev/null || true; } | head -1)"
 if [ -z "$wf" ]; then
   echo "no @claude workflow found in .github/workflows/" >&2
-  exit 1
+  exit 3
 fi
 wf="$(basename "$wf")"
 
