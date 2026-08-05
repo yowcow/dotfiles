@@ -78,7 +78,7 @@ One sub-issue per item, whatever the count — and a sub-issue hangs off a track
 
 ### Reconciling with existing sub-issues
 
-Only on re-entry from a design invalidated downstream, where children from the previous approval already exist. It runs in two halves at two different times: the **read** while the TODO list is still being drafted, the **write** at publish. The read deliberately sits outside this section's converge-then-split frame and ahead of it, because the list `review-plan` judges has to already account for what is finished; the write stays inside that frame, after convergence.
+Only on re-entry from a design invalidated downstream, where children from the previous approval already exist. It runs in two halves — a **read** and a **write** — at two different times. The read deliberately sits outside this section's converge-then-split frame and ahead of it, because the list `review-plan` judges has to already account for what is finished; the write stays inside that frame, after convergence.
 
 **Read** — **Pass** step 4, as part of drafting:
 
