@@ -182,6 +182,7 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 
 ## Report
 
+- whether the guidelines' small-change lane was taken, and the one-line basis if it was
 - the execution method chosen, and why
 - the base branch the task was created from, and which of **Base branch**'s outcomes chose it
 - the `review-plan` rounds run on the detailed plan, and the final verdict

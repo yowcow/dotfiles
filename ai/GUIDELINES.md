@@ -63,7 +63,7 @@ Match a named deliverable against the skills' `description`s, and where two coul
 
 For a Change, enter at the flow the work has actually reached: no agreed design or PR-sized split yet → `plan-work`; one PR-sized task in hand → `implement-work`; verified commits on a branch → `pr-to-ready`. Running all three back to back in one session is the same thing done in sequence, not a separate path.
 
-**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. It skips `plan-work`, and `implement-work`'s plan gate; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
+**A Change that carries no design decision has a lane of its own**, not an exemption from the flows. The test is that the change is determined once stated — no interface, structure, or trade-off left open. Declare in one line why the lane applies, and carry that line into the run's report, so the judgement that skipped a gate stays checkable afterwards. It skips `plan-work`, and `implement-work`'s plan gate; it enters `implement-work` with **manual** execution. The completion gate and `pr-to-ready` still run in full — integration goes through a PR at any size. The moment a design decision surfaces the lane is over: take **Escalation**.
 
 ### Understand
 
@@ -158,6 +158,7 @@ Every loop that checks work and fixes what came back stops on the same condition
 - Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly (e.g. `build/packages/<pkg>`, `node_modules/<pkg>`) instead of widening the scope. To find a binary use `command -v`, not a filesystem search.
 - **Where you can invoke a skill, its content comes only from invoking it — never from searching the filesystem for its file.** Where a caller forbids invoking a named skill, you don't need its content at all: what that caller wrote about it is the contract, so depend on the name and nothing deeper. Where the runtime lacks the skill, **Skills & runtime adaptation** already settles what to do, and nothing here relaxes it.
 - **When you do have to locate an installed file** — to carry out that manual workflow, or to check what an install linked — the search stops at the agent's own config directory (`~/.claude`, `~/.codex`, and the like); a plugin's copy there is version-pinned, so don't depend on that path. This is the narrow exception, not the general way to learn what a skill does — that is the bullet above.
+- **A `references/` file a skill points you at, but that you can't read, is neither a reason to search for it nor a reason to stop.** Proceed on what that skill's `SKILL.md` says; where the `SKILL.md` defers a detail to that file, settle it as an explicit assumption rather than as fact. Either way, report the file you couldn't read.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Technical preferences
