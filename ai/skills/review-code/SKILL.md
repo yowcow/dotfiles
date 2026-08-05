@@ -29,7 +29,7 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
 1. **Caller-supplied** — a SHA range, paths, or a PR. Use it as given.
 2. **Uncommitted changes present** — the working tree diff: staged, unstaged, and untracked files.
-3. **Clean tree, commits ahead of `<base>`** — the range is `merge-base(<base>, HEAD)..HEAD`, and `<base>` is resolved, not assumed: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts a branch from a prerequisite's still-open PR. The contract, the reason each test below is written the way it is, and what a wrong `<base>` costs are all in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being wherever your runtime installs skills (e.g. `~/.claude/skills`, `~/.agents/skills`). The commands stay here, so a session that never opens that file still resolves the right base.
+3. **Clean tree, commits ahead of `<base>`** — the range is `merge-base(<base>, HEAD)..HEAD`, and `<base>` is resolved, not assumed: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts a branch from a prerequisite's still-open PR. That trailer's contract — what a wrong `<base>` costs, and why each test below is written the way it is — is kept by `implement-work`. The commands stay here, so a session that never reads that skill still resolves the right base.
 
    Scan local `HEAD` — this skill reviews the checkout it is in — from the tip backwards, first hit wins. **Capture the `git log` before testing it, rather than piping straight into `grep`:**
 
@@ -53,15 +53,17 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
 ## Reviewer prompt
 
-Fill the `code-reviewer.md` template that `superpowers:requesting-code-review` provides:
+`superpowers:requesting-code-review` is the dispatch mechanism; what the reviewer is told is this skill's own. Whatever shape that dispatch offers to carry it, the prompt is complete when it holds these five:
 
-- **Committed range** — fill `[BASE_SHA]` and `[HEAD_SHA]` as the template expects.
-- **Uncommitted scope** — replace the template's **Git Range to Review** block with the commands that show the same thing: `git status --porcelain`, `git diff`, `git diff --cached`, and the untracked paths. Keep the read-only rule, and drop the template's temporary-worktree suggestion — a worktree at any revision does not contain uncommitted changes. The reviewer reads the files in place and still must not mutate the working tree, the index, HEAD, or branch state.
-- **Paths with no range** — the caller named files or directories rather than revisions. Replace the range block with those paths and say the review covers their current state on this checkout, not a diff. Say the same in the report: nothing constrains the review to recent change, so the findings may be about code this work never touched.
-- **A PR** — resolve it to the range it represents (`gh pr view <n> --json baseRefOid,headRefOid`) and fill the range block from that. Reviewing the PR's diff locally is this skill's job; posting anything to the PR is not — that belongs to `pr-to-ready`.
-- **What was implemented** — fill `[DESCRIPTION]` with a summary of the resolved scope: what the change does, or for a paths-only scope what the code is for. Never leave the placeholder in the dispatched prompt.
-- **Requirements** — fill `[PLAN_OR_REQUIREMENTS]` with the plan or the original request. When there is none, say so in the prompt: the review runs against the repository's own standards and the code's evident intent. Say it in the report too, so a reader knows plan alignment was not checked.
-- **Later rounds** — hand over the record of the previous rounds: findings accepted and fixed, and findings rejected with the reason. A reviewer not shown the rejections re-litigates them.
+1. **The scope** — whatever **Scope** resolved, in one of these four shapes:
+   - **a committed range** — the two SHAs bounding it, as the caller gave them or as `merge-base(<base>, HEAD)..HEAD` resolved;
+   - **uncommitted changes** — the commands that show them where they are: `git status --porcelain`, `git diff`, `git diff --cached`, and the untracked paths. Don't send the reviewer to a worktree of its own here — a worktree holds a revision, and these changes are in none;
+   - **paths with no range** — the paths themselves, and that the review covers their current state on this checkout rather than a diff. Say the same in the report: nothing constrains the review to recent change, so the findings may be about code this work never touched;
+   - **a PR** — the range it represents, resolved with `gh pr view <n> --json baseRefOid,headRefOid` and handed over as a committed range. Reviewing that diff locally is this skill's job; posting anything to the PR is not — that belongs to `pr-to-ready`.
+2. **The read-only rule** — the reviewer reads the checkout it is in, in place, and changes nothing: not the working tree, not the index, not HEAD, not branch state. It returns findings and nothing else.
+3. **What was implemented** — what the change does, or for a paths-only scope what the code is for.
+4. **The requirements** — the plan, or the original request. When there is none, say so in the prompt: the review then runs against the repository's own standards and the code's evident intent. Say it in the report too, so a reader knows plan alignment was not checked.
+5. **The earlier rounds** — from the second round on, findings accepted and fixed, and findings rejected with the reason. A reviewer not shown the rejections re-litigates them.
 
 Confine every search to the project root or narrower.
 
