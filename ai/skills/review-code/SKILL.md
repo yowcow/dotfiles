@@ -46,7 +46,7 @@ Resolve what to review in this order, and declare the resolved scope before disp
    gh pr list --head <recorded> --state all --json number,state --jq '.[] | "\(.number) \(.state)"'
    ```
 
-   Take the exit status and the line count together: non-zero = stop, it means "couldn't tell" rather than "no PR"; 0 lines = no PR found, stop and report it; 1 line = the number and the state; 2 or more = stop and ask which prerequisite is meant.
+   Take the exit status and the line count together: non-zero = stop, it means "couldn't tell" rather than "no PR"; 0 lines = no PR found, stop and report it; 1 line = the number and the state; 2 or more = stop and ask which of that branch's PRs to read the state from.
 
    | prerequisite PR state | `<base>` |
    | --- | --- |

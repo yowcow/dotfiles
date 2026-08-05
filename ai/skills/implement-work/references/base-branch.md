@@ -54,7 +54,7 @@ The base then follows from that state:
 
 `<n>` is the PR number the lookup printed beside the state. The no-trailer row needs no lookup: the absence of a trailer is itself the answer, as **The contract** says.
 
-The last two rows both stop, and they differ in what they put to the person. No PR on the recorded branch leaves the base unknowable, so there is nothing to choose between and the run reports what it found — the same answer `implement-work`'s writer-side table gives an unimplemented prerequisite. Two or more PRs is a genuine choice of which prerequisite is meant, so that one asks.
+The last two rows both stop, and they differ in what they put to the person. No PR on the recorded branch leaves the base unknowable, so there is nothing to choose between and the run reports what it found — the same answer `implement-work`'s writer-side table gives an unimplemented prerequisite. Two or more PRs leaves a genuine choice: the trailer already fixed *which* prerequisite this is, so what is open is which of that one branch's PR records the base should follow. That one asks.
 
 ### Why the state is re-read and the branch is not
 
