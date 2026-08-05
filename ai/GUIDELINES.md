@@ -49,9 +49,13 @@ The same holds for a skill you invoke: **when a sub-skill's own procedure ends b
 
 Classify the task first:
 
-- **Change** — the deliverable is a diff: features, refactors, and fixes whose cause is known. Three flows: `plan-work` → `implement-work` → `pr-to-ready`.
-- **Investigation** — the deliverable is findings, not a diff: diagnosing an observed problem such as a performance shortfall, a failure or incident, an unexplained metric or cost change, or a bug whose cause is unknown. Phases: Explore → Validate → Synthesize.
-- **A named deliverable** — the request names what one skill produces: a review's findings, a simplified diff, a plan, a PR taken to ready. That naming settles the classification, even where running the skill produces a diff: run it directly, with no flow wrapped around it.
+| Deliverable | Classification | Entry |
+| --- | --- | --- |
+| a diff — features, refactors, and fixes whose cause is known | **Change** | `plan-work` → `implement-work` → `pr-to-ready` |
+| findings, not a diff — diagnosing an observed problem such as a performance shortfall, a failure or incident, an unexplained metric or cost change, or a bug whose cause is unknown | **Investigation** | Explore → Validate → Synthesize |
+| what one skill produces — a review's findings, a simplified diff, a plan, a PR taken to ready | **A named deliverable** | that skill, run directly with no flow wrapped around it |
+
+A named deliverable settles the classification, even where running the skill produces a diff.
 
 Change and Investigation both begin with **Understand**. A bug whose cause is unknown is an investigation first; the fix enters the Change workflow only through the transition below. General research (library comparisons, "how does X work") is none of these — answer it directly, with `superpowers:brainstorming` when it is design-shaped.
 
