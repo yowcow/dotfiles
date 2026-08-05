@@ -1,6 +1,6 @@
 ---
 name: plan-work
-description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue <n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
+description: Use to turn an issue, a planning request, or an investigation's findings into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue <n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
 ---
 
 # Plan Work
@@ -103,7 +103,7 @@ Publishing and splitting interleave, because each needs something from the other
 
 ## Pass
 
-1. Resolve **Entry**: an issue number, a planning request with no tracking issue, or a design invalidated downstream. The third enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
+1. Resolve **Entry**: an issue number, a planning request with no tracking issue, investigation findings, or a design invalidated downstream. The last enters at step 3 rather than step 2 — the design is what needs re-approval, and the research behind it already ran the first time through.
 2. Research: read the issue (if any) and the relevant code before asking anything or proposing a design.
 3. Reach design agreement per **Design agreement**.
 4. Draft the design write-up and the numbered TODO list yourself, against **Output contract**.
@@ -121,7 +121,7 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Report
 
-- the entry: issue number, the chat request when no issue tracks the work, or a design invalidated downstream — for the third, name the finding that invalidated it and the branch it came back with
+- the entry: issue number, the chat request when no issue tracks the work, investigation findings, or a design invalidated downstream — for the findings entry, name the investigation's report; for the last, name the finding that invalidated it and the branch it came back with
 - where the result was published — the comment URL, or "posted in chat"
 - the number of `review-plan` rounds run, and the verdict of the final one
 - accepted findings folded in, and rejected findings with the reason
