@@ -1,6 +1,6 @@
 ---
 name: implement-work
-description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a pushed branch of verified commits, with no PR opened on it. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
+description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a pushed branch of verified commits. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
 ---
 
 # Implement Work
@@ -94,7 +94,7 @@ Test the first two by **count**: both come back as `{nodes, totalCount}`. Test t
 | --- | --- |
 | `blockedBy.totalCount` is 0 | the default branch |
 | the prerequisite's PR is `MERGED` | the default branch — fetch first, so that merge is actually in what you branch from |
-| the prerequisite's PR is `OPEN` | that PR's `headRefName` |
+| the prerequisite's PR is `OPEN` | that PR's `headRefName` — fetch it first, so the prerequisite's commits are actually in what you branch from; the local ref may be missing or stale |
 | the prerequisite's PR is `CLOSED` without merging | **stop.** That work was abandoned, so stacking on it would carry rejected commits forward |
 | the prerequisite has no PR at all | **stop.** It isn't implemented yet, so this task cannot start; report that |
 | more than one prerequisite, or more than one PR reference | **stop and ask.** A branch takes exactly one base, so this is a human call |
@@ -163,7 +163,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
 
 ## Hand off
 
-The deliverable is a **pushed** branch of verified commits with no PR on it — exactly what `pr-to-ready` takes as its entry. Once the completion gate takes its normal exit, push it, unconditionally:
+The deliverable is a **pushed** branch of verified commits — exactly what `pr-to-ready` takes as its entry. Once the completion gate takes its normal exit, push it, unconditionally:
 
 ```bash
 git push -u origin <branch>
@@ -198,4 +198,4 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 
 Per the guidelines' **Escalation**: a Critical finding that invalidates the agreed design goes back to `plan-work` for re-approval, and this skill is no exception — not in the plan gate, and not in the completion gate.
 
-What this flow hands over is the branch: its name, and whether it is pushed. `plan-work`'s **Entry** says what it does with that. Where the finding surfaced in the completion gate, the branch already carries the round's commits, since the gate commits before taking either exit.
+What this flow hands over is the branch: its name, whether it is pushed, and any PR open on it — this skill never opens one, but the reuse path at **Entry** rung 2 can arrive on a branch that already has one. `plan-work`'s **Entry** says what it does with that. Where the finding surfaced in the completion gate, the branch already carries the round's commits, since the gate commits before taking either exit.
