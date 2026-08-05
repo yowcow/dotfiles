@@ -208,11 +208,11 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 ### 2-1. Request the reviewers
 
-- **Claude**: check for an `@claude` trigger in the repo's workflows.
+- **Claude**: availability *is* the presence of an `@claude` workflow, which the watch script below already determines — so take its exit status as the availability test rather than searching the workflows yourself:
   ```bash
-  grep -rl '@claude' .github/workflows/ 2>/dev/null || true
+  <skill-dir>/scripts/watch-claude-review.sh <branch>   # 0 = available, its recent runs printed as JSON; 3 = no @claude workflow, so skip Claude; other = the gh call failed — stop and inspect
   ```
-  If found, post a request comment. Write it in **standard Japanese** with a short "特に見てほしいポイント" list; on a re-request after a new push, include the current HEAD SHA so the review targets the latest state:
+  When it is available, post a request comment. Write it in **standard Japanese** with a short "特に見てほしいポイント" list; on a re-request after a new push, include the current HEAD SHA so the review targets the latest state:
   ```bash
   gh pr comment <PR> --body "@claude このPRのレビューをお願いします🙏
 
@@ -220,26 +220,26 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: try the reviewer flag, then fall back to the REST endpoint (the bot IS reachable):
+- **Copilot**: request it through the script, which asks both ways and then confirms the request actually took:
   ```bash
-  gh pr edit <PR> --add-reviewer "@copilot"                     # first choice
-  gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-    -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
+  <skill-dir>/scripts/request-copilot-review.sh <owner> <repo> <PR>   # 0 = requested; 3 = unavailable here, so skip Copilot; 4 = the reviewers couldn't be read — stop; other = a gh call failed — stop
   ```
-  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`.** Read back who is actually requested after each attempt, over REST (not `gh pr view --json reviewRequests`, which omits bots), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
+  **Only exit 3 licenses treating Copilot as unavailable.** Failing to *read* who is requested is not the same as nobody being requested, which is why 4 stops the run instead of reporting unavailable. Why the request has to be asked twice and read back rather than judged on a status: `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 
 - **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
   ```bash
-  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; non-zero = no @claude workflow, or the gh call failed — stop and inspect
+  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; 3 = no @claude workflow; other = the gh call failed — stop and inspect
   <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded; non-zero = it did not, or the gh call failed
   ```
   Then fetch the new comments it left.
-- **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
+- **Copilot**: poll for a review this run hasn't handled yet — one whose review `id` is absent from the ids you collected in earlier rounds:
+  ```bash
+  <skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>   # 0 = Copilot's reviews printed as JSON, one per line (empty = none yet); other = the gh call failed — stop and inspect
+  ```
+  The script identifies the reviewer **by author login**; never attribute a review by timestamp. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
-
-**Login variance**: match a substring of the author login — Copilot appears as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude` — and never attribute by timestamp alone.
 
 ### 2-3. Evaluate and address feedback
 
