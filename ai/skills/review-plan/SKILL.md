@@ -1,6 +1,6 @@
 ---
 name: review-plan
-description: Use to review planning work itself, before implementation starts or on a revision — either a TODO list breaking work into PR-sized items (from `plan-work`), or the detailed implementation plan for one PR (from `implement-work`). Reviews whether the work is warranted at all, and where the plan has gaps, contradictions, unverified assumptions, or mismatches with the repository's actual state. One invocation is one review pass; it never edits what it reviewed.
+description: Use to review planning work itself, before implementation starts or on a revision — either a TODO list breaking work into PR-sized items, or the detailed implementation plan for one PR. Reports findings; it never edits what it reviewed. Triggers on "review this plan", "review the TODO list", "is this plan ready to implement".
 ---
 
 # Review Plan

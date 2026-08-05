@@ -1,6 +1,6 @@
 ---
 name: simplify-code
-description: Use after implementation and before code review or PR creation to simplify recently modified code while preserving behavior. Applies project standards, improves clarity and maintainability, avoids clever rewrites, and verifies the result. Triggers on "simplify this", "clean up the diff", "run a code-simplifier pass", "tidy this up before review".
+description: Use after implementation and before code review or PR creation to simplify recently modified code while preserving behavior. Triggers on "simplify this", "clean up the diff", "run a code-simplifier pass", "tidy this up before review".
 ---
 
 # Simplify Code
