@@ -31,7 +31,14 @@ OWNER="$1"
 REPO="$2"
 PR="$3"
 
+# The login falls back to "" rather than being indexed directly: this surface is
+# GraphQL, where a review left by a since-deleted account comes back with
+# author: null, and `null | ascii_downcase` aborts the whole filter. One such
+# review anywhere on the PR would otherwise take this script down with it, and
+# the caller would read that as "the gh call failed" while Copilot's review sat
+# right there. (The REST reviewer list read by request-copilot-review.sh has no
+# equivalent shape, so it needs no such fallback.)
 gh pr view "$PR" --repo "$OWNER/$REPO" --json reviews \
   --jq '.reviews[]
-        | select(.author.login | ascii_downcase | contains("copilot"))
-        | {id, author: .author.login, state, submittedAt}'
+        | select((.author.login // "") | ascii_downcase | contains("copilot"))
+        | {id, author: (.author.login // ""), state, submittedAt}'

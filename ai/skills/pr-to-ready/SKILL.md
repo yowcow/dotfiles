@@ -220,7 +220,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: request it through the script, which asks both ways and then confirms the request actually took:
+- **Copilot**: first record the baseline 2-2 waits against — run `<skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>` and keep the `id`s it prints, **before** requesting anything. Taken afterwards it could already include the review being waited for. Then request through the script, which asks both ways and then confirms the request actually took:
   ```bash
   <skill-dir>/scripts/request-copilot-review.sh <owner> <repo> <PR>   # 0 = requested; 3 = unavailable here, so skip Copilot; 4 = the reviewers couldn't be read — stop; any other status — stop
   ```
@@ -234,10 +234,11 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded; non-zero = it did not, or the gh call failed
   ```
   Then fetch the new comments it left.
-- **Copilot**: poll for a review this run hasn't handled yet — one whose review `id` is absent from the ids you collected in earlier rounds:
+- **Copilot**: wait for a review of *this* push — an `id` the baseline 2-1 recorded didn't carry:
   ```bash
   <skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>   # 0 = Copilot's reviews printed as JSON, one per line (empty = none yet); other = the gh call failed — stop and inspect
   ```
+  **"An id I haven't handled yet" is not the test.** A PR that already carried a Copilot review when this run started satisfies that on the first round immediately, so the loop would judge an older diff's feedback and reach *clean* with no reviewer having seen this push.
   The script identifies the reviewer **by author login**; never attribute a review by timestamp. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
 
