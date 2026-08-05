@@ -58,7 +58,7 @@ gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, no
 
 Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
+Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. That trailer's contract, and the reasons behind every test below, belong to `implement-work` — the skill that writes it. The commands and their result tests stay here, so this step needs nothing from there. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
 git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
@@ -254,7 +254,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 1. For each `accept`, fix the code where a change is warranted, per *Making fixes* above.
 2. commit → push
-3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect.** **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
+3. Reply to each thread over `gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`, including `reject` threads — explain the pushback. **Standard Japanese only — never Kansai dialect.** **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow.
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
