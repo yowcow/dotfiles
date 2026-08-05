@@ -94,7 +94,7 @@ Test the first two by **count**: both come back as `{nodes, totalCount}`. Test t
 | --- | --- |
 | `blockedBy.totalCount` is 0 | the default branch |
 | the prerequisite's PR is `MERGED` | the default branch — fetch first, so that merge is actually in what you branch from |
-| the prerequisite's PR is `OPEN` | that PR's `headRefName` |
+| the prerequisite's PR is `OPEN` | that PR's `headRefName` — fetch it first, so the prerequisite's commits are actually in what you branch from; the local ref may be missing or stale |
 | the prerequisite's PR is `CLOSED` without merging | **stop.** That work was abandoned, so stacking on it would carry rejected commits forward |
 | the prerequisite has no PR at all | **stop.** It isn't implemented yet, so this task cannot start; report that |
 | more than one prerequisite, or more than one PR reference | **stop and ask.** A branch takes exactly one base, so this is a human call |
