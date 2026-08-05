@@ -28,6 +28,37 @@ One PR-sized task:
 
 Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. Don't split it here — splitting is a design decision.
 
+### Binding `<branch>`
+
+**Isolation** below reads `<branch>` as already known, so bind it to one concrete name here, before that ladder runs. Take the first rung that applies:
+
+1. **The caller named one** — a user invoking this skill directly, or a hand-off that carries a name.
+2. **The task carries one** — an item that came back from `plan-work` with its design invalidated names its branch in the sub-issue body, per that skill's **Output contract**. No other entry carries one.
+3. **Neither** — derive a new name: `<issue-number>-<slug>` where an issue backs the task, `<slug>` where none does. `<slug>` is a short kebab-case description of the change.
+
+Then resolve that name against the branches that already exist — **once, and only for a name from rung 3**:
+
+- **A name from rung 1 or 2 is already the answer: don't search, use it verbatim.** `plan-work`'s discard convention gives a **new** name to an item whose old branch is to be abandoned. Searching by issue number there would turn up that abandoned branch and hand it to the ladder, which reuses whatever it finds — resuming on top of the very commits the invalidated design produced, which is the failure that convention exists to prevent.
+- **A rung-3 name with no issue behind it isn't searched either** — there is no number to build a prefix from.
+- **A rung-3 name with an issue behind it gets one search**, by the `<issue-number>-` prefix, local and remote alike:
+
+```bash
+git branch --list '<n>-*' --format='%(refname:short)'   # names on stdout; empty output = no match
+git ls-remote --exit-code --heads origin '<n>-*'        # 0 = matches on stdout, 2 = none, any other non-zero = failure, stop
+```
+
+Test the first by **output emptiness, not exit status**, for the reason step 2 of the ladder gives. `git ls-remote` prints the sha and `refs/heads/<name>` separated by a tab, so strip the `refs/heads/` prefix from what follows the tab — what is left is the bare name the local list already prints, and only bare names compare. It needs no fetch, which is why the search sits here rather than inside the ladder — a prefix cannot be fetched. The pattern matches the last path component in full, so `94-*` finds `94-foo` and not `worktree-94-foo`: a branch whose name merely contains the number is not a match.
+
+Count **distinct branch names across both** — one that exists locally and on the remote is a single candidate, not two:
+
+| Matches | What `<branch>` becomes |
+| --- | --- |
+| 0 | the name just derived |
+| exactly 1 | that branch — this is a resumed session, and the ladder below attaches to it |
+| 2 or more | **stop and ask.** Which line of work to carry on is a human call |
+
+Whatever creates the workspace has to put it on this exact name. A tool that decorates the name it is handed — prefixing its own worktree branches, say — leaves a branch this search cannot find, so the next session derives a fresh name and opens a second branch for the same task.
+
 ## Isolation
 
 Establish this **before drafting the plan**: the plan file has to live inside the workspace the execution method will read it from, and a workspace created afterwards would not contain it — a new working tree gets the tracked content, not ignored scratch files.
