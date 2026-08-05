@@ -58,7 +58,7 @@ gh pr list --head <branch> --json number,isDraft   # non-empty = a PR exists, no
 
 Test it by **output and exit status together**: exit 0 with `[]` is the only thing that means "no PR", and a non-zero exit is "couldn't tell" rather than "none" — stop on it.
 
-Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. The contract, and the reasons behind every test below, are in `<skills-dir>/implement-work/references/base-branch.md` — `<skills-dir>` being the runtime's skills directory, where this skill and `implement-work` sit as siblings. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
+Create only when the list comes back empty. The base comes from the branch itself: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts the branch, and this step reads that back. That trailer's contract, and the reasons behind every test below, belong to `implement-work` — the skill that writes it. The commands and their result tests stay here, so this step needs nothing from there. The scan runs **from the branch tip backwards and takes the first one found** — the tip being `FETCH_HEAD`, not this checkout's `HEAD`:
 
 ```bash
 git fetch --quiet origin <branch>                                              # 0 = fetched; non-zero = stop
@@ -208,11 +208,11 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 ### 2-1. Request the reviewers
 
-- **Claude**: check for an `@claude` trigger in the repo's workflows.
+- **Claude**: availability *is* the presence of an `@claude` workflow, which the watch script below already determines — so take its exit status as the availability test rather than searching the workflows yourself:
   ```bash
-  grep -rl '@claude' .github/workflows/ 2>/dev/null || true
+  <skill-dir>/scripts/watch-claude-review.sh <branch>   # 0 = available, its recent runs printed as JSON; 3 = no @claude workflow, so skip Claude; other = the gh call failed — stop and inspect
   ```
-  If found, post a request comment. Write it in **standard Japanese** with a short "特に見てほしいポイント" list; on a re-request after a new push, include the current HEAD SHA so the review targets the latest state:
+  When it is available, post a request comment. Write it in **standard Japanese** with a short "特に見てほしいポイント" list; on a re-request after a new push, include the current HEAD SHA so the review targets the latest state:
   ```bash
   gh pr comment <PR> --body "@claude このPRのレビューをお願いします🙏
 
@@ -220,26 +220,27 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
   - <観点1>
   - <観点2>"
   ```
-- **Copilot**: try the reviewer flag, then fall back to the REST endpoint (the bot IS reachable):
+- **Copilot**: first record the baseline 2-2 waits against — run `<skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>` and keep the `id`s it prints, **before** requesting anything. Taken afterwards it could already include the review being waited for. Then request through the script, which asks both ways and then confirms the request actually took:
   ```bash
-  gh pr edit <PR> --add-reviewer "@copilot"                     # first choice
-  gh api --method POST "repos/<owner>/<repo>/pulls/<PR>/requested_reviewers" \
-    -f "reviewers[]=copilot-pull-request-reviewer[bot]"         # only when the readback shows the flag didn't take
+  <skill-dir>/scripts/request-copilot-review.sh <owner> <repo> <PR>   # 0 = requested; 3 = unavailable here, so skip Copilot; 4 = the reviewers couldn't be read — stop; any other status — stop
   ```
-  These are alternatives, not a sequence. **Don't judge either by its exit status, and don't chain them with `||`.** Read back who is actually requested after each attempt, over REST (not `gh pr view --json reviewRequests`, which omits bots), and run the REST form only when the flag didn't take. Treat Copilot as unavailable only when it is still absent after the REST form; failing to *read* the reviewers stops the run instead. Why each of these is the only test that works: `<skill-dir>/references/gh-mechanics.md`.
+  Why the request has to be asked twice and read back rather than judged on a status — and why a readback that fails stops the run instead of reporting Copilot unavailable — is in `<skill-dir>/references/gh-mechanics.md`.
 
 ### 2-2. Wait for the review (bound the wait)
 
-- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it:
+- **Claude**: only do this if 2-1 found an `@claude` workflow and posted a request comment. Tie completion to the workflow run, don't guess from comment counts — list the runs, match one to your own push by `headSha`, then block on it. `<run-id>` is that run's **`databaseId`**, the id field the listing carries:
   ```bash
-  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; non-zero = no @claude workflow, or the gh call failed — stop and inspect
+  <skill-dir>/scripts/watch-claude-review.sh <branch>            # 0 = runs printed as JSON; 3 = no @claude workflow; other = the gh call failed — stop and inspect
   <skill-dir>/scripts/watch-claude-review.sh <branch> <run-id>   # blocks; 0 = the run succeeded; non-zero = it did not, or the gh call failed
   ```
   Then fetch the new comments it left.
-- **Copilot**: poll `gh pr view <PR> --json reviews` and **filter by author login** (see the login-variance note below) — wait for a *new* Copilot review submitted after your latest push. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
+- **Copilot**: wait for a review of *this* push — an `id` the baseline 2-1 recorded didn't carry:
+  ```bash
+  <skill-dir>/scripts/list-copilot-reviews.sh <owner> <repo> <PR>   # 0 = Copilot's reviews printed as JSON, one per line (empty = none yet); other = the gh call failed — stop and inspect
+  ```
+  The `id`s are the right criterion; **the baseline is what they must be compared against, not your own handling history.** An id you merely haven't handled yet also matches a review that predates this run, so a PR that already carried a Copilot review satisfies that on the first round immediately — and the loop would judge an older diff's feedback and reach *clean* with no reviewer having seen this push.
+  The script identifies the reviewer **by author login**; never attribute a review by timestamp. **Do not wait for `APPROVED`**: Copilot commonly only ever returns `COMMENTED`, so `APPROVED` may never arrive.
 - **Always bound the poll** with an iteration cap + explicit bail-out (e.g. cap ~10–30 min). On timeout, stop and tell the user rather than looping forever.
-
-**Login variance**: match a substring of the author login — Copilot appears as `Copilot` and as `copilot-pull-request-reviewer[bot]`, Claude as lowercase `claude` — and never attribute by timestamp alone.
 
 ### 2-3. Evaluate and address feedback
 
@@ -254,7 +255,7 @@ This step confirms the PR body already follows the shared AI guidelines' **Git &
 
 1. For each `accept`, fix the code where a change is warranted, per *Making fixes* above.
 2. commit → push
-3. Reply to each thread (including `reject` threads — explain the pushback). **Standard Japanese only — never Kansai dialect.** **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow. For the reply mechanism see the "GitHub Thread Replies" section of receiving-code-review (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`).
+3. Reply to each thread over `gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`, including `reject` threads — explain the pushback. **Standard Japanese only — never Kansai dialect.** **Never put `@claude` in a reply or closing comment** — it re-triggers the review workflow.
 4. Resolve the threads — batch all threads from this round in one call (script below takes multiple comment IDs).
 5. Go back to 2-1 and re-request both reviewers.
 
