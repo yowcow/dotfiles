@@ -1,6 +1,6 @@
 ---
 name: pr-to-ready
-description: Use to take verified commits to a reviewed PR — this skill opens the draft PR when none exists yet, then watches CI, investigates/fixes/re-pushes on failure, requests review from BOTH Claude and Copilot, addresses feedback, replies, resolves threads, and re-reviews until clean, then flips draft → ready if the user opted in at the start. Triggers on "implementation is done, take it to a PR", "open the draft PR and drive it", "what next after opening the PR", "CI is failing", "run the review loop", "take it out of draft", "handle the review feedback".
+description: Use to take a branch of verified commits — with or without a PR on it yet — to a PR whose CI passes and whose review is clean, left at ready or draft. Triggers on "implementation is done, take it to a PR", "open the draft PR and drive it", "what next after opening the PR", "CI is failing", "run the review loop", "take it out of draft", "handle the review feedback".
 ---
 
 # pr-to-ready

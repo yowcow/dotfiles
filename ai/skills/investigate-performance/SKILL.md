@@ -1,6 +1,6 @@
 ---
 name: investigate-performance
-description: Use when diagnosing an observed performance shortfall — a slow endpoint, job, or query, a latency/throughput regression, or CPU/memory growth — to root-cause it with measurements before any fix is proposed. Establishes a baseline and reproduction, profiles layer by layer (system → runtime → application → query/IO), and produces a findings report. Triggers on "why is this slow", "latency spiked", "perf regression", "high CPU", "memory keeps growing", "find the bottleneck".
+description: Use when diagnosing an observed performance shortfall — a slow endpoint, job, or query, a latency/throughput regression, or CPU/memory growth — to root-cause it with measurements before any fix is proposed. Produces a findings report, not a fix. Triggers on "why is this slow", "latency spiked", "perf regression", "high CPU", "memory keeps growing", "find the bottleneck".
 ---
 
 # Investigate Performance

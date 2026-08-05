@@ -1,6 +1,6 @@
 ---
 name: implement-work
-description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a pushed branch of verified commits. Establishes the isolated workspace and a verified baseline, drafts the detailed plan for that one PR and reviews it to convergence, declares and runs the execution method, then runs the completion gate and pushes the branch. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
+description: Use to take one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size — all the way to a pushed branch of verified commits, with no PR opened on it. Triggers on "implement this sub-issue", "start implementing", "work through this task", "run the completion gate", "take this to a branch".
 ---
 
 # Implement Work

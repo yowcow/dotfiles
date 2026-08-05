@@ -1,6 +1,6 @@
 ---
 name: plan-work
-description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Researches the issue and the relevant code, reaches design agreement with `superpowers:brainstorming`, drafts the TODO list itself, runs the `review-plan` loop to convergence, publishes once — as a comment on the tracking issue with one sub-issue per TODO item, or in chat when no issue tracks the work. Triggers on "plan this", "plan issue #<n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
+description: Use to turn an issue or a planning request into an agreed design and a numbered TODO list at PR granularity, before any code is touched. Triggers on "plan this", "plan issue #<n>", "turn this into a plan", "break this into PRs", "brainstorm and plan this".
 ---
 
 # Plan Work

@@ -1,6 +1,6 @@
 ---
 name: investigate-anomaly
-description: Use when root-causing an observed anomaly — production errors, an outage, a crashed job, an error-rate spike, unexplained cost or resource growth, or a metric drifting the wrong way — before any fix is proposed. Frames vague concerns into measurable symptoms, preserves evidence, reconstructs the timeline, correlates logs and metrics with changes (deploys, config, data, expiries), tests hypotheses against evidence, and produces a blameless findings report. Triggers on "why did this break", "root-cause this incident", "errors spiked", "costs keep growing", "this metric looks wrong", "what happened last night", "write the postmortem".
+description: Use when root-causing an observed anomaly — production errors, an outage, a crashed job, an error-rate spike, unexplained cost or resource growth, or a metric drifting the wrong way — before any fix is proposed. Produces a blameless findings report, not a fix. Triggers on "why did this break", "root-cause this incident", "errors spiked", "costs keep growing", "this metric looks wrong", "what happened last night", "write the postmortem".
 ---
 
 # Investigate Anomaly
