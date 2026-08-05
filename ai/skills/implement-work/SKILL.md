@@ -106,9 +106,11 @@ Two judgements stay here: delegation only pays when a task is big enough to cove
 
 ## Completion gate
 
-Add only what the execution method left undone. A round is one pass of steps 1-4, and this loop stops per the guidelines' **Loop convergence** — step 5 orders those conditions against this gate's own. A finding is the same one when step 2 or step 3 brings back the same claim about the same location a previous round already tried to resolve.
+Add only what the execution method left undone. A round is one pass of steps 1-4, and this loop stops per the guidelines' **Loop convergence** — step 5 orders those conditions against this gate's own. A finding is the same one when a later round brings back what a previous round already tried to resolve: the same claim about the same location, or the same unmet completion criterion.
 
-1. **Verify** — `superpowers:verification-before-completion`.
+1. **Verify** — `superpowers:verification-before-completion`. Its requirements checklist reads **the task's own entry artifact**, not the detailed plan: a sub-issue's purpose, scope boundary, and completion criteria; an issue's own comment; or the request itself where no issue tracks the work. The plan is a transcription of that artifact, so checking against it confirms only the transcription — and on the guidelines' small-change lane there is no plan to check against at all.
+   - **The scope boundary is part of that source, not commentary on it.** What it excludes never becomes a checklist row, so an exclusion cannot come back as a gap.
+   - **An unmet criterion routes on one test: does meeting it require touching what the scope boundary excludes?** No → it is this task's work, so implement it in this round. Yes → don't implement it; record it and leave by step 5's first exit. Criteria that contradict each other, or the agreed design, are outside this test — no checklist can be built from them at all — and take the guidelines' **Escalation** by that route, recorded and exited the same way.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
 3. **Review** — skip `review-code` only when the method's own branch-wide review came back **clean**. Run it when any of these holds: findings were left unresolved or parked; no branch-wide review ran at all; or step 2 produced a diff nobody has reviewed. Record the call and its basis in **Report**.
 4. **Commit** the round's work, in the same round that produced it, so the tree is clean before any exit below is taken. A round that changed nothing commits nothing.
@@ -117,10 +119,10 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    - **Account for anything still left, rather than sweeping it in** — work this task produced belongs in the commit; a byproduct of step 1's checks belongs in `.gitignore`, and the byproduct itself is never committed; anything you cannot account for stops the gate and goes to the user, since committing an edit that isn't yours is worse than halting.
    - **Why this precedes the exits** — both of them hand over the branch rather than the worktree. **Hand off** pushes the branch, and a push carries *commits*, so an uncommitted edit never reaches the remote — and it goes down with the worktree whenever that is removed. **Escalation** hands `plan-work` a branch name, and re-approval is judged against what that branch contains, so an edit left uncommitted is simply absent from what the next flow reads.
 5. Take the first of these that applies, in order — they are not independent, since a `review-code` that stopped short of clean still applied and verified its fixes first, so "changed something" and "the inner pass stopped" can both be true at once:
-   - **`review-code` reported a Critical finding that invalidates the agreed design** → stop the gate and return to `plan-work`, per **Escalation**. It can report this on any round, not only when it stopped short of clean, so check for it before the conditions below.
+   - **The agreed design is what has to change** — `review-code` reported a Critical finding that invalidates it, or step 1 recorded a criterion that the scope boundary puts out of reach, or one that contradicts another criterion or the agreed design → stop the gate and return to `plan-work`, per **Escalation**. Any of these can surface on any round, not only when something stopped short of clean, so check for them before the conditions below.
    - **`review-code` stopped short of clean with blocking findings open**, per **Loop convergence** → the whole gate halts here, whatever else changed. Report the open findings and let the user decide. Don't loop back, and don't re-invoke `review-code`.
    - **This gate's own rounds hit one of those non-clean conditions** → stop and hand the decision over the same way. This is the gate as an ordinary loop, rather than as the receiver of `review-code`'s stop, and it is judged before the next condition because a round that changed something is exactly the case these conditions exist to bound — judged after it, the gate would loop instead of stopping.
-   - **Step 2 or step 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
+   - **Step 1, 2 or 3 changed anything** → back to step 1. Verification and simplification have to run against the code as it now stands.
    - **Nothing changed and step 3 came back clean or was correctly skipped** → **Hand off**. This is the loop's only normal exit, and it is *clean* per **Loop convergence**.
 
 ## Hand off
@@ -149,6 +151,7 @@ Don't call `superpowers:finishing-a-development-branch` here, and don't reinstat
 - the `review-plan` rounds run on the detailed plan, and the final verdict
 - whether the completion gate ran `review-code`, and on what basis if it didn't
 - the completion gate's rounds, and the condition it exited on
+- the completion criteria checked against the entry artifact: which were met, and any gap with how it was routed
 - the concrete checks run, and any that couldn't be
 - what changed and why
 - the pushed branch, and `pr-to-ready` named as the next entry
