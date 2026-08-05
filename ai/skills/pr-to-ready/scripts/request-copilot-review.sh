@@ -21,7 +21,9 @@
 #           failure: treat Copilot as unavailable here and skip it
 #       4 = the requested reviewers could not be read. Failing to *read* them is
 #           not the same as none being requested — stop and inspect
-#       other = some other gh call failed — stop and inspect
+#       other = the run was interrupted, or the shell itself failed — stop and
+#           inspect. No gh call reaches this: both attempts have their status
+#           discarded, and a readback that fails is the exit 4 above
 set -euo pipefail
 
 if [ "$#" -ne 3 ]; then
