@@ -96,7 +96,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 ### Stage boundaries
 
 - At each phase transition and gate iteration, write a concise hand-off summary, dropping exploratory dumps and stale tool output while keeping the substance.
-- You own this summary even when your runtime can't compact context on its own — when context is heavy, prompt the user to trigger compaction, since only they can. Never let a summary or compaction relax a gate.
+- You own this summary even when your runtime can't compact context on its own — when context is heavy and only the user can trigger compaction, prompt them to. Never let a summary or compaction relax a gate.
 - A handoff between flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
 - **A loop's intermediate state is orchestrator-facing.** Report each round to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment. Only the converged result reaches the canonical record above.
 
