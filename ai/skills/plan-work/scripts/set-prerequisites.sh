@@ -50,6 +50,11 @@ emit() {
   if [ -n "$1" ]; then printf '%s\n' "$1"; fi
 }
 
+# The same set, on one line, for the messages below.
+oneline() {
+  emit "$1" | tr '\n' ' '
+}
+
 # Sorted lexically, not numerically: comm below compares its inputs lexically and
 # silently produces the wrong difference when handed numerically-sorted lines
 # (`9` before `12`). Both sides use the same order so the sets and the final
@@ -82,10 +87,10 @@ fi
 
 FINAL=$(read_blocked_by)
 if [ "$FINAL" != "$DESIRED" ]; then
-  echo "error: #$CHILD is blocked by [$(emit "$FINAL" | tr '\n' ' ')]," >&2
-  echo "       intended [$(emit "$DESIRED" | tr '\n' ' ')]" >&2
+  echo "error: #$CHILD is blocked by [$(oneline "$FINAL")]," >&2
+  echo "       intended [$(oneline "$DESIRED")]" >&2
   exit 1
 fi
 
 COUNT=$(emit "$FINAL" | wc -l | tr -d ' ')
-echo "#$CHILD blocked-by count: $COUNT [$(emit "$FINAL" | tr '\n' ' ')]"
+echo "#$CHILD blocked-by count: $COUNT [$(oneline "$FINAL")]"

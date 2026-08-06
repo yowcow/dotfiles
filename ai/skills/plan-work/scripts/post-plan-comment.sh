@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Post plan-work's design comment on an issue and print its **numeric** comment id.
+# Post a comment on an issue from a file and print its **numeric** comment id.
+# plan-work posts two kinds of comment through here: the design comment, and the
+# findings report that precedes it on the investigation-findings entry.
 #
 # The body is only ever read from a file. A plan body is full of backticks and
 # fenced blocks, and passing it as an inline flag string hands all of that to the
@@ -46,8 +48,7 @@ if [ ! -f "$BODY_FILE" ]; then
   exit 1
 fi
 
-RESPONSE=$(jq -Rs '{body: .}' <"$BODY_FILE" \
-  | gh api --method POST "repos/$OWNER/$REPO/issues/$ISSUE/comments" --input -)
-
 # .id is the numeric id; .html_url carries the #issuecomment-<id> fragment.
-printf '%s\n' "$RESPONSE" | jq -r '.id, .html_url'
+jq -Rs '{body: .}' <"$BODY_FILE" \
+  | gh api --method POST "repos/$OWNER/$REPO/issues/$ISSUE/comments" --input - \
+    --jq '.id, .html_url'
