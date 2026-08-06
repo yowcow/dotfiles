@@ -45,6 +45,17 @@ lookup_pr() {
   gh pr list --head "$BRANCH" --json number,isDraft --jq '.[] | "\(.number) \(.isDraft)"'
 }
 
+# Count the lines lookup_pr produced. An empty string has to count as zero:
+# `wc -l` on it would report 1, turning "no PR" into "exactly one PR" and
+# sending the caller down the found-a-PR branch with an empty number.
+count_lines() {
+  if [ -z "$1" ]; then
+    echo 0
+  else
+    printf '%s\n' "$1" | wc -l
+  fi
+}
+
 # --- Step 1: the branch must be on the remote before anything else runs. ---
 
 # Same three-way read as attach-workspace.sh: --exit-code turns "no match"
@@ -85,10 +96,7 @@ if ! LOOKUP="$(lookup_pr)"; then
   exit 0
 fi
 
-LINE_COUNT=0
-if [ -n "$LOOKUP" ]; then
-  LINE_COUNT="$(printf '%s\n' "$LOOKUP" | wc -l)"
-fi
+LINE_COUNT="$(count_lines "$LOOKUP")"
 
 if [ "$LINE_COUNT" -eq 1 ]; then
   read -r NUM DRAFT <<<"$LOOKUP"
@@ -140,10 +148,7 @@ if ! LOOKUP="$(lookup_pr)"; then
   exit 0
 fi
 
-LINE_COUNT=0
-if [ -n "$LOOKUP" ]; then
-  LINE_COUNT="$(printf '%s\n' "$LOOKUP" | wc -l)"
-fi
+LINE_COUNT="$(count_lines "$LOOKUP")"
 
 if [ "$LINE_COUNT" -eq 0 ]; then
   # Not "creation failed" — `gh pr create` may have exited 0 while the

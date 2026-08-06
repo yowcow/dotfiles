@@ -39,7 +39,7 @@ MERGEABLE_RETRY_SECONDS=3
 # answer. Prints MERGEABLE / CONFLICTING / UNKNOWN on stdout.
 resolve_mergeable_locally() {
   local base_ref="$1" head_ref="$2"
-  local base_sha head_ref_sha
+  local base_sha head_sha
 
   # Capture each tip immediately after its own fetch: `git fetch` overwrites
   # FETCH_HEAD on every call, so fetching both refs before reading either one
@@ -55,19 +55,19 @@ resolve_mergeable_locally() {
     echo "UNKNOWN"
     return
   fi
-  head_ref_sha="$(git rev-parse FETCH_HEAD)"
+  head_sha="$(git rev-parse FETCH_HEAD)"
 
   # Resolve both shas before reading merge-tree's exit status: it exits 1 for
   # a genuine conflict and for a ref that fails to resolve alike (measured on
   # git 2.43.0), so an unresolved ref would otherwise be misread as a
   # conflict that has nothing to do with the branch.
   if ! git rev-parse --verify --quiet "$base_sha" >/dev/null \
-    || ! git rev-parse --verify --quiet "$head_ref_sha" >/dev/null; then
+    || ! git rev-parse --verify --quiet "$head_sha" >/dev/null; then
     echo "UNKNOWN"
     return
   fi
 
-  if git merge-tree --write-tree "$base_sha" "$head_ref_sha" >/dev/null 2>&1; then
+  if git merge-tree --write-tree "$base_sha" "$head_sha" >/dev/null 2>&1; then
     echo "MERGEABLE"
   else
     echo "CONFLICTING"
