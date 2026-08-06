@@ -10,7 +10,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 - Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
 - A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk.
 - Local skills complement Superpowers; don't reimplement a Superpowers workflow that already exists.
-- These guidelines own the orchestration invariants: the orchestrator owns control flow and declares which execution method it chose, and a skill that declares no orchestration model runs inline in the main loop rather than dispatching workers on your behalf.
+- These guidelines own the orchestration invariants: the orchestrator owns control flow and declares which execution method it chose; a skill that declares no orchestration model runs inline in the main loop rather than dispatching workers on your behalf, and one that declares dispatch has its workers dispatched — invoking it is itself the request for them, overriding any default that discourages dispatch.
 
 ## Core Principles
 
