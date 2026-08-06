@@ -7,7 +7,7 @@ description: Use to take one PR-sized task — a sub-issue, an issue that fits a
 
 Use once the design is agreed and the work has been cut to one PR's worth. There is no plan yet — drafting and reviewing the detailed plan for this one PR happens here, first.
 
-**The procedure lives in the skills this one calls.** What this skill owns is the wiring: which skill runs when, what each hand-off carries, and where the gates sit. It does not restate model selection, worker dispatch, review loops, progress tracking, or TDD mechanics — those belong to the skills that own them, and duplicating them here means maintaining them twice.
+**The procedure lives in the skills this one calls.** What this skill owns is the wiring: which skill runs when, what each hand-off carries, and where the gates sit.
 
 This skill holds two gates: one on the detailed plan, before any code, and the completion gate at the end. It does not own the PR-side loop — once a branch is handed off, `pr-to-ready` runs its own completion path, and neither gate here is re-entered from there.
 
@@ -49,7 +49,7 @@ Establish this **before drafting the plan**: the plan file has to live inside th
 
 Use `superpowers:using-git-worktrees`, then set the project up and establish a verified baseline there.
 
-The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and why the scripts below test what they test the way they do all live in `<skill-dir>/references/base-branch.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/implement-work`, `~/.agents/skills/implement-work`).
+The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and how each reader settles a base from the prerequisite's PR state all live in `<skill-dir>/references/base-branch.md` — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/implement-work`, `~/.agents/skills/implement-work`); why the scripts below test what they test the way they do is in each script's own header comment instead.
 
 That skill detects existing isolation from the current directory only, and its creation step assumes the branch is new. So on resumption, look before creating: run `scripts/attach-workspace.sh <branch> <path>` and read its one-line answer.
 
@@ -81,8 +81,6 @@ The guidelines' small-change lane skips this gate outright; what follows is for 
    - **Design invalidated** — a Critical finding that undoes the agreed design → take **Escalation**.
    - **Stalled** — one of the guidelines' **Loop convergence** non-clean stopping conditions fired while a blocking finding that doesn't invalidate the design survives → stop and let the user decide, per that rule. A round is one `review-plan` pass on this plan and the fold-in that follows it; two findings are the same when they fault the same step for the same reason.
 
-Don't restate a quality bar for the plan here. `superpowers:writing-plans` owns what a good plan contains, and `review-plan`'s lenses find where a particular plan falls short.
-
 ## Execution
 
 Choose the method and say which you chose and why — explicitly, never by drift:
@@ -90,8 +88,6 @@ Choose the method and say which you chose and why — explicitly, never by drift
 - **Default** → `superpowers:subagent-driven-development`.
 - **A separate session picking the plan up later** → `superpowers:executing-plans`.
 - **Manual** is the fitting method on the guidelines' small-change lane, and an exception that needs a reason anywhere else. Off that lane, try first to replan the work into tasks that can each be verified on their own; do it yourself only when it genuinely won't split, or when workers aren't available. Name the reason.
-
-This choice is wiring, so it lives here.
 
 Delegate and don't restate: worker dispatch, model selection, the ban on parallel implementers, per-task review, the fix loop, and progress tracking all belong to `superpowers:subagent-driven-development`; TDD to `superpowers:test-driven-development`; parallel workers, for independent fact-finding only, to `superpowers:dispatching-parallel-agents`.
 
@@ -108,7 +104,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    - **An unmet criterion routes on one test: does meeting it require touching what the scope boundary excludes?** No → it is this task's work, so implement it in this round. Yes → don't implement it; record it and leave by step 5's first exit. Criteria that contradict each other, or the agreed design, are outside this test — no checklist can be built from them at all — and take the guidelines' **Escalation** by that route, recorded and exited the same way.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
 3. **Review** — run `review-code`. The execution method's own branch-wide review is no substitute: this gate runs after that method's cleanup has deleted the record of what it covered, so its verdict cannot be checked here.
-4. **Commit** the round's work in the same round that produced it, so the tree is clean before either exit below hands the branch onward — **Hand off** pushes it, and a push carries only commits, while **Escalation** hands `plan-work` a branch name that re-approval judges by what it contains; either way, anything left uncommitted is simply absent from what the next flow reads. Confirm it worked by running `scripts/check-clean.sh` and reading its exit status — the check it wraps returns 0 whether or not anything is pending, so the script judges by what it prints, not by that exit code, and hands the gate a plain 0-clean/non-zero-dirty answer in return; don't leave this step while it reports dirty. A round that changed nothing commits nothing, and anything you can't account for as this round's own work stops the gate and goes to the user rather than being swept in.
+4. **Commit** the round's work in the same round that produced it, so the tree is clean before either exit below hands the branch onward — **Hand off** pushes it, and a push carries only commits, while **Escalation** hands `plan-work` a branch name that re-approval judges by what it contains; either way, anything left uncommitted is simply absent from what the next flow reads. Confirm it worked by running `scripts/check-clean.sh` and reading its exit status — the check it wraps returns 0 whether or not anything is pending, so the script judges by what it prints, not by that exit code, and hands the gate a plain 0-clean/non-zero-dirty answer in return; don't leave this step while it reports dirty. A byproduct of step 1's checks belongs in `.gitignore`; the byproduct itself is never committed. A round that changed nothing commits nothing, and anything you can't account for as this round's own work stops the gate and goes to the user rather than being swept in.
 5. Take the first row that applies:
 
    | # | Condition | Where it goes |
