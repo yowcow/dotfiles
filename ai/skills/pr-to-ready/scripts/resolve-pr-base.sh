@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
-# Resolve what `gh pr create --base` should be for a task branch, by reading
-# its Base-Branch trailer and re-checking the prerequisite PR's *current*
-# state — never by testing whether the prerequisite's branch still exists.
+# Resolve which branch a task branch should sit on, by reading its
+# Base-Branch trailer and re-checking the prerequisite PR's *current* state —
+# never by testing whether the prerequisite's branch still exists.
+#
+# This always prints a concrete branch name, even where the cited table says
+# to omit `--base` — Step 1's base settlement compares this answer against the
+# base the PR currently points at, and has nothing to compare against if the
+# no-trailer case answers with an absence. Naming the default branch there
+# selects exactly what omitting the flag would have.
+#
 # A merged prerequisite's branch commonly survives (branch deletion is a
 # person's separate step), so a plain existence test would read a long-since
 # merged prerequisite as "still in flight" and hand back its branch as
@@ -10,6 +17,7 @@
 # ../../implement-work/references/base-branch.md, "## Reading the trailer
 # back" and "### Why the state is re-read and the branch is not" — this
 # script implements that table's `pr-to-ready`'s `--base` column.
+#
 # Usage: resolve-pr-base.sh <branch>
 set -euo pipefail
 
@@ -53,7 +61,13 @@ fi
 # itself failed — two causes that must not collapse to the same answer. Scan
 # newest-first (git log's default order) since a trailer on a later commit
 # shadows an earlier one in the same stack.
-TRAILER_LOG="$(git log FETCH_HEAD --format='%(trailers:key=Base-Branch,valueonly,unfold)')"
+# The read is guarded as well as captured: under `set -e` a failing `git log`
+# inside a bare command substitution would kill the script outright, and the
+# caller would get a non-zero exit with nothing on stdout instead of a STOP.
+if ! TRAILER_LOG="$(git log FETCH_HEAD --format='%(trailers:key=Base-Branch,valueonly,unfold)')"; then
+  echo "STOP trailer-read-failed"
+  exit 0
+fi
 
 RECORDED=""
 while IFS= read -r line; do

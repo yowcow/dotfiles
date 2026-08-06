@@ -34,7 +34,7 @@ Ask the user: once CI is green and review is clean, should this run mark the PR 
 Before watching CI, settle whether the base is still the right one — the prerequisite's state can have moved since Step 0.
 
 1. Re-resolve it: `<skill-dir>/scripts/resolve-pr-base.sh <branch>` → `BASE <name>` or `STOP <slug>`. Same lookup 0-1 used, read again.
-2. Check the PR against that answer: `<skill-dir>/scripts/check-pr-state.sh <owner> <repo> <pr-number> <base>` → `BASE-OK|BASE-DRIFT <base> MERGEABLE|CONFLICTING|UNKNOWN`, or `STOP <slug>`. Read-only — it measures and never fixes.
+2. Check the PR against that answer: `<skill-dir>/scripts/check-pr-state.sh <owner> <repo> <pr-number> <base>` → `BASE-OK|BASE-DRIFT <current-base> MERGEABLE|CONFLICTING|UNKNOWN`, or `STOP <slug>`. The name it prints is the base the PR points at **now**, not the one you passed in — which is what makes `BASE-DRIFT` worth reading. Read-only: it measures and never fixes.
 3. On `BASE-DRIFT`: pull the resolved base in with `<skill-dir>/scripts/retarget-pr.sh <owner> <repo> <pr-number> <branch> <base>` → `BASE-OK <base>` (nothing to do), `RETARGETED <old> <new>` — the merge is pushed, so CI below runs against the new tip rather than the one it already passed on — or `STOP <slug>` on a conflict while merging the new base in.
 4. On `CONFLICTING`, or on an `UNKNOWN` that stands after the script's own bounded re-read: neither is something to fix here — both are the **third terminal state**. Stop, and hand the branch back to a person with what was found; don't attempt a resolution, and don't take an undetermined mergeability for a clean one.
 

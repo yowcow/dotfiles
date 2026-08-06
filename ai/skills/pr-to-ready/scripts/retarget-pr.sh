@@ -80,7 +80,12 @@ if ! git merge --no-edit FETCH_HEAD >&2; then
   # Whatever the cause, abort rather than leaving a half-finished merge in
   # the working tree. No rebase, no force-push, no resolution attempt — see
   # the header comment: that is #111's job, done by a person.
-  git merge --abort
+  #
+  # `|| true` because the merge can fail without leaving one in progress —
+  # unrelated histories, say — and then the abort fails too. Under `set -e`
+  # that would kill the script before the STOP below ever prints, turning a
+  # reportable conflict into a bare non-zero exit.
+  git merge --abort || true
   echo "STOP merge-conflict"
   exit 0
 fi

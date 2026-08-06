@@ -67,11 +67,17 @@ resolve_mergeable_locally() {
     return
   fi
 
-  if git merge-tree --write-tree "$base_sha" "$head_sha" >/dev/null 2>&1; then
-    echo "MERGEABLE"
-  else
-    echo "CONFLICTING"
-  fi
+  # Anything but 0 or 1 is the command failing for a reason of its own — a git
+  # too old for --write-tree, say — and reporting that as CONFLICTING would
+  # send the run to the conflict terminal state over a branch with nothing
+  # wrong with it.
+  local mt_status=0
+  git merge-tree --write-tree "$base_sha" "$head_sha" >/dev/null 2>&1 || mt_status=$?
+  case "$mt_status" in
+    0) echo "MERGEABLE" ;;
+    1) echo "CONFLICTING" ;;
+    *) echo "UNKNOWN" ;;
+  esac
 }
 
 if ! PR_INFO="$(gh pr view "$PR" -R "${OWNER}/${REPO}" \
