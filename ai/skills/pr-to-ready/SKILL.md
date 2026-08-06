@@ -89,6 +89,8 @@ Test it by **exit status and line count together**, printing every match with `.
 | zero lines — no PR on that branch | **stop** and report it |
 | two or more lines | **stop and ask** |
 
+**Call the branch this settles on `<resolved>`** — `<recorded>` on the `OPEN` row, and the default branch on both rows that omit `--base`, resolved by the three rungs above. Omitting `--base` decides only what `gh pr create` is passed; `<resolved>` still names a branch, and 1-1 fetches and compares against it either way.
+
 **On this path those three stop rows stop before the PR is created, not after it.** Deciding any later would leave a draft PR aimed at the wrong base, and clearing that up falls to a person. 1-1 runs this same table again once the PR does exist, where a stop row has a destination of its own — that step names it.
 
 ```bash
@@ -227,7 +229,7 @@ The two prohibitions that follow are **not equally absolute**:
    gh pr view <PR> --json baseRefName --jq '.baseRefName'   # non-zero = couldn't tell, so stop
    gh pr edit <PR> --base <resolved>                        # only when the two differ; non-zero = the retarget failed, so stop and report
    ```
-   Where the table omitted `--base`, compare against the default branch, resolved by the three rungs in 0-1. **Don't skip that result test**: a retarget that silently failed leaves every later step — the merge below, and 1-2's condition 2 — measuring against a base the PR isn't actually on.
+   Compare against `<resolved>`, which 0-1 binds for the omit rows too. **Don't skip that result test**: a retarget that silently failed leaves every later step — the merge below, and 1-2's condition 2 — measuring against a base the PR isn't actually on.
 3. **Take the two tips** per *Reading the two tips*, then ask whether the branch already carries the base:
    ```bash
    git merge-base --is-ancestor <base-tip> <head-tip>   # 0 = already carried, so nothing to do; 1 = not yet, go to 4; 128 = stop
@@ -246,13 +248,13 @@ The two prohibitions that follow are **not equally absolute**:
 #### Reading the two tips
 
 ```bash
-git fetch --quiet origin <base>                            # 0 = fetched; non-zero = stop
+git fetch --quiet origin <resolved>                        # 0 = fetched; non-zero = stop
 base_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
 git fetch --quiet origin <branch>                          # 0 = fetched; non-zero = stop
 head_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
 ```
 
-Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HEAD` for both — the reason is in `<skill-dir>/references/gh-mechanics.md`. Fetch `<branch>` as well as `<base>`, because 0-1's fetch runs only on the creation path: a session that picked up an existing PR may hold no local ref for it.
+Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HEAD` for both — the reason is in `<skill-dir>/references/gh-mechanics.md`. Fetch `<branch>` as well as `<resolved>`, because 0-1's fetch runs only on the creation path: a session that picked up an existing PR may hold no local ref for it.
 
 ### 1-2. Clean
 
@@ -263,7 +265,7 @@ Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HE
    gh pr checks <PR>   # 0 = all passed; 8 = some still pending, so not clean yet; other non-zero = a check failed, or the call did
    ```
    Read the output to tell a failed check from a failed call, since both land outside 0 and 8.
-2. **The PR points at the base the table resolved** — compare `baseRefName`, read as in 1-1, against what **Resolving the base** returned; where the table omitted `--base`, compare against the default branch.
+2. **The PR points at the base the table resolved** — compare `baseRefName`, read as in 1-1, against `<resolved>`.
 3. **Mergeability is not `CONFLICTING`**:
    ```bash
    gh pr view <PR> --json mergeable --jq '.mergeable'   # MERGEABLE / CONFLICTING / UNKNOWN; non-zero exit = stop
