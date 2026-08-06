@@ -91,7 +91,7 @@ When it isn't clean, what to do follows from which condition failed, and every r
 
 1. Clean, per above → Step 3.
 2. **A finding invalidates the agreed design** → stop and take **Escalation**. Check this on every round, before the rest — don't fix it here, and don't carry it into another round.
-3. **Mergeability is conflicting** → the third terminal state, per above.
+3. **Mergeability is anything but `MERGEABLE`** → the third terminal state, per above. `UNKNOWN` belongs here as much as `CONFLICTING` does.
 4. **LGTM-equivalent twice in a row, with the other four conditions true on the HEAD it leaves from** → Step 3. This is the stricter exit the guidelines' **Loop convergence** allows on top of clean, and being stricter it carries every one of clean's other conditions too — a red check, base drift, or a conflict all mean this doesn't hold either.
 5. **A non-clean stopping condition in the guidelines' Loop convergence fires** → stop and hand the user the decision.
 
