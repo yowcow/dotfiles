@@ -45,13 +45,13 @@ resolve_mergeable_locally() {
   # FETCH_HEAD on every call, so fetching both refs before reading either one
   # would compare a branch with itself and report no conflict — a clean
   # answer to a question nobody asked.
-  if ! git fetch origin "$base_ref" >&2; then
+  if ! git fetch origin -- "$base_ref" >&2; then
     echo "UNKNOWN"
     return
   fi
   base_sha="$(git rev-parse FETCH_HEAD)"
 
-  if ! git fetch origin "$head_ref" >&2; then
+  if ! git fetch origin -- "$head_ref" >&2; then
     echo "UNKNOWN"
     return
   fi

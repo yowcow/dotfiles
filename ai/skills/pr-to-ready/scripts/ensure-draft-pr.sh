@@ -63,7 +63,7 @@ count_lines() {
 # a real match, and any other non-zero is a genuine command failure rather
 # than "not found".
 set +e
-git ls-remote --exit-code --heads origin "${BRANCH}" >/dev/null
+git ls-remote --exit-code --heads origin -- "${BRANCH}" >/dev/null
 remote_status=$?
 set -e
 

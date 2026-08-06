@@ -71,7 +71,7 @@ if ! gh pr edit "$PR" -R "${OWNER}/${REPO}" --base "$BASE" >&2; then
   exit 0
 fi
 
-if ! git fetch origin "$BASE" >&2; then
+if ! git fetch origin -- "$BASE" >&2; then
   echo "STOP fetch-failed"
   exit 0
 fi
