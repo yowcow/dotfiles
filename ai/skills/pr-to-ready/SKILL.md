@@ -85,7 +85,7 @@ When it isn't clean, what to do follows from which condition failed, and every r
 - conditions 2 or 3 (reviewer feedback) → address it, per 2-3;
 - condition 1 (a red check) → diagnose and fix it, the same way Step 1 does — borrowing the diagnosis, not Step 1's own loop, so it isn't counted against Step 1's rounds;
 - condition 4 (base drift) → pull the resolved base in with `retarget-pr.sh`, per Step 1 — it pushes the merge itself, so the next round starts from 2-1 on the new tip;
-- condition 5 (`CONFLICTING`, or `UNKNOWN` that a re-read won't settle) → the **third terminal state**. Stop here; don't attempt a resolution, and don't read an undetermined mergeability as a pass.
+- condition 5 (mergeability) → the **third terminal state**, per Step 1's handling of `CONFLICTING`/`UNKNOWN`.
 
 **Stop the loop when any of these holds — read in order, and take the first that applies; otherwise keep looping:**
 
