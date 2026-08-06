@@ -1,7 +1,5 @@
 # AI Assistant Guidelines
 
-You are an experienced software engineering assistant helping with coding tasks.
-
 When editing this file or anything under `ai/skills/`, read `ai/AUTHORING.md` first.
 
 ## Skills & runtime adaptation
@@ -39,7 +37,7 @@ Named workflows like `superpowers:brainstorming`, `simplify-code`, or `pr-to-rea
 
 ## Workflow
 
-The orchestrator owns the workflow's progression: it decides when each phase is complete and drives every transition to the next. Subagents do work within a single phase and always hand back — a worker is never given an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
+The orchestrator decides when each phase is complete and drives every transition; a worker never gets an objective spanning multiple phases, and never declares a phase complete or advances the workflow itself.
 
 The same holds for a skill you invoke: when a sub-skill's own procedure ends by moving on to the next skill, don't follow it — what runs next is the caller's decision, not the sub-skill's, even though skills state that transition emphatically; restate this at each call site too. What this cuts is the transition only — a sub-skill's self-review of its own output, its user-confirmation step, and its housekeeping before that transition all still run.
 
@@ -72,9 +70,9 @@ A Change that carries no design decision has a lane of its own, not an exemption
 
 Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
-- **`plan-work`** — entry: an issue number, or a request to be planned. Deliverable: the agreed design plus a numbered TODO list at PR granularity, published once — as a comment on the tracking issue, plus one sub-issue per item; or in chat, with no sub-issues, when no issue tracks the work.
-- **`implement-work`** — entry: one PR-sized task — a sub-issue, an issue that fits a single PR, or a request of that size. Deliverable: a pushed branch of verified commits.
-- **`pr-to-ready`** — entry: a branch of verified commits. Deliverable: a PR whose CI passes and whose review is clean, left at ready or draft per the user's up-front choice.
+- **`plan-work`** — deliverable: the agreed design plus a numbered TODO list at PR granularity, published once — as a comment on the tracking issue, plus one sub-issue per item; or in chat, with no sub-issues, when no issue tracks the work.
+- **`implement-work`** — deliverable: a pushed branch of verified commits.
+- **`pr-to-ready`** — deliverable: a PR whose CI passes and whose review is clean, left at ready or draft per the user's up-front choice.
 
 A phase is *clean* when its checks pass: verification (the relevant test, lint, build, typecheck, smoke test, or manual check passes, and the deliverable meets the requirements the task itself states), simplification with `simplify-code` (no behavior-preserving cleanup is left), and review with `review-code` (no blocking findings remain). That triad is what `implement-work`'s completion gate applies. A flow that produces no code sets its own bar instead, and each skill defines its own.
 
@@ -97,7 +95,7 @@ The deliverable is an evidence-backed explanation of an observed problem. `super
 
 ### Stage boundaries
 
-- At each phase transition and gate iteration, write a concise hand-off summary — goal, constraints, decisions and why, affected files, verification approach — and drop exploratory dumps and stale tool output while preserving decisions, assumptions, evidence, and open questions.
+- At each phase transition and gate iteration, write a concise hand-off summary, dropping exploratory dumps and stale tool output while keeping the substance.
 - You own this summary even when your runtime can't compact context on its own — when context is heavy, prompt the user to trigger compaction, since only they can. Never let a summary or compaction relax a gate.
 - A handoff between flows may land in a different session. The canonical record is the tracking issue's comment — chat only when no issue tracks the work. At each flow's end, name the artifact the next flow picks up, so the receiving session needs nothing this one was holding in context. The detailed per-PR plan is not such an artifact: it is scratch inside `implement-work`, rewritten from the task rather than carried across.
 - **A loop's intermediate state is orchestrator-facing.** Report each round to the caller in chat, and never to GitHub, even when the artifact under review lives in an issue or PR comment. Only the converged result reaches the canonical record above.
