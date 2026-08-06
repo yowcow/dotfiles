@@ -40,9 +40,8 @@ fi
 
 # Three-rung ladder, never guessing a branch name: the local remote-HEAD
 # symref, then the GitHub API, then give up and let the caller ask a person.
-# Both rungs are pinned to the bare name — `--short` and
-# `.defaultBranchRef.name` — so the two agree on one form; this caller needs a
-# rev, so `origin/` goes back on where the result is used.
+# Both rungs are reduced to the bare name so they agree on one form, and the
+# caller puts `origin/` back, since what it needs is a rev.
 resolve_default_branch() {
   local ref
   if ref="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"; then
@@ -138,7 +137,7 @@ else
   # remote.origin.fetch refspec — and `refs/pull/<n>/head` sits outside that
   # refspec in every clone — so the tracking ref can stay at a stale commit
   # while the fetch itself exits 0.
-  if ! git fetch origin "${FETCH_SPEC}" >&2; then
+  if ! git fetch origin -- "${FETCH_SPEC}" >&2; then
     echo "STOP fetch-failed"
     exit 0
   fi
