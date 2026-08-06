@@ -29,6 +29,16 @@ resolve_default_branch() {
   return 1
 }
 
+# Fetch into an explicit destination ref, so the caller can cut from
+# origin/<name>. Two things make the plain form wrong here: `git fetch origin
+# <name>` never updates a local branch of that same name, and it leaves
+# refs/remotes/origin/<name> at whatever an earlier fetch wrote whenever the
+# clone's remote.origin.fetch refspec doesn't cover it — either way the caller
+# would cut the new branch from a stale commit and nothing would say so.
+fetch_ref() {
+  git fetch origin "+refs/heads/$1:refs/remotes/origin/$1" >&2
+}
+
 # blockedBy and closedByPullRequestsReferences must be counted, never merely
 # checked for emptiness — "is it empty" cannot tell one prerequisite from
 # three, and both need the opposite answer here. A task with no issue behind
@@ -42,6 +52,7 @@ fi
 
 if [ "${BLOCKED_COUNT}" -eq 0 ]; then
   DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
+  fetch_ref "${DEFAULT}"
   echo "BASE ${DEFAULT}"
   exit 0
 fi
@@ -77,11 +88,11 @@ STATE="${PR_INFO##* }"
 case "${STATE}" in
   MERGED)
     DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
-    git fetch origin "${DEFAULT}" >&2
+    fetch_ref "${DEFAULT}"
     echo "BASE ${DEFAULT}"
     ;;
   OPEN)
-    git fetch origin "${HEAD_REF}" >&2
+    fetch_ref "${HEAD_REF}"
     echo "BASE ${HEAD_REF}"
     ;;
   CLOSED)
