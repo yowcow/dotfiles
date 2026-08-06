@@ -1,6 +1,48 @@
 # Authoring the AI Assistant Guidelines & Skills
 
-`ai/GUIDELINES.md` is the single source of the guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. When updating that file, prefer consolidation and simplification over appending — do not leave duplicated or stale text behind, except where **Duplication and rationale** below says otherwise.
+`ai/GUIDELINES.md` is the single source of the guidelines, installed to Claude Code, Gemini CLI, Codex, and Grok CLI alike. Everything below binds every file under `ai/` — that file, every `SKILL.md`, and everything they carry. When updating any of them, prefer consolidation and simplification over appending, and leave no duplicated or stale text behind, except where **Duplication and rationale** below says otherwise.
+
+What all of this protects is one thing: that the basic flow — `(investigate-* →) plan-work → implement-work → pr-to-ready` — reads fluently enough to run, review gates included. Preparation for rare exceptions is deliberately not built in. The run stops and asks a person instead.
+
+## Where each thing lives
+
+Four layers, and the boundary is what keeps each one readable. The layers are not new; letting them blur is what has cost.
+
+- **`ai/GUIDELINES.md` — rules only.** It is in context in every session, so a sentence here is paid for on every turn of every run.
+- **A skill's `SKILL.md` — policy and procedure only.** It carries **no command blocks**: what to achieve and in what order, never the exact invocation.
+- **`scripts/` — mechanism counter-intuitive enough to get written wrong.** A script is executed, not read, so its cost is paid only when it runs. Commands, flags, and the way their results are tested live here.
+- **`references/` — rationale.** Read on demand, when a decision needs its reason.
+- **A skill's frontmatter `description` — when to use it, and nothing else.** Its purpose and trigger words, stopping short of mechanism; it has to stand on its own, because it is read without the body. The body's **Orchestration model** is mechanism's single source.
+
+## The deletion test
+
+One question, asked of every sentence: **without it, what does the AI do?**
+
+- **(a) It behaves correctly** → delete it.
+- **(b) It stops and asks a person** → delete it. That is the wanted behavior, not a failure to prevent.
+- **(c) It silently returns a wrong result** → keep it — and if it is mechanism, keep it in `scripts/`.
+
+**Claiming (c) costs one sentence of concrete failure**: which command gets run, which value gets read wrong, which branch gets written. "It might get confused" is not that sentence. If you cannot write it, the answer was (a) or (b), and the text goes.
+
+## Call what already exists
+
+`superpowers:*`, and whatever else your runtime already ships or has installed, own procedures of their own. Where one of them owns the procedure you are about to describe, **name it and stop.** A local skill's job is the wiring — which procedure runs when, what each hand-off carries, where the gates sit — never a second copy of the procedure itself. A copy is what goes stale silently: the original moves and nothing here says so.
+
+Name the procedure, never the runtime that provides it. Everything under `ai/` is installed to several assistants at once, so a rule that reaches for one runtime's own feature is a rule that silently does nothing in the others.
+
+## Three rules
+
+1. **No command block in a `SKILL.md`.** This one is structural rather than a matter of will: there is nowhere in a `SKILL.md` for a command to go, so the question becomes where it *does* go — `scripts/` if it is worth keeping, nowhere if the deletion test says (a) or (b).
+2. **Adding text means naming the (c).** Every addition to anything under `ai/` carries its one sentence of concrete silent failure, in the change's own description. No sentence, no addition.
+3. **A table past three data rows is a case-split, and case-splits are where the built-in preparation for rare exceptions accumulates.** Try to compress it to the invariant behind its rows, with "anything else — ask a person" absorbing the tail. Keep the table only where the rows genuinely differ in kind, and say so.
+
+## Findings that ask for more text
+
+`ai/` has grown eight times over, and every time through the same door: a review finding of the form "case X is missing". Written as the author's own restraint, the deletion test never reaches that door — the author is not the one asking. So it binds the **reader of a finding** too.
+
+**A finding against anything under `ai/` that asks for text to be added does not stand as a finding requiring action unless it names the (c) — one sentence of concrete silent failure.** Answer such a finding with the question itself: (a), (b), or (c)? Where the answer is (a) or (b), record it and decline; **declining on that ground resolves the finding** — it does not leave a blocking finding open, and does not stall the loop that raised it.
+
+This does not weaken review. A finding that names its (c) is exactly as blocking as before, and nothing here touches review of code.
 
 ## Duplication and rationale
 
