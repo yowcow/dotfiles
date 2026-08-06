@@ -13,6 +13,15 @@ fi
 
 ISSUE="$1"
 
+# The argument becomes a glob prefix below, so a non-numeric one widens the
+# search instead of failing: `foo-*` matches every branch starting with "foo-",
+# and a single such match reads as "this task already has a branch", sending
+# the caller to attach to another task's work.
+if ! [[ "${ISSUE}" =~ ^[0-9]+$ ]]; then
+  echo "error: issue number must be numeric, got '${ISSUE}'" >&2
+  exit 1
+fi
+
 LOCAL="$(git branch --list "${ISSUE}-*" --format='%(refname:short)')"
 
 # --exit-code is required: without it, ls-remote also exits 0 on no match, so
