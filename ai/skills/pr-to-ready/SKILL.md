@@ -249,9 +249,9 @@ The two prohibitions that follow are **not equally absolute**:
 
 ```bash
 git fetch --quiet origin <resolved>                        # 0 = fetched; non-zero = stop
-base_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
+base_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; non-zero = stop
 git fetch --quiet origin <branch>                          # 0 = fetched; non-zero = stop
-head_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; 1 = stop
+head_tip="$(git rev-parse --verify --quiet FETCH_HEAD)"    # 0 = resolved; non-zero = stop
 ```
 
 Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HEAD` for both — the reason is in `<skill-dir>/references/gh-mechanics.md`. Fetch `<branch>` as well as `<resolved>`, because 0-1's fetch runs only on the creation path: a session that picked up an existing PR may hold no local ref for it.
