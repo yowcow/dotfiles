@@ -2,7 +2,7 @@
 
 The `Base-Branch:` trailer is a **shared mechanism with one writer and two readers**. `implement-work` writes it when it cuts a branch; `pr-to-ready` reads it to settle `gh pr create --base`; `review-code` reads it as the base of the range it reviews. **What the trailer records is which prerequisite the branch sits on, and only that.** Whether that prerequisite is still in flight is not recorded and could not be — time passes between cutting the branch and reading the trailer. So neither reader re-derives *which* prerequisite it is; both re-read *what state it is now in*, and settle the base from that.
 
-This file holds the contract and the reasons. The snippets below illustrate them; the command a skill actually runs lives in that skill's `scripts/`.
+This file holds the contract and the reasons. The snippets below illustrate them; the command a skill actually runs belongs in that skill's `scripts/`.
 
 ## The contract
 
@@ -25,7 +25,7 @@ gh repo view --json defaultBranchRef         # with --jq '.defaultBranchRef.name
 
 A non-zero exit from `symbolic-ref` means the remote HEAD is not set in this checkout, **not** that there is no default branch: fall to `gh repo view`, and if that fails too, ask.
 
-**The exact flags differ by caller, and that difference is intentional rather than drift.** `pr-to-ready` compares the result against a branch name, so it needs the bare name: it takes `--short` and `--jq '.defaultBranchRef.name'`, and strips the `origin/` prefix before comparing. `review-code` only needs the branch to resolve a range, so it pins neither flag. Each skill keeps its own form in its own `scripts/`; what is shared, and what this file fixes, is the three-rung order and the rule never to guess a branch name.
+**The exact flags differ by caller, and that difference is intentional rather than drift.** `pr-to-ready` compares the result against a branch name, so it needs the bare name: it takes `--short` and `--jq '.defaultBranchRef.name'`, and strips the `origin/` prefix before comparing. `review-code` only needs the branch to resolve a range, so it pins neither flag. Each skill's own form belongs in its own `scripts/`; what is shared, and what this file fixes, is the three-rung order and the rule never to guess a branch name.
 
 ## Reading the trailer back
 
@@ -98,7 +98,7 @@ Everything in the rest of this subsection concerns `review-code` alone: on the s
 
 ### Why the two readers differ
 
-The difference is intentional, not duplication — the two subsections above give the reason for each. Each skill keeps its own command in its own `scripts/` for that reason.
+The difference is intentional, not duplication — the two subsections above give the reason for each. Each skill's own command belongs in its own `scripts/` for that reason.
 
 ## Why the reads are captured before they are tested
 
