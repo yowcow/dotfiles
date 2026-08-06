@@ -156,7 +156,7 @@ digraph pr_to_ready {
   "Base clean?" -> "Watch CI" [label="yes"];
   "Base clean?" -> "Hand back: base follow needed" [label="table stopped / conflict / no checkout"];
   "Watch CI" -> "CI green?";
-  "CI green?" -> "Diagnose the failure" [label="no"];
+  "CI green?" -> "Diagnose the failure" [label="red check"];
   "Diagnose the failure" -> "Fix -> push" [label="a fix"];
   "Fix -> push" -> "Settle the base";
   "CI green?" -> "Step 1 clean? (base + mergeable)" [label="yes"];
@@ -381,7 +381,8 @@ Treat human reviewer comments the same way (see receiving-code-review).
 
 **Re-check the base as well, and only measure it.** This loop runs for minutes at a time, so the base can move after 1-1 last settled it, and `gh pr ready` asserts that a person can merge. So before declaring clean, read 1-2's conditions 2 and 3 once more.
 
-- **Measure, don't repair.** Taking the base in here would change the diff and invalidate the review that just finished. Whether that warrants another review round is the caller's call, not this run's, so hand it back instead of quietly adding one.
+- **Re-derive `<resolved>` first, or condition 2 tests nothing.** Only 0-1 and 1-1 ever compute it, and only this skill's own `gh pr edit` ever moves `baseRefName` — so comparing the two without re-running **Resolving the base** compares a value against itself and passes every time. Re-run that block here. A prerequisite merging mid-review is precisely what moves `<resolved>`, and it is the case this whole re-check exists for; a stop row in the table hands back like anything else here.
+- **Measure, don't repair.** Taking the base in here would change the diff and invalidate the review that just finished. Whether that warrants another review round is the caller's call, not this run's, so hand it back instead of quietly adding one. Re-running the lookup and the fetches only reads, so both stay on the measuring side of that line.
 - **Take the two tips again if condition 3 falls through to `merge-tree`.** This loop never fetches, so `FETCH_HEAD` still holds whatever 1-1 left there — stale by the whole review wait. Re-run *Reading the two tips* at this point. Fetching changes neither the diff nor the branch, so it is still only measuring.
 - **Either condition failing** → hand back for base following, Step 3's third terminal state.
 
@@ -391,7 +392,7 @@ Treat human reviewer comments the same way (see receiving-code-review).
 
 1. Clean per above.
 2. **A finding invalidates the agreed design** → stop and take **Escalation**. Don't fix it here, and don't carry it into another round. Check this on **every** round, before 3 and 4.
-3. **LGTM-equivalent twice in a row, with the checks green on the HEAD it leaves from** — two consecutive rounds with no must-fix feedback, even if each keeps surfacing *fresh optional nits*. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*, and being stricter it carries clean's check requirement too: an exit looser than condition 1 on any axis is what that rule forbids. A red check means this condition does not hold — take the failure path above instead.
+3. **LGTM-equivalent twice in a row, with the checks green on the HEAD it leaves from** — two consecutive rounds with no must-fix feedback, even if each keeps surfacing *fresh optional nits*. This is the stricter condition the guidelines' **Loop convergence** allows on top of *clean*, and being stricter it carries **every** axis of clean, not the reviewer comments alone: an exit looser than condition 1 on any axis is what that rule forbids. A red check means this condition does not hold — take the failure path above instead. **The base recheck binds it too**: run that as well before leaving this way, and a base that has moved or gone `CONFLICTING` means this condition does not hold either — hand back for base following instead of exiting to Step 3.
 4. **A non-clean stopping condition in the guidelines' Loop convergence fires** — the same feedback surviving repeated rounds, or the total round ceiling → stop and hand the user the decision, per that rule.
 
 A round here is one 2-1 → 2-2 → 2-3 → clean judgment cycle. **The check confirmation and the fix it may force sit inside that round**, with the return to 2-1 starting the next one — so this is no new loop and carries no number of its own; the ceiling condition 4 names is what bounds it.
