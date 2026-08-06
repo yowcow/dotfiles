@@ -265,6 +265,8 @@ Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HE
    gh pr checks <PR>   # 0 = all passed; 8 = some still pending, so not clean yet; other non-zero = a check failed, or the call did
    ```
    Read the output to tell a failed check from a failed call, since both land outside 0 and 8.
+
+   **This is a snapshot, deliberately without `--watch`** — unlike item 2 of Step 1, which blocks until the checks finish. The two invocations differ because their questions do: item 2 waits for a verdict to exist, while this one asks what the verdict is at the moment clean is judged. Exit 8 belongs to the snapshot for that reason — a run that blocks until the checks finish has no pending state left to report.
 2. **The PR points at the base the table resolved** — compare `baseRefName`, read as in 1-1, against `<resolved>`.
 3. **Mergeability is not `CONFLICTING`**:
    ```bash
