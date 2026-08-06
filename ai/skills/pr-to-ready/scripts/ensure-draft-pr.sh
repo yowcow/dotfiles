@@ -82,8 +82,12 @@ elif [ "${remote_status}" -eq 2 ]; then
     exit 0
   fi
 else
-  echo "error: git ls-remote failed for '${BRANCH}' (exit ${remote_status})" >&2
-  exit "${remote_status}"
+  # A network or auth failure, not an answer about the branch. Exiting
+  # non-zero here would hand the orchestrator a bare status with nothing on
+  # stdout to branch on.
+  echo "ls-remote failed for '${BRANCH}' (exit ${remote_status})" >&2
+  echo "STOP ls-remote-failed"
+  exit 0
 fi
 
 # --- Step 2: does a PR already exist for this branch? ---
@@ -144,7 +148,7 @@ fi
 # says. ---
 
 if ! LOOKUP="$(lookup_pr)"; then
-  echo "STOP pr-lookup-failed"
+  echo "STOP pr-readback-failed"
   exit 0
 fi
 
@@ -159,7 +163,7 @@ if [ "$LINE_COUNT" -eq 0 ]; then
 fi
 
 if [ "$LINE_COUNT" -ge 2 ]; then
-  echo "STOP ask-multiple-prs"
+  echo "STOP ask-multiple-prs-after-create"
   exit 0
 fi
 

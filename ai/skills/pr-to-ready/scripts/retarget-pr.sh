@@ -48,11 +48,11 @@ if [ "$CURRENT_BASE" = "$BASE" ]; then
   exit 0
 fi
 
-if ! gh pr edit "$PR" -R "${OWNER}/${REPO}" --base "$BASE" >&2; then
-  echo "STOP retarget-failed"
-  exit 0
-fi
-
+# Both preconditions are checked BEFORE the first mutation. Retargeting is one
+# step of two — the base moves on GitHub, then the new base is merged in and
+# pushed. Were the edit done first, a failing check here would leave the PR
+# retargeted with the merge never made: a half-applied change the next run has
+# to reason about.
 # Pulling the new base in is only possible from the branch's own checkout:
 # there is no other working tree to merge into.
 CURRENT_HEAD="$(git rev-parse --abbrev-ref HEAD)"
@@ -63,6 +63,11 @@ fi
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "STOP dirty-worktree"
+  exit 0
+fi
+
+if ! gh pr edit "$PR" -R "${OWNER}/${REPO}" --base "$BASE" >&2; then
+  echo "STOP retarget-failed"
   exit 0
 fi
 
