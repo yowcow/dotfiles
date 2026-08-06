@@ -2,7 +2,7 @@
 
 The `Base-Branch:` trailer is a **shared mechanism with one writer and two readers**. `implement-work` writes it when it cuts a branch; `pr-to-ready` reads it to settle `gh pr create --base`; `review-code` reads it as the base of the range it reviews. **What the trailer records is which prerequisite the branch sits on, and only that.** Whether that prerequisite is still in flight is not recorded and could not be — time passes between cutting the branch and reading the trailer. So neither reader re-derives *which* prerequisite it is; both re-read *what state it is now in*, and settle the base from that.
 
-This file holds the contract and the reasons. The snippets below illustrate them; the command a skill actually runs belongs in that skill's `scripts/`.
+This file holds the contract and the reasons; the commands a skill actually runs belong in that skill's `scripts/`.
 
 ## The contract
 
@@ -10,9 +10,7 @@ A single `Base-Branch: <base>` line in the trailer block of the task's **first**
 
 Branching from the default branch records **nothing**. That absence is what tells both readers to fall back to the default branch, so it is a value, not an omission.
 
-## Why the first commit
-
-The branch's history only grows from the first commit, and both readers scan it from the tip backwards, stopping at the first hit. A trailer added on a later commit would therefore shadow the first one for a task stacked on top of this branch.
+It has to be the first commit: the branch's history only grows from there, and both readers scan it from the tip backwards, stopping at the first hit. A trailer added on a later commit would shadow the first one for a task stacked on top of this branch.
 
 ## Resolving the default branch
 
@@ -29,7 +27,7 @@ A non-zero exit from `symbolic-ref` means the remote HEAD is not set in this che
 
 ## Reading the trailer back
 
-Both readers scan from a tip backwards and take the first trailer found. Where a stack runs deeper than one, the nearest one wins — an earlier task's trailer sits further back in the same history.
+Both readers scan from a tip backwards and take the first trailer found. Where a stack runs deeper than one, the nearest one wins — an earlier task's trailer sits further back in the same history. `pr-to-ready` fetches the task branch and scans `FETCH_HEAD`, since a session may not have the branch checked out; `review-code` scans local `HEAD`, since it reviews the checkout it is in.
 
 When a trailer is found, look the prerequisite's PR up by its head branch name:
 
@@ -54,7 +52,7 @@ The base then follows from that state:
 
 `<n>` is the PR number the lookup printed beside the state. The no-trailer row needs no lookup: the absence of a trailer is itself the answer, as **The contract** says.
 
-The last two rows both stop, and they differ in what they put to the person. No PR on the recorded branch leaves the base unknowable, so there is nothing to choose between and the run reports what it found — the same answer `implement-work`'s writer-side table gives an unimplemented prerequisite. Two or more PRs leaves a genuine choice: the trailer already fixed *which* prerequisite this is, so what is open is which of that one branch's PR records the base should follow. That one asks.
+The last two rows both stop, and they differ in what they put to the person. No PR on the recorded branch leaves the base unknowable, so there is nothing to choose between and the run reports what it found — the same answer `implement-work`'s writer-side rule gives an unimplemented prerequisite. Two or more PRs leaves a genuine choice: the trailer already fixed *which* prerequisite this is, so what is open is which of that one branch's PR records the base should follow. That one asks.
 
 ### Why the state is re-read and the branch is not
 
@@ -73,45 +71,17 @@ Keying on state answers both at once, and it needs no branch to exist: the looku
 
 ### Why the writer and the readers answer `MERGED` differently
 
-`implement-work`'s **Base branch** table sends a task whose prerequisite is already `MERGED` to the default branch and records no trailer at all, while the table above sends `MERGED` to the prerequisite's head. That is not a contradiction, because the two are reading different histories. A branch cut from the default branch *after* the merge has every one of its commits ahead of it. A branch cut while the prerequisite was still `OPEN` carries the prerequisite's commits inside its own history, and the prerequisite merging later does not remove them. Different history, different correct base — so the writer-side table stands as it is.
+`implement-work`'s **Base branch** rule sends a task whose prerequisite is already `MERGED` to the default branch and records no trailer at all, while the table above sends `MERGED` to the prerequisite's head. That is not a contradiction, because the two are reading different histories. A branch cut from the default branch *after* the merge has every one of its commits ahead of it. A branch cut while the prerequisite was still `OPEN` carries the prerequisite's commits inside its own history, and the prerequisite merging later does not remove them. Different history, different correct base — so the writer-side rule stands as it is.
 
-### `pr-to-ready` — scan `FETCH_HEAD`
-
-```bash
-git fetch --quiet origin <branch>                                                   # 0 = fetched; non-zero = stop
-trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' FETCH_HEAD)"    # 0 = history read; non-zero = stop
-printf '%s\n' "$trailers" | grep -m1 .                                              # 0 = recorded base on stdout, 1 = no trailer
-```
-
-It scans `FETCH_HEAD` rather than a local ref because a session entered without the branch checked out has no local ref for it, and the history that matters is the pushed one the PR will be opened from.
-
-### `review-code` — scan local `HEAD`
-
-```bash
-trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD)"   # 0 = history read; non-zero = stop
-printf '%s\n' "$trailers" | grep -m1 .                                       # 0 = recorded base on stdout, 1 = no trailer
-```
-
-It scans `HEAD` because it reviews the checkout it is in, so the history it must read is the local one.
-
-Everything in the rest of this subsection concerns `review-code` alone: on the single row where `pr-to-ready` uses `<recorded>` at all, it passes it to `--base` as a literal branch name and never resolves it to a ref, so none of this bears on that skill. Both of `review-code`'s fetching rows resolve `<base>` to **`FETCH_HEAD`**, never to `origin/<recorded>`. Stop the run if the fetch exits non-zero rather than going on to use a ref, since a failed fetch leaves whatever `origin/<recorded>` a previous fetch wrote sitting at its old commit. And take `FETCH_HEAD` even when the fetch succeeds: `git fetch` always writes it, whereas updating `origin/<recorded>` depends on the repository's `remote.origin.fetch` refspec — in a single-branch or otherwise narrowed clone the fetch exits 0 and `origin/<recorded>` is never created at all. On the `MERGED` row there is not even a ref to fall back on in principle, since `refs/pull/<n>/head` sits outside that refspec in every clone. Either way, resolving the base to a stale or missing ref quietly widens the range.
-
-### Why the two readers differ
-
-The difference is intentional, not duplication — the two subsections above give the reason for each. Each skill's own command belongs in its own `scripts/` for that reason.
+Both of `review-code`'s fetching rows resolve `<base>` to **`FETCH_HEAD`**, never to `origin/<recorded>`: a fetch always writes `FETCH_HEAD`, whereas updating `origin/<recorded>` depends on the repository's `remote.origin.fetch` refspec — in a single-branch or otherwise narrowed clone the fetch can exit 0 without ever creating it, and `refs/pull/<n>/head` sits outside that refspec in every clone regardless. Stop the run if the fetch itself exits non-zero, rather than falling back to whatever stale value a previous fetch left in place. `pr-to-ready` never resolves `<recorded>` to a ref at all: on the one row where it uses it, it passes the literal branch name straight to `--base`.
 
 ## Why the reads are captured before they are tested
 
-Capture `git log` into a variable before testing it, rather than piping straight into `grep`. A pipe reports only `grep`'s status, and `grep` exits 1 on empty input whether the trailer is genuinely absent or `git log` just failed — so the two are indistinguishable. `set -o pipefail` does not separate them either: `grep` is the rightmost command and its 1 is a real exit code, not a masked one.
-
-The same trap sits one line up in `pr-to-ready`'s form: a failed fetch (bad ref, auth, network) truncates `FETCH_HEAD` to empty, which then makes the scan exit 1 as well. Reading either as "no trailer" would fall back to the default branch — opening the PR against the wrong target, or widening the reviewed range to sweep in a prerequisite's commits.
+Capture the read — `git log`, and any fetch that feeds it `FETCH_HEAD` — into a variable before testing it, rather than piping straight into `grep`. A pipe reports only `grep`'s exit status, and `grep` exits 1 on empty input whether the trailer is genuinely absent, the read itself failed, or a failed fetch left `FETCH_HEAD` empty — three different causes that would otherwise all be misread as "no trailer" and fall back to the wrong base. `set -o pipefail` does not help either: `grep` is the rightmost command, and its 1 is a real exit code, not a masked one.
 
 ## Why the lookups are tested the way they are
 
-- **`grep -Fxq "branch refs/heads/<branch>"` — `-F` and `-x` are load-bearing, and they replace the `^`/`$` anchors rather than joining them.** A branch name may contain `.`, which as a regex matches any character, so an anchored pattern can match a *different* branch and hand back the wrong workspace.
-- **`git branch --list` exits 0 whether or not it matched**, so branching on its exit status is always true. Use `git show-ref --verify --quiet refs/heads/<branch>`, or test output emptiness: `[ -n "$(git branch --list <branch>)" ]`.
-- **A branch that exists only on the remote must be attached, not recreated.** A resumed task whose branch was already pushed, in a session or a checkout that never held it locally, has no local ref; creating one afresh would start it from the default branch, diverge from the pushed branch under the same name, and have its first push rejected as a non-fast-forward. Since force-pushing is barred, the earlier work would be stranded rather than resumed.
 - **A prerequisite is counted, never merely detected.** `blockedBy` and `closedByPullRequestsReferences` come back as `{nodes, totalCount}`, and the readers' `gh pr list` prints one line per match. In both forms "is it empty" cannot tell one prerequisite from three — only a count separates the single case that may proceed from the two that stop.
 - **A PR's state is tested by `state`, and it has three values.** `OPEN`, `CLOSED` and `MERGED` are three cases, so "not merged" collapses the two that need opposite answers: a PR closed without merging is abandoned work, not work still in flight. This binds both sides of the mechanism — the writer reads `state` to choose what to branch from, and both readers read it to choose the base.
-- **The stop rows stop rather than falling through to the default branch.** Falling through makes an unimplemented, abandoned, or ambiguous prerequisite indistinguishable from an independent task — and that surfaces only later, as a failure whose cause is nowhere in the diff. Both tables carry stop rows, for that one reason.
+- **The stop rows stop rather than falling through to the default branch.** Falling through makes an unimplemented, abandoned, or ambiguous prerequisite indistinguishable from an independent task — and that surfaces only later, as a failure whose cause is nowhere in the diff. This table's stop rows, and the writer-side rule's own stop outcomes, both exist for that one reason.
 - **A task stacked on a prerequisite whose PR is still `OPEN` must branch from that PR's head.** Branch from the default instead and the prerequisite's changes are simply absent, so the task's own checks fail for a reason that is nowhere in its diff.
