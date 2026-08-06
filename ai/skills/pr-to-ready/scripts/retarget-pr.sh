@@ -6,9 +6,9 @@
 # longer matches what will actually land: merging such a PR puts nothing new
 # into the base it is really headed for, since everything in the stale base
 # is already there. Retargeting alone would still leave the PR's diff
-# spanning the old base's own commits, so this also merges the new base in —
-# without that, the PR keeps showing a stack of changes that already shipped
-# under a different PR.
+# spanning the old base's own commits, so this also merges the new base in
+# and pushes it — without that, the PR keeps showing a stack of changes that
+# already shipped under a different PR.
 #
 # Mergeability plays no part here — this script only reads `baseRefName` and
 # never branches on either mergeability field (see ../references/gh-mechanics.md,
@@ -77,6 +77,16 @@ if ! git merge --no-edit FETCH_HEAD >&2; then
   # the header comment: that is #111's job, done by a person.
   git merge --abort
   echo "STOP merge-conflict"
+  exit 0
+fi
+
+# The merge has to reach the remote before this reports success. Left local,
+# the PR's diff and every check still describe the pre-merge tip, so the
+# caller's next step — watching CI — would read the previous run's green
+# result as if it had verified the retarget. Explicit source and destination
+# refspec, and a plain fast-forward push: never --force, per the header.
+if ! git push origin "refs/heads/${BRANCH}:refs/heads/${BRANCH}" >&2; then
+  echo "STOP push-failed"
   exit 0
 fi
 

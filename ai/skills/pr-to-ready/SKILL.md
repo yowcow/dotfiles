@@ -35,8 +35,8 @@ Before watching CI, settle whether the base is still the right one — the prere
 
 1. Re-resolve it: `<skill-dir>/scripts/resolve-pr-base.sh <branch>` → `BASE <name>` or `STOP <slug>`. Same lookup 0-1 used, read again.
 2. Check the PR against that answer: `<skill-dir>/scripts/check-pr-state.sh <owner> <repo> <pr-number> <base>` → `BASE-OK|BASE-DRIFT <base> MERGEABLE|CONFLICTING|UNKNOWN`, or `STOP <slug>`. Read-only — it measures and never fixes.
-3. On `BASE-DRIFT`: pull the resolved base in with `<skill-dir>/scripts/retarget-pr.sh <owner> <repo> <pr-number> <branch> <base>` → `BASE-OK <base>` (nothing to do), `RETARGETED <old> <new>`, or `STOP <slug>` on a conflict while merging the new base in.
-4. On `CONFLICTING`: this is not something to fix here — it is the **third terminal state**. Stop, and hand the branch back to a person with what was found; don't attempt a resolution.
+3. On `BASE-DRIFT`: pull the resolved base in with `<skill-dir>/scripts/retarget-pr.sh <owner> <repo> <pr-number> <branch> <base>` → `BASE-OK <base>` (nothing to do), `RETARGETED <old> <new>` — the merge is pushed, so CI below runs against the new tip rather than the one it already passed on — or `STOP <slug>` on a conflict while merging the new base in.
+4. On `CONFLICTING`, or on an `UNKNOWN` that stands after the script's own bounded re-read: neither is something to fix here — both are the **third terminal state**. Stop, and hand the branch back to a person with what was found; don't attempt a resolution, and don't take an undetermined mergeability for a clean one.
 
 Then watch CI. If every check passes, go to Step 2.
 
@@ -75,17 +75,17 @@ Back in the orchestrator, sequentially — these mutate shared state: fix every 
 
 1. every check passes;
 2. Claude leaves no outstanding actionable feedback — only "looks good"/LGTM-equivalent comments (a human reviewer's comments count the same way);
-3. Copilot's latest round produced zero new actionable comments and there are zero unresolved threads;
+3. Copilot's latest round produced zero new actionable comments, and `<skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <pr-number>` comes back empty — a comment listing carries no resolution state, so only that script answers this;
 4. the PR's base is the one Step 1 most recently resolved;
-5. mergeability is not conflicting — the field `gh-mechanics.md`'s "## Mergeability" says to trust, never its sibling, which varies with the caller's own push permission rather than with anything about the branch.
+5. mergeability came back **`MERGEABLE`** — the field `gh-mechanics.md`'s "## Mergeability" says to trust, never its sibling, which varies with the caller's own push permission rather than with anything about the branch. `UNKNOWN` is not a pass: it means neither the remote nor the local fallback could settle it, so nothing is known yet.
 
 **Clean is a property of one commit, not a total accumulated over rounds.** A push invalidates all five at once — nobody has read the new diff, and nothing has run against it — so a result from before a push is not evidence about what the branch carries now.
 
 When it isn't clean, what to do follows from which condition failed, and every remedy but one returns to a loop that pushes, so the next round has to start from 2-1 again:
 - conditions 2 or 3 (reviewer feedback) → address it, per 2-3;
 - condition 1 (a red check) → diagnose and fix it, the same way Step 1 does — borrowing the diagnosis, not Step 1's own loop, so it isn't counted against Step 1's rounds;
-- condition 4 (base drift) → pull the resolved base in with `retarget-pr.sh`, per Step 1;
-- condition 5 (conflicting) → the **third terminal state**. Stop here; don't attempt a resolution.
+- condition 4 (base drift) → pull the resolved base in with `retarget-pr.sh`, per Step 1 — it pushes the merge itself, so the next round starts from 2-1 on the new tip;
+- condition 5 (`CONFLICTING`, or `UNKNOWN` that a re-read won't settle) → the **third terminal state**. Stop here; don't attempt a resolution, and don't read an undetermined mergeability as a pass.
 
 **Stop the loop when any of these holds — read in order, and take the first that applies; otherwise keep looping:**
 
