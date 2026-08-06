@@ -38,7 +38,7 @@ Name the procedure, never the runtime that provides it. Everything under `ai/` i
 
 ## Findings that ask for more text
 
-`ai/` has grown eight times over, and every time through the same door: a review finding of the form "case X is missing". Written as the author's own restraint, the deletion test never reaches that door — the author is not the one asking. So it binds the **reader of a finding** too.
+`ai/` has been trimmed and grown back before, every time through the same door: a review finding of the form "case X is missing". Written as the author's own restraint, the deletion test never reaches that door — the author is not the one asking. So it binds the **reader of a finding** too.
 
 **A finding against anything under `ai/` that asks for text to be added does not stand as a finding requiring action unless it names the (c) — one sentence of concrete silent failure.** Answer such a finding with the question itself: (a), (b), or (c)? Where the answer is (a) or (b), record it and decline; **declining on that ground resolves the finding** — it does not leave a blocking finding open, and does not stall the loop that raised it.
 

@@ -123,7 +123,7 @@ Every loop that checks work and fixes what came back stops on the same condition
 
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, in the Change workflow, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
-- **Size the fan-out to the target** — splitting it finer than it warrants only pays hand-off cost, and which shape to use within that bound is the skill's own procedure, per **Skills & runtime adaptation**.
+- **Size the fan-out to the target** — splitting it finer than it warrants only pays hand-off cost, and which shape to use within that bound is the skill's own procedure.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
 - The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
 
