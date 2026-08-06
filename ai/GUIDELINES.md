@@ -68,7 +68,7 @@ A Change that carries no design decision has a lane of its own, not an exemption
 
 ### Change workflow
 
-Three flows, each of which can be entered on its own, and each with its own entry, deliverable, and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
+Three flows, each of which can be entered on its own, and each with its own deliverable and handoff. The procedures live in the skills; what follows is the map and the contracts between them.
 
 - **`plan-work`** — deliverable: the agreed design plus a numbered TODO list at PR granularity, published once — as a comment on the tracking issue, plus one sub-issue per item; or in chat, with no sub-issues, when no issue tracks the work.
 - **`implement-work`** — deliverable: a pushed branch of verified commits.
