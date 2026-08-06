@@ -22,8 +22,7 @@ WORKTREES="$(git worktree list --porcelain)"
 # -F and -x are load-bearing, replacing the ^/$ anchors rather than joining
 # them: a branch name may contain ".", which as a bare regex would match any
 # character and could hit a different branch's line instead.
-if printf '%s\n' "$WORKTREES" | grep -Fxq "branch refs/heads/${BRANCH}"; then
-  EXISTING="$(printf '%s\n' "$WORKTREES" | grep -Fx -B2 "branch refs/heads/${BRANCH}" | sed -n 's/^worktree //p')"
+if EXISTING="$(printf '%s\n' "$WORKTREES" | grep -Fx -B2 "branch refs/heads/${BRANCH}" | sed -n 's/^worktree //p')" && [ -n "$EXISTING" ]; then
   echo "REUSE ${EXISTING}"
   exit 0
 fi

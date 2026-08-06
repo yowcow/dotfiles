@@ -27,7 +27,7 @@ A non-zero exit from `symbolic-ref` means the remote HEAD is not set in this che
 
 ## Reading the trailer back
 
-Both readers scan from a tip backwards and take the first trailer found. Where a stack runs deeper than one, the nearest one wins — an earlier task's trailer sits further back in the same history. `pr-to-ready` fetches the task branch and scans `FETCH_HEAD`, since a session may not have the branch checked out; `review-code` scans local `HEAD`, since it reviews the checkout it is in.
+Where a stack runs deeper than one, the nearest trailer wins — an earlier task's trailer sits further back in the same history. `pr-to-ready` fetches the task branch and scans `FETCH_HEAD`, since a session may not have the branch checked out; `review-code` scans local `HEAD`, since it reviews the checkout it is in.
 
 When a trailer is found, look the prerequisite's PR up by its head branch name:
 

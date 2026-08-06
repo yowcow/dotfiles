@@ -29,19 +29,16 @@ resolve_default_branch() {
   return 1
 }
 
-if [ -z "$ISSUE" ]; then
-  if DEFAULT="$(resolve_default_branch)"; then
-    echo "BASE ${DEFAULT}"
-  else
-    echo "STOP ask-default-branch"
-  fi
-  exit 0
-fi
-
 # blockedBy and closedByPullRequestsReferences must be counted, never merely
 # checked for emptiness — "is it empty" cannot tell one prerequisite from
-# three, and both need the opposite answer here.
-BLOCKED_COUNT="$(gh issue view "${ISSUE}" --json blockedBy --jq '.blockedBy.totalCount')"
+# three, and both need the opposite answer here. A task with no issue behind
+# it has no relation to read, which lands on the same answer as a count of 0.
+if [ -z "$ISSUE" ]; then
+  BLOCKED_COUNT=0
+else
+  BLOCKED_JSON="$(gh issue view "${ISSUE}" --json blockedBy)"
+  BLOCKED_COUNT="$(printf '%s' "$BLOCKED_JSON" | jq '.blockedBy.totalCount')"
+fi
 
 if [ "${BLOCKED_COUNT}" -eq 0 ]; then
   DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
@@ -54,11 +51,12 @@ if [ "${BLOCKED_COUNT}" -ge 2 ]; then
   exit 0
 fi
 
-PREREQ="$(gh issue view "${ISSUE}" --json blockedBy --jq '.blockedBy.nodes[0].number')"
+PREREQ="$(printf '%s' "$BLOCKED_JSON" | jq -r '.blockedBy.nodes[0].number')"
 
 # closedByPullRequestsReferences comes back as a plain array here (unlike
 # blockedBy's {nodes, totalCount}), so it is counted with `length`.
-PR_COUNT="$(gh issue view "${PREREQ}" --json closedByPullRequestsReferences --jq '.closedByPullRequestsReferences | length')"
+CLOSED_JSON="$(gh issue view "${PREREQ}" --json closedByPullRequestsReferences)"
+PR_COUNT="$(printf '%s' "$CLOSED_JSON" | jq '.closedByPullRequestsReferences | length')"
 
 if [ "${PR_COUNT}" -eq 0 ]; then
   echo "STOP not-implemented"
@@ -70,7 +68,7 @@ if [ "${PR_COUNT}" -ge 2 ]; then
   exit 0
 fi
 
-PR="$(gh issue view "${PREREQ}" --json closedByPullRequestsReferences --jq '.closedByPullRequestsReferences[0].number')"
+PR="$(printf '%s' "$CLOSED_JSON" | jq -r '.closedByPullRequestsReferences[0].number')"
 
 PR_INFO="$(gh pr view "${PR}" --json headRefName,state --jq '"\(.headRefName) \(.state)"')"
 HEAD_REF="${PR_INFO% *}"
