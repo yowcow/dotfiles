@@ -7,6 +7,8 @@ description: Use after implementation and before code review or PR creation to s
 
 Use after code changes and before `review-code`.
 
+It is kept local rather than delegated: ready-made simplifiers draw no boundary against optimizations whose justification needs a measurement, and each is confined to a single assistant, so none can carry a pass that installs to all of them.
+
 One invocation is one simplification pass, and the pass owns its apply-verify loop: propose, apply, run the checks, propose again, until nothing actionable is left. Re-entry is not part of it — that belongs to the caller, on the same terms as `review-code`.
 
 ## Orchestration model
@@ -32,9 +34,10 @@ Follow local standards over generic preferences — check `AGENTS.md`/`CLAUDE.md
 
 Each lens is a distinct kind of avoidable complexity, and every one is behavior-preserving. How many proposers they map to is decided in **Dispatch** below.
 
-- **Structure** — unnecessary complexity, nesting, or branching; redundant or duplicated logic; avoidable abstractions; unclear names; related logic scattered where it could be consolidated.
-- **Cost** — work the change itself added beyond what its result needs, where the excess is evident from reading the diff rather than from a measurement: per-iteration queries or IO that one call covers, recomputed loop invariants, data read twice, intermediate collections nothing consumes, a scan where the code it replaced had a direct lookup. Reshape to the same result at the lower cost.
-- **Noise** — formatting churn unrelated to the task; comments that merely restate the code; tests that can be clearer without weakening coverage.
+- **Structure** — unnecessary complexity, nesting, or branching; redundant or duplicated logic; unclear names; related logic scattered where it could be consolidated.
+- **Cost** — work the change itself added beyond what its result needs, where the excess is evident from reading the diff rather than from a measurement: per-iteration queries or IO that one call covers. Reshape to the same result at the lower cost.
+- **Noise** — formatting churn unrelated to the task; comments that merely restate the code.
+- **Reuse** — places where the diff reimplements what the repository already has. Grep the shared and utility modules and the files adjacent to the change, and name the existing helper it should call instead.
 
 ## Don't over-simplify
 
@@ -75,8 +78,6 @@ Report "no proposals" explicitly rather than inventing one.
 ## Convergence
 
 This pass's loop stops per the guidelines' **Loop convergence**. A round here is one dispatch → judge → apply → verify cycle, and two proposals are the same finding when they target the same location with the same change, however the wording moved — including one re-raised after it was rejected.
-
-**The bound on this pass is not a bound on re-entry.** Re-entry belongs to the caller, as the top of this file says, so the caller's loop counts its own rounds under that same rule.
 
 ## Report
 
