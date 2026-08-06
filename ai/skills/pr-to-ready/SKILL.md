@@ -171,7 +171,7 @@ digraph pr_to_ready {
   "Checks green on this HEAD?" -> "Recheck base (test-only)" [label="yes (clean)"];
   "Checks green on this HEAD?" -> "Diagnose -> fix -> push (Step 2)" [label="no"];
   "Recheck base (test-only)" -> "ready-on-clean?" [label="unchanged"];
-  "Recheck base (test-only)" -> "Hand back: base follow needed" [label="base moved"];
+  "Recheck base (test-only)" -> "Hand back: base follow needed" [label="base moved / conflicting"];
   "Diagnose -> fix -> push (Step 2)" -> "Request review (Claude + Copilot)";
   "Diagnose -> fix -> push (Step 2)" -> "Return to plan-work" [label="design invalidated"];
   "Any actionable feedback?" -> "Return to plan-work" [label="design invalidated"];
@@ -241,7 +241,7 @@ The two prohibitions that follow are **not equally absolute**:
    Tested by **comparing the output against `<branch>`, not by exit status**.
    - **It doesn't match** → **don't merge.** Hand back for base following — Step 3's third terminal state — saying why. Step 0-1 admits a session holding no local ref at all, so this path is real. Creating a worktree is not this skill's job.
    - **It matches** → `git merge --no-edit <base-tip>`. **Never rebase, and never force-push.** Read its exit status in three cases, because they need different handling:
-     - **0** → push, and the watch in 2 runs against the new tip.
+     - **0** → push, and the watch in 2 runs against the new tip. **Test the push too** — non-zero = stop and report, the way 0-1 tests its own push. A merge that stayed local leaves the PR's head where it was, so the watch would pass judgement on a tip that never carried the base in.
      - **1 — a conflict** → `git merge --abort`, then hand back the same way. Resolving the conflict is not this skill's job.
      - **any other non-zero** → **stop and report; don't abort.** The merge never started, so there is nothing to abort and `git merge --abort` fails too. A dirty working tree exits 2 this way and leaves its changes in place — which is somebody's uncommitted work, so it is theirs to deal with.
 
@@ -281,6 +281,7 @@ Capture each tip as a sha **between** the fetches, rather than reusing `FETCH_HE
 **Where a failed condition goes** — the base can move while the watch runs for minutes, so none of these is redundant:
 
 - **A red check** → item 3 of Step 1.
+- **The call itself failed**, rather than a check → **stop and report.** There is no failed run behind it, so item 3 would hand a subagent nothing to diagnose.
 - **Condition 2** → back to 1-1, which retargets, and takes the base in where the branch has fallen behind.
 - **`CONFLICTING`** → hand back for base following, Step 3's third terminal state. Don't loop: settling the base again will not resolve it.
 
@@ -430,7 +431,7 @@ Nothing that depends on the merge can be a step here. Report these as the run's 
 
 ### Handed back for base following
 
-The third terminal state, reached from five places: a stop row in the table when 1-1 re-resolves the base, `<branch>` not being checked out in 1-1, a merge conflict in 1-1, `mergeable` coming back `CONFLICTING` in 1-2, and the test-only re-check in Step 2 finding the base moved. It is a terminus rather than a failure — the run stops with the work intact, and a person takes the next decision.
+The third terminal state, reached from five places: a stop row in the table when 1-1 re-resolves the base, `<branch>` not being checked out in 1-1, a merge conflict in 1-1, `mergeable` coming back `CONFLICTING` in 1-2, and the test-only re-check in Step 2 finding the base moved or newly conflicting — that re-check reads both of 1-2's conditions, so either can send it here. It is a terminus rather than a failure — the run stops with the work intact, and a person takes the next decision.
 
 Leave the PR as it stands: **don't flip its draft state**, whatever the ready-on-clean flag says, and don't close it. Then report
 
