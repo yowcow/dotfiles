@@ -5,9 +5,7 @@ description: Use to take one PR-sized task — a sub-issue, an issue that fits a
 
 # Implement Work
 
-Use once the design is agreed and the work has been cut to one PR's worth. There is no plan yet — drafting and reviewing the detailed plan for this one PR happens here, first.
-
-**The procedure lives in the skills this one calls.** What this skill owns is the wiring: which skill runs when, what each hand-off carries, and where the gates sit.
+There is no plan yet.
 
 This skill holds two gates: one on the detailed plan, before any code, and the completion gate at the end. It does not own the PR-side loop — once a branch is handed off, `pr-to-ready` runs its own completion path, and neither gate here is re-entered from there.
 
@@ -32,7 +30,7 @@ Work larger than one PR, or a design not yet agreed, goes back to `plan-work`. D
 **Isolation** below reads `<branch>` as already known, so bind it to one concrete name here, before that ladder runs. Take the first rung that applies:
 
 1. **The caller named one** — a user invoking this skill directly, or a hand-off that carries a name.
-2. **The task carries one** — an item that came back from `plan-work` with its design invalidated names its branch in the sub-issue body, which that skill's **Splitting into sub-issues** admits there on the strength of the **Output contract** that put the name in the item. No other entry carries one.
+2. **The task carries one** — an item that came back from `plan-work` with its design invalidated names its branch in the sub-issue body.
 3. **Neither** — derive a new name: `<issue-number>-<slug>` where an issue backs the task, `<slug>` where none does. `<slug>` is a short kebab-case description of the change.
 
 **A name from rung 1 or 2 is already the answer: don't search, use it verbatim.** `plan-work`'s discard convention gives a **new** name to an item whose old branch is to be abandoned; searching by issue number there would turn up that abandoned branch and hand it to the ladder, which reuses whatever it finds — resuming on top of the very commits the invalidated design produced, which is the failure that convention exists to prevent.
@@ -47,7 +45,7 @@ Whatever creates the workspace has to put it on this exact name. A tool that dec
 
 Establish this **before drafting the plan**: the plan file has to live inside the workspace the execution method will read it from, and a workspace created afterwards would not contain it — a new working tree gets the tracked content, not ignored scratch files.
 
-Use `superpowers:using-git-worktrees`, then set the project up and establish a verified baseline there.
+Use `superpowers:using-git-worktrees`, then establish a verified baseline there.
 
 The contract behind the `Base-Branch:` trailer, the ladder that resolves the default branch, and how each reader settles a base from the prerequisite's PR state all live in `<skill-dir>/references/base-branch.md`; why the scripts below test what they test the way they do is in each script's own header comment instead.
 
@@ -63,18 +61,18 @@ Only `CREATE` above needs this — `REUSE` and `ATTACHED` attach to a branch tha
 
 A task with no tracking issue — the chat-only entry — has no relation to read at all: branch from the default branch. Everything below applies only when an issue backs the task.
 
-Run `<skill-dir>/scripts/resolve-base.sh <issue-number>`. It reads the prerequisite from the issue's native `blockedBy` relation, never from issue-body prose, and settles the base from that prerequisite's PR state: `OPEN` → that PR's head; `MERGED` → the default branch — both fetched first, so the branch you cut actually contains what it's meant to. Read its one-line answer: `BASE <branch>` — cut the new branch from `origin/<branch>`, the remote-tracking ref the script has just fetched, and **not** from the bare name: a fetch by name never moves a local branch of that same name, so `<branch>` alone can resolve to a stale local ref and silently discard what was fetched. `STOP <reason>` — no prerequisite's PR exists at all, more than one prerequisite or PR reference, or a prerequisite closed without merging: stop, and either report why the task can't start or ask a person which base to use, per the reason printed.
+Run `<skill-dir>/scripts/resolve-base.sh <issue-number>`. It reads the prerequisite from the issue's native `blockedBy` relation, never from issue-body prose, and settles the base from that prerequisite's PR state: `OPEN` → that PR's head; `MERGED` → the default branch — both fetched first, so the branch you cut actually contains what it's meant to. Read its one-line answer: `BASE <branch>` — cut the new branch from `origin/<branch>`, the remote-tracking ref the script has just fetched, and **not** from the bare name. `STOP <reason>` — no prerequisite's PR exists at all, more than one prerequisite or PR reference, or a prerequisite closed without merging: stop, and either report why the task can't start or ask a person which base to use, per the reason printed.
 
-**Record a non-default base** as a single `Base-Branch: <base>` line in the trailer block of this task's **first** commit — `<base>` the bare branch name, no `origin/` prefix and no `refs/heads/` path. Branching from the default branch records nothing. It has to be the first commit: a trailer added later would shadow this one for any task stacked on top of this branch, and the reference above says what each reader then does with it.
+**Record a non-default base** as a single `Base-Branch: <base>` line in the trailer block of this task's **first** commit — `<base>` the bare branch name, no `origin/` prefix and no `refs/heads/` path. Branching from the default branch records nothing.
 
 If the verified baseline contradicts what the plan assumes — an existing failure, missing tooling — go back to **Plan gate** before starting tasks, or take **Escalation** where the guidelines' small-change lane skipped that gate.
 
 ## Plan gate
 
-The guidelines' small-change lane skips this gate outright; what follows is for every other task.
+The guidelines' small-change lane skips this gate outright.
 
 1. Read the task. Where the design lives depends on the entry: a **sub-issue** carries its own body plus a link to the parent's design comment; an **issue that fits one PR** carries its own comment; a **request with no issue** is itself the input, together with whatever `plan-work` left in chat.
-2. Draft the detailed plan with `superpowers:writing-plans`. What this gate takes from it is a plan that has been through that skill's own self-review — not the file the moment it lands. It goes in the workspace, git-ignored, and is never committed or published — it is scratch for the execution method, not a deliverable. **Don't follow that skill onward into whatever it moves on to next; what runs after this gate is settled here.**
+2. Draft the detailed plan with `superpowers:writing-plans`. What this gate takes from it is a plan that has been through that skill's own self-review — not the file the moment it lands. It goes in the workspace, git-ignored, and is never committed or published. **Don't follow that skill onward into whatever it moves on to next; what runs after this gate is settled here.**
 3. Dispatch `review-plan` with the target declared as the implementation plan. Fold every accepted finding in yourself — except one that invalidates the agreed design, which is not folded in at all: stop and take the **Design invalidated** exit below. Then re-run `review-plan`, handing over the record of the previous pass so it doesn't re-litigate rejected findings.
 4. Leave by exactly one of three exits:
    - **Clean** — no blocking finding → **Execution**.
@@ -104,7 +102,7 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
    - **An unmet criterion routes on one test: does meeting it require touching what the scope boundary excludes?** No → it is this task's work, so implement it in this round. Yes → don't implement it; record it and leave by step 5's first exit. Criteria that contradict each other, or the agreed design, are outside this test — no checklist can be built from them at all — and take the guidelines' **Escalation** by that route, recorded and exited the same way.
 2. **Simplify** — `simplify-code` on the recent diff only. No execution method has a simplification pass, so this is the gate's main job.
 3. **Review** — run `review-code`. The execution method's own branch-wide review is no substitute: this gate runs after that method's cleanup has deleted the record of what it covered, so its verdict cannot be checked here.
-4. **Commit** the round's work in the same round that produced it, so the tree is clean before either exit below hands the branch onward — **Hand off** pushes it, and a push carries only commits, while **Escalation** hands `plan-work` a branch name that re-approval judges by what it contains; either way, anything left uncommitted is simply absent from what the next flow reads. Confirm it worked by running `<skill-dir>/scripts/check-clean.sh` and reading its exit status — the check it wraps returns 0 whether or not anything is pending, so the script judges by what it prints, not by that exit code, and hands the gate a plain 0-clean/non-zero-dirty answer in return; don't leave this step while it reports dirty. A byproduct of step 1's checks belongs in `.gitignore`; the byproduct itself is never committed. A round that changed nothing commits nothing, and anything you can't account for as this round's own work stops the gate and goes to the user rather than being swept in.
+4. **Commit** the round's work in the same round that produced it, so the tree is clean before either exit below hands the branch onward — **Hand off** pushes it, and a push carries only commits, while **Escalation** hands `plan-work` a branch name that re-approval judges by what it contains; either way, anything left uncommitted is simply absent from what the next flow reads. Confirm it worked by running `<skill-dir>/scripts/check-clean.sh` and reading its exit status — 0 is clean, non-zero is dirty and prints what is pending; don't leave this step while it reports dirty. A byproduct of step 1's checks belongs in `.gitignore`; the byproduct itself is never committed. A round that changed nothing commits nothing, and anything you can't account for as this round's own work stops the gate and goes to the user rather than being swept in.
 5. Take the first row that applies:
 
    | # | Condition | Where it goes |
@@ -122,8 +120,6 @@ Add only what the execution method left undone. A round is one pass of steps 1-4
 The deliverable is a **pushed** branch of verified commits — exactly what `pr-to-ready` takes as its entry. Once the completion gate takes its normal exit, push it to `origin` under its own name, unconditionally. The push is what turns the branch into a deliverable rather than local state: opening a PR needs a remote ref, so an unpushed branch leaves the next flow nothing to enter on — in a later session, or a checkout that never held the branch.
 
 Then stop, and name `pr-to-ready` as the next entry **without invoking it**. Which flow runs next is the caller's decision, not this skill's.
-
-Two limits hold at that stop:
 
 - **PR creation belongs to `pr-to-ready`.** Don't create one here.
 - **Integration goes through a PR.** Merging this branch into its base instead of handing it over would skip `pr-to-ready`, CI, and PR review entirely. If the user explicitly wants that, confirm they mean to skip the PR before doing it — this skill carries no merge procedure of its own.
