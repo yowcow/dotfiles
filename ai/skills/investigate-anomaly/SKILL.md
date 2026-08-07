@@ -57,7 +57,7 @@ Sweep every change class across the last-good → first-bad window:
 
 ### Step 5: Test hypotheses
 
-- Run the core loop per `superpowers:systematic-debugging`, taking the timeline and the change classes swept in Step 4 as the hypothesis pool.
+- Run the core loop per `superpowers:systematic-debugging`: the change classes swept in Step 4 are the hypothesis pool; the timeline is the evidence each hypothesis must fit.
 - Distinguish **root cause** (the defect) from **trigger** (what activated it now) from **contributing factors** (what widened the blast radius).
 
 ## Synthesize
