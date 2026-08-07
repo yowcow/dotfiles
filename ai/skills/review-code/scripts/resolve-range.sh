@@ -29,12 +29,24 @@ fi
 
 PR="${1:-}"
 
+# Both shapes answer through here, so an empty range is EMPTY however it was
+# resolved. Handed `RANGE <sha>..<sha>` for a PR whose endpoints coincide, the
+# caller would dispatch a reviewer over an empty diff and read the no-findings
+# that comes back as a clean review.
+emit_range() {
+  if [ "$1" = "$2" ]; then
+    echo "EMPTY"
+  else
+    echo "RANGE $1..$2"
+  fi
+}
+
 if [ -n "$PR" ]; then
   if ! ENDS="$(gh pr view "$PR" --json baseRefOid,headRefOid --jq '"\(.baseRefOid) \(.headRefOid)"' 2>/dev/null)"; then
     echo "STOP pr-lookup-failed"
     exit 0
   fi
-  echo "RANGE ${ENDS%% *}..${ENDS##* }"
+  emit_range "${ENDS%% *}" "${ENDS##* }"
   exit 0
 fi
 
@@ -151,9 +163,4 @@ fi
 
 HEAD_SHA="$(git rev-parse HEAD)"
 
-if [ "${BASE_SHA}" = "${HEAD_SHA}" ]; then
-  echo "EMPTY"
-  exit 0
-fi
-
-echo "RANGE ${BASE_SHA}..${HEAD_SHA}"
+emit_range "${BASE_SHA}" "${HEAD_SHA}"

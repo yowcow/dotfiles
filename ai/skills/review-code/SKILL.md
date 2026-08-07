@@ -31,11 +31,14 @@ Resolve what to review in this order, and declare the resolved scope before disp
 
 1. **Caller-supplied** — a SHA range, paths, or a PR. Use it as given; a PR becomes the range its own record bounds, via `<skill-dir>/scripts/resolve-range.sh <pr-number>`.
 2. **Uncommitted changes present** — the working tree diff: staged, unstaged, and untracked files.
-3. **Clean tree, commits ahead of `<base>`** — run `<skill-dir>/scripts/resolve-range.sh` with no argument and read its one-line answer. `<base>` is resolved, not assumed: the script reads back the `Base-Branch:` trailer that `implement-work` records when it cuts a branch from a prerequisite's PR, settles the base from what state that PR is now in, and falls back to the default branch where there is no trailer. The trailer's contract, the state-to-base table, and why each test is written the way it is all live in `implement-work`'s `references/base-branch.md`, under **The contract**, **Reading the trailer back**, and **Resolving the default branch**.
-   - `RANGE <base>..<head>` — the two SHAs to review.
-   - `EMPTY` — HEAD is already at `<base>`; fall through to 4.
-   - `STOP <reason>` — the base could not be settled. Report the reason and stop, rather than reviewing a range that may be somebody else's work.
-4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` that item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
+3. **Clean tree, commits ahead of `<base>`** — run `<skill-dir>/scripts/resolve-range.sh` with no argument. `<base>` is resolved, not assumed: the script reads back the `Base-Branch:` trailer that `implement-work` records when it cuts a branch from a prerequisite's PR, settles the base from what state that PR is now in, and falls back to the default branch where there is no trailer. The trailer's contract, the state-to-base table, and why each test is written the way it is all live in `implement-work`'s `references/base-branch.md`, under **The contract**, **Reading the trailer back**, and **Resolving the default branch**.
+4. **Nothing to review** — no uncommitted change, and no range with anything in it. Ask the user what to review. Never widen to the whole repository on a guess.
+
+Either invocation answers in one line:
+
+- `RANGE <base>..<head>` — the two SHAs to review.
+- `EMPTY` — the range holds nothing; fall through to 4.
+- `STOP <reason>` — the base could not be settled. Report the reason and stop, rather than reviewing a range that may be somebody else's work.
 
 ## Reviewer prompt
 
