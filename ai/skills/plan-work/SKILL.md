@@ -5,9 +5,7 @@ description: Use to turn an issue, a planning request, or an investigation's fin
 
 # Plan Work
 
-Turns an issue or a planning request into work `implement-work` can pick up one PR at a time, before any worktree exists and before any code is touched. One invocation runs the whole flow: research, design agreement, a numbered TODO list at PR granularity, the loop around `review-plan` until a pass returns no blocking finding, then one publish and the sub-issues. This skill owns that loop.
-
-**It stops short of per-task detail.** `implement-work` writes that one PR at a time, immediately before the work.
+Turns an issue or a planning request into work `implement-work` can pick up one PR at a time.
 
 ## Orchestration model
 
@@ -21,18 +19,18 @@ Turns an issue or a planning request into work `implement-work` can pick up one 
 
 - **Never touch the working tree** — no worktree, no branch, no commit, no code edit, throughout rather than only at the end. This flow has no worktree, so a design document committed here lands on whatever branch the session is on, usually `master`. A sub-skill that assumes it should write a file and commit it does neither: redirect that output into the comment.
 - The canonical record is the tracking issue's comment — chat only when no issue tracks the work, and **Output contract** binds that version just the same, not as a lesser one.
-- `scripts/` holds the GitHub mechanism, one script per operation, each closing a way of getting it silently wrong: `post-plan-comment.sh` for anything this flow posts, the design comment and the findings report alike, and `edit-plan-comment.sh` for revising it, taking the numeric id the first prints; `list-sub-issues.sh` to enumerate children and `link-sub-issue.sh` to attach one; `set-prerequisites.sh` for the native relation; `close-dropped-sub-issue.sh` for a child that was dropped. Use them rather than hand-built calls — a body passed as a flag string hands its backticks to the shell.
+- `<skill-dir>/scripts/` holds the GitHub mechanism — `<skill-dir>` being wherever your runtime installed this skill (e.g. `~/.claude/skills/plan-work`, `~/.agents/skills/plan-work`) — one script per operation, each closing a way of getting it silently wrong: `<skill-dir>/scripts/post-plan-comment.sh` for anything this flow posts, the design comment and the findings report alike, and `<skill-dir>/scripts/edit-plan-comment.sh` for revising it, taking the numeric id the first prints; `<skill-dir>/scripts/list-sub-issues.sh` to enumerate children and `<skill-dir>/scripts/link-sub-issue.sh` to attach one; `<skill-dir>/scripts/set-prerequisites.sh` for the native relation; `<skill-dir>/scripts/close-dropped-sub-issue.sh` for a child that was dropped. Use them rather than hand-built calls — a body passed as a flag string hands its backticks to the shell.
 
 ## Entry
 
 - **An issue number** — read the issue and its comments before anything else.
-- **A planning request with no tracking issue** — the request itself is the input, so there is no issue to read first; the research in **Pass** step 2 still runs. **Splitting into sub-issues** asks for a tracking issue before anything is published.
+- **A planning request with no tracking issue** — the research in **Pass** step 2 still runs. **Splitting into sub-issues** asks for a tracking issue before anything is published.
 - **Investigation findings** — arrives with three things: the findings report, the reproduction or observation baseline, and the fix options the investigation proposed. Enter at research like the entries above rather than at **Design agreement**: the root cause is established, so what research settles is the shape of the fix, and those options are input to that agreement, never the agreement itself. Should research contradict the root cause, don't re-diagnose it here — take the guidelines' **Escalation** back to the investigation.
 - **A design invalidated downstream** — arrives with three things: the finding and which part of the design it undoes, the existing branch's name, and that branch's state, meaning whether it is pushed and whether a PR is open on it. Re-enter at **Design agreement**, since the design is what needs re-approval. Where an issue tracks the work it is still the canonical record, so the re-approved design edits that same comment in place rather than adding another.
 
 ## Design agreement
 
-Reach it with `superpowers:brainstorming`, run to its own self-review and the user's confirmation, and stop there. **Don't follow it onward to the next skill**, however emphatically it says to. What this flow takes from it is that draft alone — no file, no commit. Then come back and draft the TODO list yourself.
+Reach it with `superpowers:brainstorming`, run to its own self-review and the user's confirmation. **Don't follow it onward to the next skill**, however emphatically it says to. What this flow takes from it is that draft alone. Then come back and draft the TODO list yourself.
 
 ## Output contract
 
@@ -58,16 +56,16 @@ One sub-issue per item, whatever the count. Where a tracking issue exists they a
 
 - **The parent comment** carries the design, the split policy, and the list of sub-issues. **Each child** carries its purpose, its scope boundary, its completion criteria, its prerequisites, the parent design comment's URL, and — only where the item carries a branch name — that name. Nothing more: a PR-sized plan in the child puts the detail back where it was and defeats the split.
 - **The prerequisite line is always present**, and it carries the reason: either `#12 のマージが先行して必要（同一ファイルを触るため）` or `なし（並列に着手できる）`, that phrasing and its parenthetical included.
-- **A prerequisite is also a native relation, and an independent item gets none at all.** The line is for a person and carries the why; the relation is what `implement-work` reads, so it never has to parse prose, and neither replaces the other. Confirm the resulting count is the one intended — 0 for an independent item — because `implement-work` branches on that count, so a relation that didn't stick, or a stale one left behind, misclassifies the item silently rather than failing visibly.
-- Converge the `review-plan` loop against the whole, undivided TODO list before splitting. A body too large for one comment is itself a signal to split the work further, never to truncate it.
+- **A prerequisite is also a native relation, and an independent item gets none at all.** The relation is what `implement-work` reads, so it never has to parse prose. Confirm the resulting count is the one intended — 0 for an independent item.
+- Converge the `review-plan` loop against the whole, undivided TODO list before splitting.
 - **On re-entry, children from the previous approval already exist, and one child per item still holds.** Enumerate them from the native relation, never from the parent comment's prose: that prose records what was published, so a child added after the last edit is missing from it and the item it belongs to would be given a second one. Match them by each item's **substance**, never its wording: items are renumbered and rephrased freely, so a rephrased one would otherwise read as an item dropped plus an item added. Match before `review-plan` sees the list, since the list has to already account for what is finished, and re-match any item a fold-in changed — those only.
-- **After convergence, that invariant decides each child.** A surviving item's child has its body brought up to date and its relations rewired in both directions; an item with no child gets one, as on a first publish; a child whose item is gone from the list is closed as not planned, with the reason and the design comment's URL, keeping the sub-issue link as the record that it was dropped; and a **closed** child is work already done — never raised as a work item again, and **never reopened**, since it records that its PR merged. Where the re-approved design reworks what that PR delivered, that is new work and gets a new child. Merged and split items fall out of the invariant rather than needing rules of their own. Closing a dropped child is this skill's own bookkeeping rather than a person's: what the guidelines reserve for a person is what depends on a merge, and this doesn't.
+- A surviving item's child has its body brought up to date and its relations rewired in both directions; an item with no child gets one, as on a first publish; a child whose item is gone from the list is closed as not planned, with the reason and the design comment's URL, keeping the sub-issue link as the record that it was dropped; and a **closed** child is work already done — never raised as a work item again, and **never reopened**, since it records that its PR merged. Where the re-approved design reworks what that PR delivered, that is new work and gets a new child. Closing a dropped child is this skill's own bookkeeping rather than a person's: what the guidelines reserve for a person is what depends on a merge, and this doesn't.
 
 ## Publish
 
 1. Converge the `review-plan` loop. Nothing reaches GitHub before that.
 2. **Settle where it gets published**, before anything is posted: no tracking issue → ask, per **Splitting into sub-issues**. On the findings entry the report is posted here too, ahead of the design comment, so the URL that comment has to cite already exists when it is written.
-3. **Post** the design, the split policy, and the numbered TODO list — one comment for this work — and take its id now, **before any child exists**. Sub-issue creation runs item by item and anyone may comment in that span, so "the issue's last comment" is a different comment by the time the id is needed again; never edit your last comment on the issue instead, because on the findings entry that comment is the report and the post would silently overwrite it. **On re-entry there is no new post**: that comment already exists, and its id is the `#issuecomment-<id>` fragment of the URL the children carry — recover it there and edit, because posting again would leave two design comments with the children citing the older one.
+3. **Post** the design, the split policy, and the numbered TODO list — one comment for this work — and take its id now, **before any child exists**; never edit your last comment on the issue instead. **On re-entry there is no new post**: that comment already exists, and its id is the `#issuecomment-<id>` fragment of the URL the children carry — recover it there and edit, because posting again would leave two design comments with the children citing the older one.
 4. **Land the children** in TODO order, each carrying that comment's URL — a stacked item's body cites its prerequisite's issue number, and dependencies point back at earlier items, so working in order means that number already exists. On re-entry, update the existing children per **Splitting into sub-issues** instead of creating a fresh set. Then **edit that same comment in place** to append the list of sub-issues; editing it is not a second publish.
 
 ## Pass
@@ -84,7 +82,7 @@ This is clean when the published artifact satisfies **Output contract** and the 
 
 ## Escalation
 
-This loop's stopping conditions are the guidelines' **Loop convergence**. One round is one `review-plan` pass plus the fold-in that follows it, and a finding repeats when a later pass makes the same objection to the same item, whatever words it arrives in. A TODO list that won't converge usually has a design problem, not a list problem. A Critical finding that invalidates the agreed design is never fixed in this loop: stop and return to **Design agreement** for re-approval.
+This loop's stopping conditions are the guidelines' **Loop convergence**. One round is one `review-plan` pass plus the fold-in that follows it, and a finding repeats when a later pass makes the same objection to the same item, whatever words it arrives in. A Critical finding that invalidates the agreed design is never fixed in this loop: stop and return to **Design agreement** for re-approval.
 
 ## Report
 
