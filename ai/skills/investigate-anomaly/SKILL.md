@@ -5,14 +5,12 @@ description: Use when root-causing an observed anomaly — production errors, an
 
 # Investigate Anomaly
 
-Root-cause an observed anomaly: a failure, an incident, or an unexplained change in a metric such as error rate, cost, or resource usage. This skill adds the anomaly-specific layers: framing, evidence preservation, timeline, change correlation, and blameless reporting. It earns its keep when the anomaly is historical, distributed, or environment-bound; for a performance shortfall with a clear metric, prefer `investigate-performance`.
+Root-cause an observed anomaly. `superpowers:systematic-debugging` owns the core loop; this skill layers the anomaly-specific work on top of it: framing, evidence preservation, timeline reconstruction, change correlation, and blameless reporting.
 
 ## Rules
 
-- Tag every statement in notes and the report as **observed** or **conjectured**.
 - Blameless: name systems and conditions, never people.
 - Investigation is read-only: never mutate production state (restarts, config, data) without explicit user approval.
-- Preserve volatile evidence before anything else.
 
 ## Orchestration model
 
@@ -28,12 +26,12 @@ An observed symptom and where it was observed: the error text or metric values, 
 
 ### Step 1: Frame the symptom
 
-- Turn a vague concern ("costs keep growing", "something has felt off lately") into a measurable statement: which metric, where, since when, at what scope, and how large the deviation is against what baseline or expectation.
+- Turn a vague concern ("costs keep growing", "something has felt off lately") into a measurable statement: the guidelines' **Understand** list, plus how large the deviation is against what baseline or expectation.
 - If no number can be attached yet, producing one is the first evidence-gathering task — an anomaly that cannot be measured cannot be root-caused.
 
 ### Step 2: Capture and preserve
 
-- Record the symptom as observed: exact error text/codes or metric values and their source, first and last occurrence, scope (which users/hosts/requests/services), and current status (ongoing vs recovered).
+- Record the symptom as observed: exact error text/codes or metric values and their source, first and last occurrence, and current status (ongoing vs recovered).
 - Snapshot anything that rotates or expires: logs, dashboards, queue depths, process state, billing/usage exports.
 
 ### Step 3: Reconstruct the timeline
@@ -59,16 +57,15 @@ Sweep every change class across the last-good → first-bad window:
 
 ### Step 5: Test hypotheses
 
-- Cheapest decisive check first; one variable at a time.
-- Seek disconfirming evidence: "if this were the cause, X would also be true — is it?"
+- Run the core loop per `superpowers:systematic-debugging`, taking the timeline and the change classes swept in Step 4 as the hypothesis pool.
 - Distinguish **root cause** (the defect) from **trigger** (what activated it now) from **contributing factors** (what widened the blast radius).
 
 ## Synthesize
 
 ### Exit criteria
 
-- The explanation accounts for the timeline (why then), the scope (why those and not others), and the symptom's shape; or
-- the unknowns are explicitly documented, with the monitoring or logging needed to catch the next occurrence.
+- The explanation meets the guidelines' **Investigation workflow** exit condition and accounts for the symptom's **shape** — a steady rate and a periodic spike of the same average are different symptoms; or
+- the unknowns are documented with the monitoring or logging that would catch the next occurrence — a recovered anomaly leaves nothing to re-measure.
 
 ### Report format (blameless)
 
@@ -82,5 +79,3 @@ Sweep every change class across the last-good → first-bad window:
 8. **Open questions**
 
 **Reproduction or observation baseline** and **Remediation options** are what the guidelines' **Investigation → Change transition** hands to `plan-work` — that flow's input, not work this one starts.
-
-Language and tone follow the shared AI guidelines' Communication rules when the report is posted anywhere.
