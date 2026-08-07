@@ -7,7 +7,9 @@ description: Use to review code and fix what the review finds — on a diff, a b
 
 Use on code in any state — a diff just written, a branch, or an uncommitted working tree.
 
-One invocation runs the loop to completion: review, judge, fix, verify, review again, until no blocking finding remains. What it does not own is re-entry — reviewing again after something else changes the code belongs to the caller; in the Change workflow, `implement-work`'s completion gate owns that. The name pairs with `review-plan`, but the shape differs: `review-plan` is one pass with the loop outside it, this skill owns its loop.
+One invocation runs the loop to completion: review, judge, fix, verify, review again, until no blocking finding remains. What it does not own is re-entry — reviewing again after something else changes the code belongs to the caller; in the Change workflow, `implement-work`'s completion gate owns that.
+
+`<skill-dir>` below is wherever your runtime installed this skill (e.g. `~/.claude/skills/review-code`, `~/.agents/skills/review-code`).
 
 ## Orchestration model
 
@@ -27,47 +29,26 @@ One invocation runs the loop to completion: review, judge, fix, verify, review a
 
 Resolve what to review in this order, and declare the resolved scope before dispatching anything:
 
-1. **Caller-supplied** — a SHA range, paths, or a PR. Use it as given.
+1. **Caller-supplied** — a SHA range, paths, or a PR. Use it as given; a PR becomes the range its own record bounds, via `<skill-dir>/scripts/resolve-range.sh <pr-number>`.
 2. **Uncommitted changes present** — the working tree diff: staged, unstaged, and untracked files.
-3. **Clean tree, commits ahead of `<base>`** — the range is `merge-base(<base>, HEAD)..HEAD`, and `<base>` is resolved, not assumed: `implement-work` records a non-default base as a `Base-Branch:` trailer when it cuts a branch from a prerequisite's still-open PR. That trailer's contract — what a wrong `<base>` costs, and why each test below is written the way it is — is kept by `implement-work`. The commands stay here, so a session that never reads that skill still resolves the right base.
+3. **Clean tree, commits ahead of `<base>`** — run `<skill-dir>/scripts/resolve-range.sh` with no argument. `<base>` is resolved, not assumed: the script reads back the `Base-Branch:` trailer that `implement-work` records when it cuts a branch from a prerequisite's PR, settles the base from what state that PR is now in, and falls back to the default branch where there is no trailer. The trailer's contract, the state-to-base table, and why each test is written the way it is all live in `implement-work`'s `references/base-branch.md`, under **The contract**, **Reading the trailer back**, and **Resolving the default branch**.
+4. **Nothing to review** — no uncommitted change, and no range with anything in it. Ask the user what to review. Never widen to the whole repository on a guess.
 
-   Scan local `HEAD` — this skill reviews the checkout it is in — from the tip backwards, first hit wins. **Capture the `git log` before testing it, rather than piping straight into `grep`:**
+Either invocation answers in one line:
 
-   ```bash
-   trailers="$(git log --format='%(trailers:key=Base-Branch,valueonly)' HEAD)"   # 0 = history read; non-zero = stop
-   printf '%s\n' "$trailers" | grep -m1 .                                        # 0 = recorded base on stdout, 1 = no trailer
-   ```
-
-   No trailer → `<base>` is the default branch. Resolve it rather than assuming `main`, three rungs in order: `git symbolic-ref refs/remotes/origin/HEAD` (0 = prints the ref; non-zero = fall to the next rung, it does not mean there is no default branch), then `gh repo view --json defaultBranchRef`, then ask. Never guess a branch name.
-
-   A trailer found means `<base>` turns on **what state the prerequisite's PR is now in**, not on whether its branch still exists — which says nothing about that state. Look the PR up by head branch name:
-
-   ```bash
-   gh pr list --head <recorded> --state all --json number,state --jq '.[] | "\(.number) \(.state)"'
-   ```
-
-   Take the exit status and the line count together: non-zero = stop, it means "couldn't tell" rather than "no PR"; 0 lines = no PR found, stop and report it; 1 line = the number and the state; 2 or more = stop and ask which of that branch's PRs to read the state from.
-
-   | prerequisite PR state | `<base>` |
-   | --- | --- |
-   | `OPEN` | `git fetch origin <recorded>`, then **`FETCH_HEAD`** |
-   | `MERGED` | `git fetch origin refs/pull/<n>/head`, then **`FETCH_HEAD`** |
-   | `CLOSED` without merging | **stop** — that prerequisite was abandoned |
-
-   `<n>` is the number the lookup printed. Either fetch exiting non-zero stops the run, and `<base>` is `FETCH_HEAD` rather than `origin/<recorded>` in both rows.
-
-   If the range turns out empty — HEAD is already at `<base>` — fall through to 4.
-4. **Nothing to review** — no uncommitted change and no commit ahead of the `<base>` that item 3 resolved. Ask the user what to review. Never widen to the whole repository on a guess.
+- `RANGE <base>..<head>` — the two SHAs to review.
+- `EMPTY` — the range holds nothing; fall through to 4.
+- `STOP <reason>` — the base could not be settled. Report the reason and stop, rather than reviewing a range that may be somebody else's work.
 
 ## Reviewer prompt
 
 `superpowers:requesting-code-review` is the dispatch mechanism; what the reviewer is told is this skill's own. Whatever shape that dispatch offers to carry it, the prompt is complete when it holds these five:
 
 1. **The scope** — whatever **Scope** resolved, in one of these four shapes:
-   - **a committed range** — the two SHAs bounding it, as the caller gave them or as `merge-base(<base>, HEAD)..HEAD` resolved;
-   - **uncommitted changes** — the commands that show them where they are: `git status --porcelain`, `git diff`, `git diff --cached`, and the untracked paths. Don't send the reviewer to a worktree of its own here — a worktree holds a revision, and these changes are in none;
+   - **a committed range** — the two SHAs bounding it;
+   - **uncommitted changes** — where they are: staged, unstaged, and untracked alike. Don't send the reviewer to a worktree of its own here — a worktree holds a revision, and these changes are in none;
    - **paths with no range** — the paths themselves, and that the review covers their current state on this checkout rather than a diff. Say the same in the report: nothing constrains the review to recent change, so the findings may be about code this work never touched;
-   - **a PR** — the range it represents, resolved with `gh pr view <n> --json baseRefOid,headRefOid` and handed over as a committed range. Reviewing that diff locally is this skill's job; posting anything to the PR is not — that belongs to `pr-to-ready`.
+   - **a PR** — the range **Scope** resolved for it, handed over as a committed range. Reviewing that diff locally is this skill's job; posting anything to the PR is not — that belongs to `pr-to-ready`.
 2. **The read-only rule** — the reviewer reads the checkout it is in, in place, and changes nothing: not the working tree, not the index, not HEAD, not branch state. It returns findings and nothing else.
 3. **What was implemented** — what the change does, or for a paths-only scope what the code is for.
 4. **The requirements** — the plan, or the original request. When there is none, say so in the prompt: the review then runs against the repository's own standards and the code's evident intent. Say it in the report too, so a reader knows plan alignment was not checked.
