@@ -26,7 +26,7 @@ An observed symptom and where it was observed: the error text or metric values, 
 
 ### Step 1: Frame the symptom
 
-- Turn a vague concern ("costs keep growing", "something has felt off lately") into a measurable statement: the guidelines' **Understand** list, plus how large the deviation is against what baseline or expectation.
+- Turn a vague concern ("costs keep growing", "something has felt off lately") into a measurable statement: what the guidelines' **Understand** asks an investigation to pin down, plus how large the deviation is against what baseline or expectation.
 - If no number can be attached yet, producing one is the first evidence-gathering task — an anomaly that cannot be measured cannot be root-caused.
 
 ### Step 2: Capture and preserve
