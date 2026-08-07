@@ -6,38 +6,21 @@ This file holds the contract and the reasons; the commands a skill actually runs
 
 ## The contract
 
-A single `Base-Branch: <base>` line in the trailer block of the task's **first** commit. `<base>` is the bare branch name — no `origin/` prefix, no `refs/heads/` path — because both readers parse this exact form.
+A single `Base-Branch: <base>` line in the trailer block of the task's **first** commit. `<base>` is the bare branch name — no `origin/` prefix, no `refs/heads/` path.
 
-Branching from the default branch records **nothing**. That absence is what tells both readers to fall back to the default branch, so it is a value, not an omission.
-
-It has to be the first commit: the branch's history only grows from there, and both readers scan it from the tip backwards, stopping at the first hit. A trailer added on a later commit would shadow the first one for a task stacked on top of this branch.
+Branching from the default branch records **nothing**.
 
 ## Resolving the default branch
 
-Never guess a branch name. Three rungs, in order — `git symbolic-ref`, then `gh repo view`, then ask the user:
+Never guess a branch name. Three rungs, in order — `git symbolic-ref`, then `gh repo view`, then ask the user.
 
-```bash
-git symbolic-ref refs/remotes/origin/HEAD    # exit 0 prints the ref; with --short, the bare origin/<default>
-gh repo view --json defaultBranchRef         # with --jq '.defaultBranchRef.name', the bare name
-```
-
-A non-zero exit from `symbolic-ref` means the remote HEAD is not set in this checkout, **not** that there is no default branch: fall to `gh repo view`, and if that fails too, ask.
-
-**The exact flags differ by caller, and that difference is intentional rather than drift.** `pr-to-ready` compares the result against a branch name, so it needs the bare name: it takes `--short` and `--jq '.defaultBranchRef.name'`, and strips the `origin/` prefix before comparing. `review-code` only needs the branch to resolve a range, so it pins neither flag. Each skill's own form belongs in its own `scripts/`; what is shared, and what this file fixes, is the three-rung order and the rule never to guess a branch name.
+Each skill's own form belongs in its own `scripts/`.
 
 ## Reading the trailer back
 
-Where a stack runs deeper than one, the nearest trailer wins — an earlier task's trailer sits further back in the same history. `pr-to-ready` fetches the task branch and scans `FETCH_HEAD`, since a session may not have the branch checked out; `review-code` scans local `HEAD`, since it reviews the checkout it is in.
+Where a stack runs deeper than one, the nearest trailer wins.
 
-When a trailer is found, look the prerequisite's PR up by its head branch name:
-
-```bash
-gh pr list --head <recorded> --state all --json number,state --jq '.[] | "\(.number) \(.state)"'
-```
-
-Take **the exit status and the line count together**, and print every match with `.[]` rather than indexing `.[0]`. Neither signal settles anything on its own. A `gh` failure — auth, network, repo context — prints nothing and exits non-zero, which looks exactly like "no PR", so a non-zero exit is "couldn't tell" and stops the run instead of falling through to a base. And `.[0]` would pick one of several PRs arbitrarily, or interpolate `null` as text where there is none, producing non-empty output that reads as a match.
-
-That gives four readings: non-zero = stop; zero lines = no PR found; one line = the number and the state; two or more = the branch carries more than one PR.
+When a trailer is found, look the prerequisite's PR up by its head branch name.
 
 The base then follows from that state:
 
@@ -50,7 +33,7 @@ The base then follows from that state:
 | no PR found | **stop** and report it | **stop** and report it |
 | two or more PRs | **stop and ask** | **stop and ask** |
 
-`<n>` is the PR number the lookup printed beside the state. The no-trailer row needs no lookup: the absence of a trailer is itself the answer, as **The contract** says.
+`<n>` is the PR number the lookup printed beside the state. The no-trailer row needs no lookup.
 
 The last two rows both stop, and they differ in what they put to the person. No PR on the recorded branch leaves the base unknowable, so there is nothing to choose between and the run reports what it found — the same answer `implement-work`'s writer-side rule gives an unimplemented prerequisite. Two or more PRs leaves a genuine choice: the trailer already fixed *which* prerequisite this is, so what is open is which of that one branch's PR records the base should follow. That one asks.
 
@@ -60,28 +43,20 @@ The test this replaced asked `git ls-remote --exit-code --heads origin <recorded
 
 - `deleteBranchOnMerge` is false here, so merging never deletes the prerequisite's branch. Deleting it is a person's step, taken whenever they get round to it. So a surviving branch may be long merged, and a vanished one proves only that somebody tidied up.
 - Read as "still in flight", a surviving merged branch hands `pr-to-ready` that branch as `--base`. Merging a PR into an already-merged branch puts nothing into the default branch, so the change silently fails to land.
-- Read as "finished with", a vanished branch sent `review-code` to the default branch — and **that leg was wrong on its own terms**, which is the failure that actually bites. Squash and rebase merges rewrite the prerequisite's commits under fresh SHAs, so the SHAs this branch's history carries are nowhere in the default branch. `merge-base(<default>, HEAD)` therefore lands *below* the prerequisite and sweeps its commits into the reviewed range. Squash merge is the ordinary operation in this repository, so this is the common case rather than an edge one.
+- Read as "finished with", a vanished branch sent `review-code` to the default branch. Squash and rebase merges rewrite the prerequisite's commits under fresh SHAs, so the SHAs this branch's history carries are nowhere in the default branch. `merge-base(<default>, HEAD)` therefore lands *below* the prerequisite and sweeps its commits into the reviewed range. Squash merge is the ordinary operation in this repository, so this is the common case rather than an edge one.
 
-Keying on state answers both at once, and it needs no branch to exist: the lookup is by head branch *name*, which the PR record keeps after the branch is gone.
+It needs no branch to exist: the lookup is by head branch *name*, which the PR record keeps after the branch is gone.
 
 ### Why the `MERGED` row's base is `refs/pull/<n>/head`
 
-- **It bounds the range whatever the merge strategy was.** Taking the prerequisite's own head leaves the range holding exactly this task's commits, whether the prerequisite went in squashed, rebased, or as a merge commit. In the merge-commit case that point coincides with `merge-base(<default>, HEAD)`, so the rule does not degrade where the old one happened to work.
-- **It is the one form that always resolves.** `refs/pull/<n>/head` outlives both the merge and the branch's deletion, so a single row covers a surviving branch and a deleted one alike. It also takes the same "fetch, then `FETCH_HEAD`" shape as the `OPEN` row, so that row's reason for `FETCH_HEAD` over a remote-tracking ref carries over. The default refspec does not fetch this ref, so the fetch must name it explicitly, and a non-zero fetch stops the run.
+- **It bounds the range whatever the merge strategy was.** Taking the prerequisite's own head leaves the range holding exactly this task's commits, whether the prerequisite went in squashed, rebased, or as a merge commit. In the merge-commit case that point coincides with `merge-base(<default>, HEAD)`.
+- **It is the one form that always resolves.** `refs/pull/<n>/head` outlives both the merge and the branch's deletion.
 
 ### Why the writer and the readers answer `MERGED` differently
 
 `implement-work`'s **Base branch** rule sends a task whose prerequisite is already `MERGED` to the default branch and records no trailer at all, while the table above sends `MERGED` to the prerequisite's head. That is not a contradiction, because the two are reading different histories. A branch cut from the default branch *after* the merge has every one of its commits ahead of it. A branch cut while the prerequisite was still `OPEN` carries the prerequisite's commits inside its own history, and the prerequisite merging later does not remove them. Different history, different correct base — so the writer-side rule stands as it is.
 
-Both of `review-code`'s fetching rows resolve `<base>` to **`FETCH_HEAD`**, never to `origin/<recorded>`: a fetch always writes `FETCH_HEAD`, whereas updating `origin/<recorded>` depends on the repository's `remote.origin.fetch` refspec — in a single-branch or otherwise narrowed clone the fetch can exit 0 without ever creating it, and `refs/pull/<n>/head` sits outside that refspec in every clone regardless. Stop the run if the fetch itself exits non-zero, rather than falling back to whatever stale value a previous fetch left in place. `pr-to-ready` never resolves `<recorded>` to a ref at all: on the one row where it uses it, it passes the literal branch name straight to `--base`.
-
-## Why the reads are captured before they are tested
-
-Capture the read — `git log`, and any fetch that feeds it `FETCH_HEAD` — into a variable before testing it, rather than piping straight into `grep`. A pipe reports only `grep`'s exit status, and `grep` exits 1 on empty input whether the trailer is genuinely absent, the read itself failed, or a failed fetch left `FETCH_HEAD` empty — three different causes that would otherwise all be misread as "no trailer" and fall back to the wrong base. `set -o pipefail` does not help either: `grep` is the rightmost command, and its 1 is a real exit code, not a masked one.
-
 ## Why the lookups are tested the way they are
 
-- **A prerequisite is counted, never merely detected.** The three forms differ: `blockedBy` comes back as `{nodes, totalCount}`, `closedByPullRequestsReferences` as a plain array, and the readers' `gh pr list` as one line per match. In all three "is it empty" cannot tell one prerequisite from three — only a count separates the single case that may proceed from the two that stop.
 - **A PR's state is tested by `state`, and it has three values.** `OPEN`, `CLOSED` and `MERGED` are three cases, so "not merged" collapses the two that need opposite answers: a PR closed without merging is abandoned work, not work still in flight. This binds both sides of the mechanism — the writer reads `state` to choose what to branch from, and both readers read it to choose the base.
 - **The stop rows stop rather than falling through to the default branch.** Falling through makes an unimplemented, abandoned, or ambiguous prerequisite indistinguishable from an independent task — and that surfaces only later, as a failure whose cause is nowhere in the diff. This table's stop rows, and the writer-side rule's own stop outcomes, both exist for that one reason.
-- **A task stacked on a prerequisite whose PR is still `OPEN` must branch from that PR's head.** Branch from the default instead and the prerequisite's changes are simply absent, so the task's own checks fail for a reason that is nowhere in its diff.
