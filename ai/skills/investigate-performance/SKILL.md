@@ -42,7 +42,7 @@ Descend the layers, measuring each one's share of the total cost; stop at the fi
 
 1. **System** — CPU/memory/disk/network saturation and errors (USE method); swapping, throttling, noisy neighbors.
 2. **Runtime** — GC pressure and pause time; scheduler/thread/goroutine/process-pool saturation; connection pools. Use the language's native profiler (e.g. pprof, NYTProf, Xdebug/Blackfire, fprof/recon, `--cpu-prof`).
-3. **Application** — hot paths, repeated work in loops, per-request work that could be cached, lock contention, serialization cost, chatty external calls and the retry amplification behind them.
+3. **Application** — hot paths, repeated work in loops, per-request work that could be cached, lock contention, serialization cost, chatty external calls, retry amplification.
 4. **Query/IO** — slow queries and their plans, missing indexes, N+1 patterns, round-trip counts, payload sizes.
 
 ## Synthesize
