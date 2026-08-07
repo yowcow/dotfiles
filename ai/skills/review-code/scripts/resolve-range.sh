@@ -52,8 +52,7 @@ fi
 
 # Three-rung ladder, never guessing a branch name: the local remote-HEAD
 # symref, then the GitHub API, then give up and let the caller ask a person.
-# Both rungs are reduced to the bare name so they agree on one form, and the
-# caller puts `origin/` back, since what it needs is a rev.
+# Both rungs are reduced to the bare name, which is what the fetch below takes.
 resolve_default_branch() {
   local ref
   if ref="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"; then
@@ -92,8 +91,7 @@ while IFS= read -r line; do
 done <<<"$TRAILER_LOG"
 
 if [ -z "$RECORDED" ]; then
-  DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
-  BASE="origin/${DEFAULT}"
+  FETCH_SPEC="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
 else
   # Read the exit status and the line count together. A non-zero exit prints
   # nothing and looks exactly like "no PR" — auth, network, or repo-context
@@ -143,20 +141,22 @@ else
       exit 1
       ;;
   esac
-
-  # FETCH_HEAD, never origin/<recorded>: a fetch always writes FETCH_HEAD,
-  # whereas updating the remote-tracking ref depends on the clone's
-  # remote.origin.fetch refspec — and `refs/pull/<n>/head` sits outside that
-  # refspec in every clone — so the tracking ref can stay at a stale commit
-  # while the fetch itself exits 0.
-  if ! git fetch origin -- "${FETCH_SPEC}" >&2; then
-    echo "STOP fetch-failed"
-    exit 0
-  fi
-  BASE="FETCH_HEAD"
 fi
 
-if ! BASE_SHA="$(git merge-base "${BASE}" HEAD)"; then
+# Every row fetches, and every row reads FETCH_HEAD rather than a
+# remote-tracking ref: a fetch always writes FETCH_HEAD, whereas updating
+# `refs/remotes/origin/<name>` depends on the clone's remote.origin.fetch
+# refspec — which `refs/pull/<n>/head` sits outside of in every clone, and
+# which a narrowed clone need not cover for the default branch either. Left to
+# a tracking ref, a branch cut from a freshly fetched tip would be measured
+# against whatever an older fetch wrote, putting merge-base *below* the fork
+# point and sweeping somebody else's commits into the reviewed range.
+if ! git fetch origin -- "${FETCH_SPEC}" >&2; then
+  echo "STOP fetch-failed"
+  exit 0
+fi
+
+if ! BASE_SHA="$(git merge-base FETCH_HEAD HEAD)"; then
   echo "STOP merge-base-failed"
   exit 0
 fi
