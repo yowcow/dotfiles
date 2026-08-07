@@ -5,18 +5,17 @@ description: Use when diagnosing an observed performance shortfall — a slow en
 
 # Investigate Performance
 
-Root-cause an observed performance shortfall. This skill adds the performance-specific layers: what to measure, in what order, and how to report.
+Root-cause an observed performance shortfall. `superpowers:systematic-debugging` is the core loop and runs unchanged here. This skill adds only the performance-specific layers on top: what to measure, in what order, and how to report.
 
 ## Rules
 
 - Measure before guessing: no fix proposal without a number behind it.
-- Change one variable per measurement.
-- Account for variance and warm-up before trusting a delta.
+- Account for variance, warm-up, and cold caches in the measurement itself before trusting a delta — and confirm you are measuring the thing you mean to (client-observed vs server-side time).
 
 ## Orchestration model
 
 - Descending the layers (Step 3) stays sequential by design — which layer to drill into depends on the previous measurement.
-- Within a layer, independent measurements (CPU vs memory vs IO saturation; several common suspects) can each go to a worker.
+- Within a layer, independent measurements (CPU vs memory vs IO saturation) can each go to a worker.
 
 ## Entry
 
@@ -32,7 +31,7 @@ An observed shortfall and where it was observed: the endpoint, job, or query tha
 
 ### Step 2: Reproduce reliably
 
-- Build a minimal reproduction with a realistic load shape; run it at least 3 times and note variance.
+- Build a minimal reproduction with a realistic load shape.
 - If it only reproduces in production, define the observation window and metrics instead — never load-test production without explicit user approval.
 
 ## Validate
@@ -43,16 +42,8 @@ Descend the layers, measuring each one's share of the total cost; stop at the fi
 
 1. **System** — CPU/memory/disk/network saturation and errors (USE method); swapping, throttling, noisy neighbors.
 2. **Runtime** — GC pressure and pause time; scheduler/thread/goroutine/process-pool saturation; connection pools. Use the language's native profiler (e.g. pprof, NYTProf, Xdebug/Blackfire, fprof/recon, `--cpu-prof`).
-3. **Application** — hot paths, repeated work in loops, lock contention, serialization cost, chatty external calls.
+3. **Application** — hot paths, repeated work in loops, per-request work that could be cached, lock contention, serialization cost, chatty external calls and the retry amplification behind them.
 4. **Query/IO** — slow queries and their plans, missing indexes, N+1 patterns, round-trip counts, payload sizes.
-
-### Common suspects
-
-- N+1 queries; missing or unused index
-- unbounded concurrency or pool exhaustion
-- allocation/GC pressure; per-request work that could be cached
-- retry storms; oversized payloads
-- cold cache in the measurement itself; measuring the wrong thing (client vs server time)
 
 ## Synthesize
 
