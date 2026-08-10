@@ -42,17 +42,16 @@ Either invocation answers in one line:
 
 ## Reviewer prompt
 
-`superpowers:requesting-code-review` is the dispatch mechanism; what the reviewer is told is this skill's own. Whatever shape that dispatch offers to carry it, the prompt is complete when it holds these five:
+`superpowers:requesting-code-review` is the dispatch mechanism; what the reviewer is told is this skill's own. Whatever shape that dispatch offers to carry it, the prompt is complete when it holds these four:
 
 1. **The scope** — whatever **Scope** resolved, in one of these four shapes:
    - **a committed range** — the two SHAs bounding it;
    - **uncommitted changes** — where they are: staged, unstaged, and untracked alike. Don't send the reviewer to a worktree of its own here — a worktree holds a revision, and these changes are in none;
    - **paths with no range** — the paths themselves, and that the review covers their current state on this checkout rather than a diff. Say the same in the report: nothing constrains the review to recent change, so the findings may be about code this work never touched;
    - **a PR** — the range **Scope** resolved for it, handed over as a committed range. Reviewing that diff locally is this skill's job; posting anything to the PR is not — that belongs to `pr-to-ready`.
-2. **The read-only rule** — the reviewer reads the checkout it is in, in place, and changes nothing: not the working tree, not the index, not HEAD, not branch state. It returns findings and nothing else.
-3. **What was implemented** — what the change does, or for a paths-only scope what the code is for.
-4. **The requirements** — the plan, or the original request. When there is none, say so in the prompt: the review then runs against the repository's own standards and the code's evident intent. Say it in the report too, so a reader knows plan alignment was not checked.
-5. **The earlier rounds** — from the second round on, findings accepted and fixed, and findings rejected with the reason. A reviewer not shown the rejections re-litigates them.
+2. **What was implemented** — what the change does, or for a paths-only scope what the code is for.
+3. **The requirements** — the plan, or the original request. When there is none, say so in the prompt: the review then runs against the repository's own standards and the code's evident intent. Say it in the report too, so a reader knows plan alignment was not checked.
+4. **The earlier rounds** — from the second round on, findings accepted and fixed, and findings rejected with the reason. A reviewer not shown the rejections re-litigates them.
 
 Confine every search to the project root or narrower.
 
