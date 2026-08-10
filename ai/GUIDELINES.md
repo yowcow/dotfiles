@@ -82,10 +82,10 @@ Where a tracking issue backs the work, `plan-work` splits it into one sub-issue 
 
 ### Investigation workflow
 
-The deliverable is an evidence-backed explanation of an observed problem. `superpowers:systematic-debugging` is the core loop (reproduce → hypothesize → test → verify); local skills layer domain specifics on top — `investigate-performance` for performance shortfalls, `investigate-anomaly` for failures, incidents, and unexplained metric or cost changes; for a plain unknown-cause bug, the core loop alone usually suffices. Keep evidence and hypotheses strictly separated per **Epistemic honesty**: never promote a hypothesis to a conclusion without a confirming measurement or reproduction.
+The deliverable is an evidence-backed explanation of an observed problem. `superpowers:systematic-debugging` is the core loop; local skills layer domain specifics on top — `investigate-performance` for performance shortfalls, `investigate-anomaly` for failures, incidents, and unexplained metric or cost changes; for a plain unknown-cause bug, the core loop alone usually suffices. Keep evidence and hypotheses strictly separated per **Epistemic honesty**: never promote a hypothesis to a conclusion without a confirming measurement or reproduction.
 
-- Preserve volatile evidence first, then establish a reliable reproduction or observation baseline and gather the evidence and code paths the symptom implicates. Investigation workers are read-only: they collect evidence and report findings; the orchestrator owns hypothesis selection, conclusions, and the report. Delegate only independent evidence-gathering — how it splits across workers belongs to the domain skill.
-- Test hypotheses one at a time via the core loop, and record each with its test and verdict; refuted ones stay recorded, not retried.
+- Preserve volatile evidence before anything else. Investigation workers are read-only: they collect evidence and report findings; the orchestrator owns hypothesis selection, conclusions, and the report. Delegate only independent evidence-gathering — how it splits across workers belongs to the domain skill.
+- Record each hypothesis with its test and verdict; refuted ones stay recorded, not retried.
 - Exit when the root cause explains all observations — magnitude, timing, and scope included — or when the remaining unknowns are explicitly documented along with how to resolve them, distinguishing root cause from trigger and contributing factors. Report findings with evidence and confidence; the domain skill, when one applies, defines the concrete report format, and proposed fixes are options in the report, not work to start.
 
 #### Investigation → Change transition
