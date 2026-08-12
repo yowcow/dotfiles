@@ -36,8 +36,7 @@ PR="$3"
 # author: null, and `null | ascii_downcase` aborts the whole filter. One such
 # review anywhere on the PR would otherwise take this script down with it, and
 # the caller would read that as "the gh call failed" while Copilot's review sat
-# right there. (The REST reviewer list read by request-copilot-review.sh has no
-# equivalent shape, so it needs no such fallback.)
+# right there.
 gh pr view "$PR" --repo "$OWNER/$REPO" --json reviews \
   --jq '.reviews[]
         | select((.author.login // "") | ascii_downcase | contains("copilot"))
