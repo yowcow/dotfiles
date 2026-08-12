@@ -60,10 +60,12 @@ READBACK_INTERVAL=2
 # the PR would otherwise be read as a failure to reach the timeline at all.
 #
 # --paginate applies --jq once per page, so the per-page lengths are summed
-# rather than read as a single number.
+# rather than read as a single number. per_page goes in the query string rather
+# than through -F: passing a field makes gh send POST, which this endpoint
+# answers with a 404.
 COUNT=""
 count_requests() {
-  if ! COUNT="$(gh api "repos/$OWNER/$REPO/issues/$PR/timeline" --paginate \
+  if ! COUNT="$(gh api "repos/$OWNER/$REPO/issues/$PR/timeline?per_page=100" --paginate \
     --jq '[.[]
            | select(.event == "review_requested")
            | select((.requested_reviewer.login // "") | ascii_downcase | contains("copilot"))
