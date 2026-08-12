@@ -7,17 +7,15 @@
 # are alternatives rather than a sequence: neither may be trusted on its status
 # or chained with ||, and only a readback settles whether the request took.
 #
-# That readback reads the issue timeline and never the pull request's
-# requested_reviewers: Copilot is a Bot, and that endpoint reports only .users
-# and .teams, so Copilot is absent from it even while its request is live. Keyed
-# on it, this script reported Copilot permanently unavailable while itself
-# successfully requesting the review every run. The measurement:
-# ../references/gh-mechanics.md.
+# That readback reads the issue timeline's review_requested events, never the
+# pull request's requested_reviewers — Copilot is a Bot and never appears in
+# that endpoint's .users or .teams, even while its request is live. What that
+# cost when this script keyed on it: ../references/gh-mechanics.md.
 #
-# The count is taken BEFORE any request is sent, because a previous round's
-# event is still on the timeline and an absolute count would read as success
-# with nothing having landed. The comparison is monotone, so which of the two
-# attempts produced the event does not matter.
+# The count is taken BEFORE any request is sent: an absolute count would read a
+# previous round's leftover event as this round's success. The comparison is
+# monotone, so which of the two attempts below produced the event does not
+# matter.
 #
 # Both attempts have their stdout dropped and their exit status ignored, on
 # purpose; their stderr is left visible so a stuck run has something to read.
