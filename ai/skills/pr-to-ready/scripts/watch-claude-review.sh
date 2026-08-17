@@ -3,10 +3,32 @@
 # finishes. Completion is tied to the workflow run rather than guessed from
 # comment counts, which is why this exists as a command at all.
 #
-# With no run-id: prints the workflow's recent runs on <branch> as JSON, so the
-# caller can match a run to its own push by headSha rather than taking the
-# newest and risking a stale one.
+# With no run-id: prints the workflow's recent runs as JSON, carrying event,
+# createdAt and displayTitle so the caller can match a run to its own request
+# rather than taking the newest and risking a stale one.
 # With a run-id: blocks on that run.
+#
+# The listing covers runs on <branch> and on the default branch, because the
+# trigger decides which one a run is attributed to: a review requested by an
+# issue comment runs on the default branch, while pull_request_review* triggers
+# run on the PR branch. Filtering on <branch> alone matches nothing for the
+# issue-comment shape, so the caller polls until it times out and reports the
+# review as never arriving even though it completed and posted.
+#
+# headSha does not identify the push either, for the same reason: on the
+# issue-comment shape it is the default branch's tip, not the PR head. Match on
+# createdAt against the moment the request was posted.
+#
+# createdAt alone still does not identify the run: every issue-comment run in
+# the repository lands on the default branch, so a review requested on another
+# PR in the same window sits in this listing too, and matching on time alone
+# blocks on that one and reads its verdict as this PR's. displayTitle carries
+# the PR title for these runs — discriminate on it as well.
+#
+# A run whose conclusion is "skipped" is one the workflow's own if: condition
+# rejected — a comment carrying no @claude, including the reviewer bot's own
+# reply. Watch mode returns 0 for it, so taking a skipped run as the review
+# reads an unrun review as a completed one with nothing to say.
 #
 # Usage: watch-claude-review.sh <branch> [run-id]
 #
@@ -41,14 +63,17 @@ RUN_ID="${2:-}"
 root="$(git rev-parse --show-toplevel)"
 wf="$({ grep -rl '@claude' "$root/.github/workflows/" 2>/dev/null || true; } | head -1)"
 if [ -z "$wf" ]; then
-  echo "no @claude workflow found in .github/workflows/" >&2
+  echo "no @claude workflow found in $root/.github/workflows/" >&2
   exit 3
 fi
 wf="$(basename "$wf")"
 
 if [ -z "$RUN_ID" ]; then
-  gh run list --workflow="$wf" --branch "$BRANCH" --limit 5 \
-    --json databaseId,status,headSha,conclusion
+  default_branch="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+  gh run list --workflow="$wf" --limit 20 \
+    --json databaseId,status,conclusion,event,createdAt,displayTitle,headBranch,headSha |
+    jq --arg b "$BRANCH" --arg d "$default_branch" \
+      '[.[] | select(.headBranch == $b or .headBranch == $d)]'
   exit 0
 fi
 
