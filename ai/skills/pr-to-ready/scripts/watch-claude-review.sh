@@ -32,7 +32,14 @@ RUN_ID="${2:-}"
 
 # grep exits 1 when nothing matches, which set -e would turn into an abort, so
 # the substitution is guarded and the emptiness of wf is what gets tested.
-wf="$({ grep -rl '@claude' .github/workflows/ 2>/dev/null || true; } | head -1)"
+#
+# The search is anchored at the repository root, never the cwd: run from a
+# subdirectory, a cwd-relative .github/workflows/ matches nothing, exit 3 below
+# reports Claude as unavailable, and the caller skips the review entirely. A cwd
+# outside a repository aborts here instead, which is "stop and inspect" rather
+# than an availability answer.
+root="$(git rev-parse --show-toplevel)"
+wf="$({ grep -rl '@claude' "$root/.github/workflows/" 2>/dev/null || true; } | head -1)"
 if [ -z "$wf" ]; then
   echo "no @claude workflow found in .github/workflows/" >&2
   exit 3
