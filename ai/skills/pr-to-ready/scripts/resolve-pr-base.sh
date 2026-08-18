@@ -46,31 +46,35 @@ resolve_default_branch() {
   return 1
 }
 
+# Fetch into an explicit destination refspec so a narrowed clone's
+# remote.origin.fetch can't leave refs/remotes/origin/<name> stale.
+fetch_ref() {
+  git fetch origin "+refs/heads/$1:refs/remotes/origin/$1" >&2
+}
+
 # Resolve the default branch before the scan below rather than at the two
 # places that print it: the scan's range is expressed against it, so it has
 # to be both named and fetched by then.
 DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
 
-# Fetch into an explicit destination refspec so a narrowed clone's
-# remote.origin.fetch can't leave refs/remotes/origin/<name> stale, and
-# capture the task branch's tip as FETCH_HEAD rather than relying on a local
-# checkout — this session may not have <branch> checked out at all.
-#
-# The default branch is fetched first and the task branch second, because
-# `git fetch` rewrites FETCH_HEAD on every call. Reversed, FETCH_HEAD would
-# hold the default branch's tip, the scan below would read the empty range
+# The task branch's tip is read below as FETCH_HEAD rather than from a local
+# checkout — this session may not have <branch> checked out at all. So the
+# default branch is fetched first and the task branch second, because `git
+# fetch` rewrites FETCH_HEAD on every call. Reversed, FETCH_HEAD would hold
+# the default branch's tip, the scan below would read the empty range
 # `<default> ^<default>`, and every branch would silently resolve to the
 # default branch as its base.
 #
-# Its failure carries its own slug: folded into fetch-failed, the caller
-# could not tell a missing task branch from a missing default branch, and
-# the two want different answers from the person they stop for.
-if ! git fetch origin "+refs/heads/${DEFAULT}:refs/remotes/origin/${DEFAULT}" >&2; then
+# The default branch's fetch failure carries its own slug: folded into
+# fetch-failed, the caller could not tell a missing task branch from a
+# missing default branch, and the two want different answers from the person
+# they stop for.
+if ! fetch_ref "${DEFAULT}"; then
   echo "STOP default-fetch-failed"
   exit 0
 fi
 
-if ! git fetch origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}" >&2; then
+if ! fetch_ref "${BRANCH}"; then
   echo "STOP fetch-failed"
   exit 0
 fi
