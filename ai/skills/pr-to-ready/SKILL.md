@@ -75,7 +75,7 @@ Back in the orchestrator, sequentially — these mutate shared state: fix every 
 
 1. every check passes;
 2. Claude leaves no outstanding actionable feedback — only "looks good"/LGTM-equivalent comments (a human reviewer's comments count the same way);
-3. Copilot's latest round produced zero new actionable comments, and `<skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <pr-number>` comes back empty — a comment listing carries no resolution state, so only that script answers this;
+3. Copilot's latest round produced zero new actionable comments, and `<skill-dir>/scripts/list-unresolved-threads.sh <owner> <repo> <pr-number>` **exits 0 with empty stdout** — a comment listing carries no resolution state, so only that script answers this;
 4. the PR's base is the one Step 1 most recently resolved;
 5. mergeability came back **`MERGEABLE`** — the field `gh-mechanics.md`'s "## Mergeability" says to trust, never its sibling, which varies with the caller's own push permission rather than with anything about the branch. `UNKNOWN` is not a pass: it means neither the remote nor the local fallback could settle it, so nothing is known yet.
 
