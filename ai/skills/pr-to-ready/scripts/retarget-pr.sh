@@ -17,6 +17,11 @@
 # ./check-pr-state.sh's own token of the same name, so a caller can treat the
 # two as interchangeable vocabulary.
 #
+# On a run that finds stage 1 already done and stage 2 not, `RETARGETED`
+# names the same base twice — old and new are the same branch, because only
+# the merge was outstanding. It is deliberately not a third token: what the
+# caller does next, running CI against the new tip, is identical either way.
+#
 # No automatic rebase, no force-push, no conflict resolution: a merge
 # conflict aborts the merge and reports STOP for a person to resolve.
 # Conflict resolution is a different, separately tracked concern (#111) and
@@ -41,18 +46,65 @@ if ! CURRENT_BASE="$(gh pr view "$PR" -R "${OWNER}/${REPO}" --json baseRefName -
   exit 0
 fi
 
-# Early return, unconditional on this path: already pointed at <base>, so
-# nothing below — no `gh pr edit`, no fetch, no merge — ever runs.
-if [ "$CURRENT_BASE" = "$BASE" ]; then
-  echo "BASE-OK ${BASE}"
+# The base tip is needed twice over: by the ancestor gate below, and by the
+# merge itself. Fetching it once here, above the branch on `CURRENT_BASE`,
+# keeps that to one fetch and one capture. Capture the sha immediately: a
+# second fetch overwrites FETCH_HEAD, and the gate below runs one
+# (../references/gh-mechanics.md, "Capture the two tips as shas, one per
+# fetch").
+if ! git fetch origin -- "$BASE" >&2; then
+  echo "STOP fetch-failed"
   exit 0
 fi
+BASE_SHA="$(git rev-parse FETCH_HEAD)"
 
-# Both preconditions are checked BEFORE the first mutation. Retargeting is one
-# step of two — the base moves on GitHub, then the new base is merged in and
-# pushed. Were the edit done first, a failing check here would leave the PR
-# retargeted with the merge never made: a half-applied change the next run has
-# to reason about.
+# Retargeting is a job of two stages — the base moves on GitHub, then that
+# base is merged in and pushed — and `baseRefName` reports only the first.
+# So a matching pointer is one gate of two: the second asks whether the base
+# tip has actually reached the remote branch. Without it, a run that failed
+# at the push reports BASE-OK on its next attempt while the remote head is
+# still the pre-merge one, and the caller reads the previous run's green CI
+# as this retarget's verification.
+RETARGET_ON_GITHUB=yes
+if [ "$CURRENT_BASE" = "$BASE" ]; then
+  if ! git fetch origin -- "$BRANCH" >&2; then
+    echo "STOP branch-fetch-failed"
+    exit 0
+  fi
+  BRANCH_SHA="$(git rev-parse FETCH_HEAD)"
+
+  # 0 and 1 are the two verdicts; anything else is the command failing for a
+  # reason of its own. Reading such a failure as either verdict would either
+  # report BASE-OK over an unmerged base or push a merge nobody asked for, so
+  # it stops for a person instead. (Measured on git 2.43.0: an unresolvable
+  # name exits 128, keeping errors clear of both verdicts — unlike
+  # `git merge-tree`, whose exit 1 collides with a genuine conflict.)
+  ANCESTOR_STATUS=0
+  git merge-base --is-ancestor "$BASE_SHA" "$BRANCH_SHA" || ANCESTOR_STATUS=$?
+  case "$ANCESTOR_STATUS" in
+    0)
+      # Both gates hold: the PR points at <base> and that base is already in
+      # the branch on the remote. Nothing that changes the remote or the
+      # worktree runs — no `gh pr edit`, no merge, no push.
+      echo "BASE-OK ${BASE}"
+      exit 0
+      ;;
+    1)
+      # Stage 1 is done and stage 2 is not: resume at the merge. Editing the
+      # base to what it already is would be the one mutation with nothing to
+      # do, so it is skipped and the run picks up where the last one stopped.
+      RETARGET_ON_GITHUB=no
+      ;;
+    *)
+      echo "STOP ancestor-check-failed"
+      exit 0
+      ;;
+  esac
+fi
+
+# Both preconditions are checked BEFORE the first mutation. Were the edit done
+# first, a failing check here would leave the PR retargeted with the merge
+# never made: a half-applied change the next run has to reason about.
 # Pulling the new base in is only possible from the branch's own checkout:
 # there is no other working tree to merge into.
 CURRENT_HEAD="$(git rev-parse --abbrev-ref HEAD)"
@@ -66,17 +118,14 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 0
 fi
 
-if ! gh pr edit "$PR" -R "${OWNER}/${REPO}" --base "$BASE" >&2; then
-  echo "STOP retarget-failed"
-  exit 0
+if [ "$RETARGET_ON_GITHUB" = yes ]; then
+  if ! gh pr edit "$PR" -R "${OWNER}/${REPO}" --base "$BASE" >&2; then
+    echo "STOP retarget-failed"
+    exit 0
+  fi
 fi
 
-if ! git fetch origin -- "$BASE" >&2; then
-  echo "STOP fetch-failed"
-  exit 0
-fi
-
-if ! git merge --no-edit FETCH_HEAD >&2; then
+if ! git merge --no-edit "$BASE_SHA" >&2; then
   # Whatever the cause, abort rather than leaving a half-finished merge in
   # the working tree. No rebase, no force-push, no resolution attempt — see
   # the header comment: that is #111's job, done by a person.
