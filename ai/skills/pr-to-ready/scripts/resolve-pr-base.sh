@@ -46,10 +46,30 @@ resolve_default_branch() {
   return 1
 }
 
+# Resolve the default branch before the scan below rather than at the two
+# places that print it: the scan's range is expressed against it, so it has
+# to be both named and fetched by then.
+DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
+
 # Fetch into an explicit destination refspec so a narrowed clone's
-# remote.origin.fetch can't leave refs/remotes/origin/<branch> stale, and
-# capture the tip as FETCH_HEAD rather than relying on a local checkout —
-# this session may not have <branch> checked out at all.
+# remote.origin.fetch can't leave refs/remotes/origin/<name> stale, and
+# capture the task branch's tip as FETCH_HEAD rather than relying on a local
+# checkout — this session may not have <branch> checked out at all.
+#
+# The default branch is fetched first and the task branch second, because
+# `git fetch` rewrites FETCH_HEAD on every call. Reversed, FETCH_HEAD would
+# hold the default branch's tip, the scan below would read the empty range
+# `<default> ^<default>`, and every branch would silently resolve to the
+# default branch as its base.
+#
+# Its failure carries its own slug: folded into fetch-failed, the caller
+# could not tell a missing task branch from a missing default branch, and
+# the two want different answers from the person they stop for.
+if ! git fetch origin "+refs/heads/${DEFAULT}:refs/remotes/origin/${DEFAULT}" >&2; then
+  echo "STOP default-fetch-failed"
+  exit 0
+fi
+
 if ! git fetch origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}" >&2; then
   echo "STOP fetch-failed"
   exit 0
@@ -61,10 +81,17 @@ fi
 # itself failed — two causes that must not collapse to the same answer. Scan
 # newest-first (git log's default order) since a trailer on a later commit
 # shadows an earlier one in the same stack.
+# The range stops at the default branch, and the exclusion names the
+# remote-tracking ref just fetched rather than a local branch that may be
+# absent or stale. Unbounded, the scan walks to root, so a branch that
+# recorded nothing picks up whatever Base-Branch some unrelated commit left
+# in shared history and hands that branch back as --base — which
+# ensure-draft-pr.sh then passes to `gh pr create --base`, opening the PR
+# against a branch this task never sat on.
 # The read is guarded as well as captured: under `set -e` a failing `git log`
 # inside a bare command substitution would kill the script outright, and the
 # caller would get a non-zero exit with nothing on stdout instead of a STOP.
-if ! TRAILER_LOG="$(git log FETCH_HEAD --format='%(trailers:key=Base-Branch,valueonly,unfold)')"; then
+if ! TRAILER_LOG="$(git log FETCH_HEAD "^refs/remotes/origin/${DEFAULT}" --format='%(trailers:key=Base-Branch,valueonly,unfold)')"; then
   echo "STOP trailer-read-failed"
   exit 0
 fi
@@ -78,7 +105,6 @@ while IFS= read -r line; do
 done <<<"$TRAILER_LOG"
 
 if [ -z "$RECORDED" ]; then
-  DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
   echo "BASE ${DEFAULT}"
   exit 0
 fi
@@ -120,7 +146,6 @@ case "${STATE}" in
     # "still in flight": that would hand back --base <merged-branch>, and
     # merging into an already-merged branch puts nothing into the default
     # branch, so the change silently fails to land there.
-    DEFAULT="$(resolve_default_branch)" || { echo "STOP ask-default-branch"; exit 0; }
     echo "BASE ${DEFAULT}"
     ;;
   CLOSED)
