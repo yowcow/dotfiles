@@ -25,6 +25,13 @@
 # blocks on that one and reads its verdict as this PR's. displayTitle carries
 # the PR title for these runs — discriminate on it as well.
 #
+# The listing also has to be deep enough to still hold that run: the same
+# fan-in means runs requested on other PRs pile into the window between posting
+# the request and querying here. Once they outnumber the limit, the target run
+# is pushed out of the listing and the filter below returns empty — the same
+# false negative as above. --limit 100 is the API's single-page maximum, the
+# deepest listing gh fetches without paging again.
+#
 # A run whose conclusion is "skipped" is one the workflow's own if: condition
 # rejected — a comment carrying no @claude, including the reviewer bot's own
 # reply. Watch mode returns 0 for it, so taking a skipped run as the review
@@ -70,7 +77,7 @@ wf="$(basename "$wf")"
 
 if [ -z "$RUN_ID" ]; then
   default_branch="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
-  gh run list --workflow="$wf" --limit 20 \
+  gh run list --workflow="$wf" --limit 100 \
     --json databaseId,status,conclusion,event,createdAt,displayTitle,headBranch,headSha |
     jq --arg b "$BRANCH" --arg d "$default_branch" \
       '[.[] | select(.headBranch == $b or .headBranch == $d)]'
