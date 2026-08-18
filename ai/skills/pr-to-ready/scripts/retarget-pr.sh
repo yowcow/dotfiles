@@ -79,9 +79,9 @@ if [ "$CURRENT_BASE" = "$BASE" ]; then
   # it stops for a person instead. (Measured on git 2.43.0: an unresolvable
   # name exits 128, keeping errors clear of both verdicts — unlike
   # `git merge-tree`, whose exit 1 collides with a genuine conflict.)
-  ancestor_status=0
-  git merge-base --is-ancestor "$BASE_SHA" "$BRANCH_SHA" || ancestor_status=$?
-  case "$ancestor_status" in
+  ANCESTOR_STATUS=0
+  git merge-base --is-ancestor "$BASE_SHA" "$BRANCH_SHA" || ANCESTOR_STATUS=$?
+  case "$ANCESTOR_STATUS" in
     0)
       # Both gates hold: the PR points at <base> and that base is already in
       # the branch on the remote. Nothing that changes the remote or the
