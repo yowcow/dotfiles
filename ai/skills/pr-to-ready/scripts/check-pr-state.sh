@@ -32,14 +32,52 @@ EXPECTED_BASE="$4"
 MERGEABLE_RETRY_MAX=5
 MERGEABLE_RETRY_SECONDS=3
 
+# Reduce a git remote URL to a lowercase `<owner>/<repo>`, the only part of it
+# this script compares. The `##*:` strip is what covers the scp form
+# (`git@host:owner/repo`), where the host sits with no path separator after it
+# and so lands inside the owner segment; drop that line and the form git uses
+# for a default SSH clone stops matching its own repository. Lowercased
+# through `tr` rather than `${x,,}` to keep this running on the bash 3.2 its
+# siblings here still run on. The case fold is not cosmetic either: GitHub
+# matches owner and repo case-insensitively, so `yowcow/Dotfiles` and
+# `yowcow/dotfiles` name one repository and have to compare equal.
+normalize_repo_path() {
+  local url="$1" owner repo
+  repo="${url##*/}"
+  repo="${repo%.git}"
+  owner="${url%/*}"
+  owner="${owner##*/}"
+  owner="${owner##*:}"
+  printf '%s/%s\n' "${owner}" "${repo}" | tr '[:upper:]' '[:lower:]'
+}
+
 # Last-rung local check when GitHub's own answer never resolves. Permission-
 # independent and instant, but it answers a narrower question (would these
 # two trees merge right now) than `mergeable` (what the merge button will
 # say), so it only runs after that authority was given a fair chance to
 # answer. Prints MERGEABLE / CONFLICTING / UNKNOWN on stdout.
 resolve_mergeable_locally() {
-  local base_ref="$1" head_ref="$2"
-  local base_sha head_sha
+  local owner="$1" repo="$2" base_ref="$3" head_ref="$4"
+  local base_sha head_sha origin_url
+
+  # Everything below measures whatever repository this working tree's `origin`
+  # points at, which is not necessarily the PR's. `UNKNOWN` outlasting the
+  # re-read above is an everyday state right after a push, so without this gate
+  # a run started from an unrelated checkout would compute MERGEABLE or
+  # CONFLICTING against unrelated trees and hand that back as GitHub's own
+  # answer. Only owner and repo are compared, never the host: `gh` resolves
+  # its host from environment variables, per-repo config and the active login,
+  # none of which this script can reconstruct. The limitation that leaves is a
+  # repository of the same owner and name on a different host, which this
+  # comparison accepts.
+  if ! origin_url="$(git remote get-url origin 2>/dev/null)"; then
+    echo "UNKNOWN"
+    return
+  fi
+  if [ "$(normalize_repo_path "$origin_url")" != "$(normalize_repo_path "${owner}/${repo}")" ]; then
+    echo "UNKNOWN"
+    return
+  fi
 
   # Capture each tip immediately after its own fetch: `git fetch` overwrites
   # FETCH_HEAD on every call, so fetching both refs before reading either one
@@ -106,7 +144,7 @@ while [ "$MERGEABLE" = "UNKNOWN" ] && [ "$ATTEMPTS" -lt "$MERGEABLE_RETRY_MAX" ]
 done
 
 if [ "$MERGEABLE" = "UNKNOWN" ]; then
-  MERGEABLE="$(resolve_mergeable_locally "$BASE_REF" "$HEAD_REF")"
+  MERGEABLE="$(resolve_mergeable_locally "$OWNER" "$REPO" "$BASE_REF" "$HEAD_REF")"
 fi
 
 echo "${BASE_TOKEN} ${BASE_REF} ${MERGEABLE}"
