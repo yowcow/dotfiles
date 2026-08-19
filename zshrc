@@ -200,26 +200,26 @@ function git-url() {
 # remotes. Intended after you have updated the integration branch yourself
 # (e.g. git pull). Squash-merged branches are not detected.
 #
-# Usage: git-branch-clean [--apply|-y] [--dry-run|-n]
-#   Default is dry-run; pass --apply to actually delete.
+# Usage: git-branch-clean [--force|-f] [--dry-run|-n]
+#   Default is dry-run; pass --force to actually delete.
 #   Run while checked out on the integration branch (master/main/…).
 function git-branch-clean() {
   local apply=0
   local arg
   for arg in "$@"; do
     case "$arg" in
-      --apply|-y) apply=1 ;;
+      --force|-f) apply=1 ;;
       --dry-run|-n) apply=0 ;;
       -h|--help)
         cat <<'EOF'
-Usage: git-branch-clean [--apply|-y] [--dry-run|-n]
+Usage: git-branch-clean [--force|-f] [--dry-run|-n]
 
 Remove local branches merged into the currently checked-out branch, and
 their clean linked worktrees. Uses local repository state only (no fetch,
 no remotes). Does not detect squash merges.
 
 Run on the integration branch after you have updated it (e.g. git pull).
-Default is dry-run; pass --apply to delete.
+Default is dry-run; pass --force to delete.
 EOF
         return 0
         ;;
