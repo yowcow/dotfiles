@@ -67,7 +67,10 @@ for _ in $(seq 1 "$MAX_ITER"); do
     # An empty run list is not "settled": on a just-pushed commit the checks have
     # not registered yet, and treating that as done would report a PR with no CI
     # as a PR whose CI passed.
-    if [ -n "$rows" ] && ! printf '%s' "$rows" | grep -qE 'queued|in_progress'; then
+    # The status is tested on the JSON rather than by grepping the rendered rows:
+    # a check whose *name* contains "in_progress" makes a row-wide match read a
+    # completed check as still running, and the watch then never settles.
+    if [ -n "$rows" ] && ! printf '%s' "$raw" | jq -e 'any(.check_runs[]; .status == "queued" or .status == "in_progress")' >/dev/null 2>&1; then
       printf '%s\n' "$rows"
       exit 0
     fi

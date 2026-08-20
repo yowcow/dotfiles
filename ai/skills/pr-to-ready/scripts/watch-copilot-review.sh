@@ -27,7 +27,7 @@
 #
 # Exit: 0 = a review not in the baseline arrived — its listing printed
 #       1 = none arrived before the iteration cap ran out
-#       2 = usage error, or the baseline file does not exist
+#       2 = usage error, or the baseline file does not exist or cannot be read
 set -euo pipefail
 
 if [ "$#" -lt 4 ] || [ "$#" -gt 6 ]; then
@@ -42,11 +42,15 @@ BASELINE_FILE="$4"
 MAX_ITER="${5:-40}"
 INTERVAL="${6:-30}"
 
-# A missing baseline file is a usage error rather than an empty baseline: the two
-# are indistinguishable to the filter below, and silently treating "I forgot to
-# record it" as "there was nothing" is what makes an old review read as new.
-if [ ! -f "$BASELINE_FILE" ]; then
-  echo "baseline file not found: $BASELINE_FILE" >&2
+# A missing or unreadable baseline file is a usage error rather than an empty
+# baseline: the two are indistinguishable to the filter below, and silently
+# treating "I forgot to record it" as "there was nothing" is what makes an old
+# review read as new. Both tests are needed: a file that exists but cannot be
+# read makes that filter exit 2, which the `|| true` below swallows as "nothing
+# new yet" for the whole poll budget, and `-r` alone would admit a readable
+# directory, whose handling varies by grep implementation.
+if [ ! -f "$BASELINE_FILE" ] || [ ! -r "$BASELINE_FILE" ]; then
+  echo "baseline file not found or not readable: $BASELINE_FILE" >&2
   exit 2
 fi
 
