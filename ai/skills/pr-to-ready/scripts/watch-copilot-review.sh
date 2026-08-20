@@ -42,13 +42,27 @@ BASELINE_FILE="$4"
 MAX_ITER="${5:-40}"
 INTERVAL="${6:-30}"
 
+# Nothing downstream stops the run on a bad value here, and each parameter fails
+# its own way. `seq` reads MAX_ITER: a non-numeric one makes `for _ in $(seq 1
+# abc)` run the body zero times, so the script answers "no new review arrived"
+# without ever polling, while a fractional one is truncated (2.9 polls twice),
+# silently shrinking the budget the caller asked for. INTERVAL only reaches
+# `sleep`, inside the loop, so a bad one dies there under `set -e` with exit 1 —
+# the status this script also uses for "none arrived".
+for n in "$MAX_ITER" "$INTERVAL"; do
+  if ! [[ "$n" =~ ^[1-9][0-9]*$ ]]; then
+    echo "max-iterations and interval-seconds must be positive integers: $n" >&2
+    exit 2
+  fi
+done
+
 # A missing or unreadable baseline file is a usage error rather than an empty
 # baseline: the two are indistinguishable to the filter below, and silently
 # treating "I forgot to record it" as "there was nothing" is what makes an old
 # review read as new. Both tests are needed: a file that exists but cannot be
 # read makes that filter exit 2, which the `|| true` below swallows as "nothing
 # new yet" for the whole poll budget, and `-r` alone would admit a readable
-# directory, whose handling varies by grep implementation.
+# directory, which hits that same swallowed exit 2.
 if [ ! -f "$BASELINE_FILE" ] || [ ! -r "$BASELINE_FILE" ]; then
   echo "baseline file not found or not readable: $BASELINE_FILE" >&2
   exit 2
