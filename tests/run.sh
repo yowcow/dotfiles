@@ -26,6 +26,16 @@ if [ -n "${SUT:-}" ] && [ "${#files[@]}" -ne 1 ]; then
   exit 1
 fi
 
+# Whether the override reaches anything is up to the selected file: one that
+# never reads $SUT runs against its own default and passes, so a mistyped file
+# name during RED verification would come back green and read as "this test
+# cannot detect the defect". Printing what is honoured makes that visible, and
+# is printed rather than enforced because a file may consume $SUT indirectly —
+# grepping for the name would refuse legitimate runs.
+if [ -n "${SUT:-}" ]; then
+  printf 'run.sh: SUT override in effect: %s\n' "$SUT"
+fi
+
 failed=0
 for f in "${files[@]}"; do
   if ! bash "$f"; then

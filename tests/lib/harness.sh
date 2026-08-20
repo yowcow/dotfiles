@@ -30,6 +30,7 @@ stub_dir_new() {
   GH_STUB_DIR="$(mktemp -d "${HARNESS_TMP}/stub.XXXXXX")"
   export GH_STUB_DIR
   : >"${GH_STUB_DIR}/calls"
+  printf '%s' 0 >"${GH_STUB_DIR}/count"
 }
 
 # gh_stub_response <index|*> <exit-status> <argv...>   body on stdin
@@ -69,9 +70,11 @@ gh_stub_response() {
 }
 
 gh_call_count() {
-  local n
-  n="$(wc -l <"${GH_STUB_DIR}/calls")"
-  printf '%s\n' "${n// /}"
+  local n=0
+  if [ -f "${GH_STUB_DIR}/count" ]; then
+    n="$(cat "${GH_STUB_DIR}/count")"
+  fi
+  printf '%s\n' "$n"
 }
 
 gh_violations() {

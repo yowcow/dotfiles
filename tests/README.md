@@ -47,7 +47,7 @@ exact index wins over `*`. An `<argv>` element containing a tab, a newline, or
 field, and those bytes can't be represented there. A malformed index or an
 exit status outside 0-255 is rejected too.
 
-## The three mechanism properties (and why they matter)
+## The mechanism properties (and why they matter)
 
 `tests/lib/harness_test.sh` proves the properties the rest of the suite
 depends on:
@@ -59,6 +59,12 @@ depends on:
    answer its second call differently from its first.
 3. **Stdout is compared byte-for-byte**, not line-by-line — a stray or
    missing trailing newline is invisible to a line-count comparison.
+4. **An argv the manifest cannot represent is refused when stubbed**, rather
+   than silently never matching: a tab, a newline or a `\x1f` in a stubbed
+   argv, or a malformed call index, fails the helper on the spot.
+5. **The call index counts invocations, not lines**, so an argument that
+   spans lines — a GraphQL query passed as `-f query='...'` — does not
+   advance the index past the call a later exact-index entry was written for.
 
 ## RED verification
 

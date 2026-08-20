@@ -31,9 +31,21 @@ done
 # The counter is global over the stub dir rather than per-argv: a poll loop that
 # calls two endpoints per iteration is then addressable by "the Nth call", which
 # a per-endpoint counter cannot express.
+#
+# It lives in its own file holding nothing but the integer, and is deliberately
+# NOT derived by counting lines in the argv log below. An argument may carry a
+# newline of its own — the GraphQL query list-unresolved-threads.sh passes as
+# `-f query='...'` spans twenty lines — and counting lines would then advance the
+# index by twenty for one call, so every later exact-index entry would answer a
+# different call than the one it was written for.
+n=1
+if [ -f "${GH_STUB_DIR}/count" ]; then
+  n=$(($(cat "${GH_STUB_DIR}/count") + 1))
+fi
+printf '%s' "$n" >"${GH_STUB_DIR}/count"
+
+# The log is for diagnostics only — what a violation message quotes back.
 printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
-n="$(wc -l <"${GH_STUB_DIR}/calls")"
-n="${n// /}"
 
 matched_exit=""
 matched_body=""
