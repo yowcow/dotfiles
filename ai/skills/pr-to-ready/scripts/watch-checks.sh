@@ -26,7 +26,8 @@
 #       1 = still unsettled when the iteration cap ran out (the last listing printed)
 #       2 = usage error
 #       3 = no such commit on the remote — the SHA is wrong, or was never pushed
-#       4 = the commit has no check-runs at all, so there is nothing to watch
+#       4 = no check-runs listing could be read at all — every poll either
+#           failed or answered something that is not a run list
 set -euo pipefail
 
 if [ "$#" -lt 3 ] || [ "$#" -gt 5 ]; then
