@@ -106,23 +106,21 @@ check_eq() {
 }
 
 # check_bytes <label> <expected>   expected is a printf '%b' format string
+# A convenience spelling of check_stdout_files for an expectation short enough to
+# write inline: it materialises the expansion and defers the comparison, so both
+# helpers report a mismatch identically and there is one byte comparison to
+# trust rather than two copies of one.
 check_bytes() {
   local label="$1" want="$2" wantfile="${HARNESS_TMP}/want"
   printf '%b' "$want" >"$wantfile"
-  if cmp -s "$wantfile" "${SUT_STDOUT}"; then
-    return 0
-  fi
-  printf 'FAIL %s: stdout differs\n  want: %s\n  got:  %s\n' \
-    "$label" "$(od -An -c <"$wantfile" | tr -s ' \n' ' ')" \
-    "$(od -An -c <"${SUT_STDOUT}" | tr -s ' \n' ' ')"
-  return 1
+  check_stdout_files "$label" "$wantfile"
 }
 
 # check_stdout_files <label> <file> [<file> ...]
-# Byte-for-byte, like check_bytes, but the expectation comes from files. Several
-# files because an expectation is sometimes "page 1's rows, then the raw error
-# body" — two artifacts already on disk, which one glued golden file would
-# duplicate. Pass /dev/null for "nothing on stdout".
+# The byte-for-byte stdout comparison. The expectation comes from files, several
+# of them because it is sometimes "page 1's rows, then the raw error body" — two
+# artifacts already on disk, which one glued golden file would duplicate. Pass
+# /dev/null for "nothing on stdout".
 check_stdout_files() {
   local label="$1"
   shift

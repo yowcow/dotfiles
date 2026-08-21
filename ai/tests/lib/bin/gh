@@ -150,25 +150,27 @@ served=0
 while :; do
   n=$((count + 1))
   lookup "$n"
-  if [ "$FOUND" -eq 0 ]; then
-    if [ "$served" -ne 0 ]; then
-      # The argv is fixed for the whole invocation, so "no entry for the next
-      # index" cannot mean "the test mistyped an argv" — it means the scripted
-      # pages ran out, which is how a real --paginate run ends. The counter is
-      # left at the number of pages actually served.
-      exit 0
-    fi
-    count="$n"
-    printf '%s' "$count" >"${GH_STUB_DIR}/count"
-    printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
-    printf 'call %s: %s\n' "$count" "$*" >>"${GH_STUB_DIR}/violations"
-    echo "gh stub: no stubbed response for call ${count}: gh $*" >&2
-    exit 99
+  if [ "$FOUND" -eq 0 ] && [ "$served" -ne 0 ]; then
+    # The argv is fixed for the whole invocation, so "no entry for the next
+    # index" cannot mean "the test mistyped an argv" — it means the scripted
+    # pages ran out, which is how a real --paginate run ends. This is the one
+    # exit that must not record anything: it leaves the counter at the number of
+    # pages actually served, so the probe for a page that turned out not to
+    # exist stays invisible to gh_call_count.
+    exit 0
   fi
+  # Every other outcome — a served page, or an unstubbed first call — is a
+  # response the stub answered for, so the counter and the log are written once
+  # here rather than in each branch below.
   count="$n"
   printf '%s' "$count" >"${GH_STUB_DIR}/count"
   # The log is for diagnostics only — what a violation message quotes back.
   printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
+  if [ "$FOUND" -eq 0 ]; then
+    printf 'call %s: %s\n' "$count" "$*" >>"${GH_STUB_DIR}/violations"
+    echo "gh stub: no stubbed response for call ${count}: gh $*" >&2
+    exit 99
+  fi
   serve "$FOUND_STATUS" "$FOUND_BODY"
   served=$((served + 1))
   if [ "$FOUND_STATUS" -ne 0 ]; then

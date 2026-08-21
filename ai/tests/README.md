@@ -93,6 +93,13 @@ depends on:
    failing page** — "page 1 arrived, page 2 failed" is the state in which
    stdout is non-empty and the listing is incomplete, and a caller keying on
    emptiness alone cannot tell it from success.
+9. **A `--jq` that fails on a successful body is loud** — a violation and
+   exit 99, not gh's ordinary exit 1. A body the filter cannot handle is a
+   broken fixture or a broken filter, which is a test-authoring fault and has
+   to surface as one; "gh received garbage" is modelled by stubbing a non-zero
+   status with a raw body instead. Degrading it to exit 1 would make the
+   mechanism itself commit the confusion between "absent" and "could not ask"
+   that this suite exists to catch.
 
 ## RED verification
 
