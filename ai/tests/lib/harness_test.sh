@@ -4,10 +4,24 @@
 # case instead of reaching the real `gh` (and the network), the stub must count
 # calls so a poll loop's second iteration can differ from its first, stdout must
 # be compared byte-for-byte — a defect whose whole signature is one stray
-# newline is invisible to a line-count comparison — the one argv the manifest
-# cannot represent — the \x1f separator itself — must be refused when stubbed
-# rather than never matching while an argv spanning lines must be stubbable,
-# and the call index must count invocations rather than lines of argv.
+# newline is invisible to a line-count comparison — an argv the manifest cannot
+# disambiguate from another must be refused when stubbed rather than never
+# matching, and the call index must count invocations rather than lines of argv.
+# An argv spanning lines must be stubbable and must match only itself. `--jq`
+# must be applied to a successful body and never to a failing one. One
+# `--paginate` invocation must serve a page sequence, truncating at a failing
+# page. And a stubbed body that `--jq` cannot filter is a broken fixture or a
+# broken filter, not a modelled `gh` failure, so it must be reported loudly
+# rather than degrading into an ordinary exit 1 — a quiet failure there would
+# recreate, inside the stub itself, the very absent-versus-could-not-ask
+# confusion this suite exists to catch. And an expectation the harness cannot
+# read must be named as such, rather than compared against as far as it got and
+# charged to the script under test.
+#
+# The ten numbered blocks below run in that order, matching the numbered list
+# in ai/tests/README.md. The blocks after them cover the other two pieces of
+# machinery the suite rests on: the disposable git repository helper and the
+# `sleep` stub.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -67,31 +81,23 @@ fi
 if ! check_bytes "bytes: newline matches newline" '\n'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
-# --- property 4: \x1f is unrepresentable, a multi-line argv is not ------------
-# Only the separator itself cannot be represented. Tabs and newlines can: a real
-# argv spans lines — list-copilot-reviews.sh:41-43 passes its whole --jq filter
-# as one three-line argument — and a manifest that could not hold one would
-# leave that call unstubbable, so the pair could not be tested offline at all.
+# --- property 4: only an argv the manifest cannot disambiguate is rejected ----
+# The joined argv lives in its own file, so a tab or a newline inside an element
+# is representable and must match. \x1f is different in kind: it is the element
+# separator, so ["a\x1fb"] and ["a","b"] join to the same bytes and one case's
+# body would be served to the other. That one stays refused.
 total=$((total + 1))
 stub_dir_new
 fails_here=0
 status=0
-gh_stub_response 1 0 api $'a\x1fb' </dev/null 2>/dev/null || status=$?
+gh_stub_response 1 0 api "$(printf 'a\x1fb')" </dev/null 2>/dev/null || status=$?
 if ! check_eq "helper rejects \\x1f in argv" 1 "$status"; then fails_here=1; fi
 status=0
 gh_stub_response 0 0 api ok </dev/null 2>/dev/null || status=$?
 if ! check_eq "helper rejects index 0" 1 "$status"; then fails_here=1; fi
-multi=$'first\n        second'
-# Guarded and asserted, not `|| true`: this file runs under `set -e`, so an
-# unguarded call would abort the whole file the moment the helper refuses —
-# which is exactly the pre-change state this row has to report on, and the
-# remaining properties would never run. `|| true` would keep it running but
-# hide a later regression back to refusing, so the status is asserted.
 status=0
-gh_stub_response 1 0 api "$multi" <<<'matched' || status=$?
-if ! check_eq "helper accepts a multi-line argv" 0 "$status"; then fails_here=1; fi
-if ! check_eq "multi-line argv matches" 'matched' "$(gh api "$multi")"; then fails_here=1; fi
-if ! check_no_violations "multi-line argv: no violations"; then fails_here=1; fi
+gh_stub_response 1 300 api ok </dev/null 2>/dev/null || status=$?
+if ! check_eq "helper rejects an exit status above 255" 1 "$status"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- property 5: the counter counts invocations, not lines of argv ------------
@@ -108,6 +114,181 @@ gh api "$(printf 'first\nsecond')" >/dev/null 2>&1 || true
 if ! check_eq "counter: a multi-line argv counts as one call" 1 "$(gh_call_count)"; then fails_here=1; fi
 gh api plain >/dev/null 2>&1 || true
 if ! check_eq "counter: the next call is index 2" 2 "$(gh_call_count)"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 6: an argv spanning lines can be stubbed and matched exactly ----
+# The GraphQL query list-unresolved-threads.sh passes as `-f query='...'` spans
+# 23 lines. Refusing it would leave that script untestable; matching it loosely
+# would let a different query be served this case's body.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+multi="$(printf 'query {\n  field\n}')"
+other="$(printf 'query {\n  other\n}')"
+# `*` rather than index 1, so the near-miss probe below can only fail on the
+# argv. With an exact index it would fail for want of an entry at index 2
+# whatever argv it carried, and would prove nothing about matching.
+#
+# The status is captured rather than left to `set -e`. This file runs under
+# `set -euo pipefail`, and until the fix below lands the helper refuses this
+# argv — an unguarded call would abort the whole file right here, so the run
+# would report nothing about which property failed. Capturing it also makes
+# "a multi-line argv can be stubbed at all" an assertion in its own right,
+# which is the property being added.
+status=0
+gh_stub_response '*' 0 api graphql -f "query=${multi}" <<<'matched' || status=$?
+if ! check_eq "multi-line argv: stubbable" 0 "$status"; then fails_here=1; fi
+if ! check_eq "multi-line argv: matched" 'matched' \
+  "$(gh api graphql -f "query=${multi}")"; then fails_here=1; fi
+if ! check_no_violations "multi-line argv: no violations"; then fails_here=1; fi
+status=0
+gh api graphql -f "query=${other}" >/dev/null 2>&1 || status=$?
+if ! check_eq "a different multi-line argv is not matched" 99 "$status"; then fails_here=1; fi
+if check_no_violations "multi-line argv: probe" >/dev/null 2>&1; then
+  echo "FAIL multi-line argv: a near-miss argv recorded no violation"
+  fails_here=1
+fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 7: --jq is applied to a successful body, never to a failing one -
+# Real `gh` filters a 200 through --jq and prints an error body verbatim
+# (measured: a 200 carrying `errors` and a 401 both reach stdout raw, and
+# `jq -r -c -S` reproduces gh's --jq byte for byte — `-S` because gh filters with
+# gojq, which sorts object keys where jq keeps input order). Fixtures are raw API
+# bodies and the filter under test really runs. Getting this backwards would
+# filter every error fixture down to nothing, and the error cases would assert
+# emptiness where reality has a body.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_raw_response 1 0 api graphql --jq '.items[] | select(.keep == true)' \
+  <<<'{"items":[{"keep":false,"n":1},{"keep":true,"n":2}]}'
+gh_stub_raw_response 2 1 api graphql --jq '.items[] | select(.keep == true)' \
+  <<<'{"errors":[{"message":"nope"}]}'
+if ! check_eq "--jq filters a successful body" '{"keep":true,"n":2}' \
+  "$(gh api graphql --jq '.items[] | select(.keep == true)')"; then fails_here=1; fi
+status=0
+out="$(gh api graphql --jq '.items[] | select(.keep == true)')" || status=$?
+if ! check_eq "a failing body is printed raw" '{"errors":[{"message":"nope"}]}' "$out"; then fails_here=1; fi
+if ! check_eq "a failing body keeps its exit status" 1 "$status"; then fails_here=1; fi
+if ! check_no_violations "--jq: no violations"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 8: one --paginate invocation serves a page sequence ------------
+# gh pages internally, so a script that calls it once still sees several pages'
+# output concatenated. Modelling that with one response per invocation would
+# make "page 1 arrived, page 2 failed" inexpressible — and that is the state in
+# which stdout is non-empty while the listing is incomplete.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_raw_response 1 0 api graphql --paginate --jq '.n' <<<'{"n":1}'
+gh_stub_raw_response 2 0 api graphql --paginate --jq '.n' <<<'{"n":2}'
+run_sut gh api graphql --paginate --jq '.n'
+if ! check_bytes "paginate: both pages, in order" '1\n2\n'; then fails_here=1; fi
+if ! check_eq "paginate: exit" 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: pages served" 2 "$(gh_call_count)"; then fails_here=1; fi
+if ! check_no_violations "paginate: no violations"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# A failure on page 2 keeps page 1's output and hands back the failing status:
+# non-empty stdout with a non-zero exit is precisely "you did not see all of
+# it", and a caller reading emptiness alone cannot tell this from success.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_raw_response 1 0 api graphql --paginate --jq '.n' <<<'{"n":1}'
+gh_stub_raw_response 2 1 api graphql --paginate --jq '.n' <<<'{"errors":[{"message":"boom"}]}'
+run_sut gh api graphql --paginate --jq '.n'
+if ! check_bytes "paginate: page 1 then the raw error body" \
+  '1\n{"errors":[{"message":"boom"}]}\n'; then fails_here=1; fi
+if ! check_eq "paginate: failing exit propagates" 1 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: pages served before the failure" 2 "$(gh_call_count)"; then fails_here=1; fi
+if ! check_no_violations "paginate: no violations after a mid-page failure"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# A `*` entry answers one page and stops. It matches every index, so continuing
+# would loop forever; a multi-page sequence needs explicit indices.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response '*' 0 api graphql --paginate <<<'only'
+run_sut gh api graphql --paginate
+if ! check_bytes "paginate: a wildcard entry serves one page" 'only\n'; then fails_here=1; fi
+if ! check_eq "paginate: wildcard exit" 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: wildcard pages served" 1 "$(gh_call_count)"; then fails_here=1; fi
+# An unstubbed paginated argv is still a violation on its first page, not a
+# quietly empty listing.
+stub_dir_new
+status=0
+gh api graphql --paginate -f nothing=stubbed >/dev/null 2>&1 || status=$?
+if ! check_eq "paginate: unstubbed first page fails" 99 "$status"; then fails_here=1; fi
+if ! check_eq "paginate: the unstubbed call is counted" 1 "$(gh_call_count)"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 9: a --jq failure on a stubbed status-0 body exits 99, loudly ---
+# `serve()` treats a jq failure on a successful body as a broken fixture or a
+# broken filter — a test-authoring error — not as a modelled `gh` behaviour: it
+# records a violation and exits 99 rather than degrading into gh's ordinary
+# exit 1. "gh received garbage" is modelled separately, by stubbing a non-zero
+# status with a raw body (property 7). Iterating a number is a filter no body
+# can satisfy, so `.n[]` against `{"n":1}` reproduces the failure on demand.
+# stderr is discarded on the probe call, as the surrounding properties do,
+# because the stub lets jq's own error text through and a clean test run must
+# not print it.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_raw_response 1 0 api graphql --jq '.n[]' <<<'{"n":1}'
+status=0
+gh api graphql --jq '.n[]' >/dev/null 2>/dev/null || status=$?
+if ! check_eq "jq failure: exit 99, not gh's ordinary 1 nor a silent 0" 99 "$status"; then
+  fails_here=1
+fi
+if check_no_violations "jq failure: probe" >/dev/null 2>&1; then
+  echo "FAIL jq failure: no violation was recorded"
+  fails_here=1
+fi
+# The violation text names the --jq failure specifically, which is what tells
+# this case apart from the unmatched-argv path (property 1): both exit 99 and
+# both record a violation, but only this one's message says --jq failed.
+case "$(gh_violations)" in
+  *'--jq'*'failed on the stubbed body'*) ;;
+  *)
+    echo "FAIL jq failure: violation text doesn't name the --jq failure: $(gh_violations)"
+    fails_here=1
+    ;;
+esac
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 10: an unreadable expectation is named, not charged to the SUT --
+# A mistyped golden path makes `cat` fail, which leaves the want file empty, and
+# a byte comparison then reports "stdout differs, want: <nothing>" — the test's
+# own mistake billed to the script under test. That is this suite's defect
+# class 1 turned inward, so the helper names the path instead of comparing
+# against whatever it managed to read.
+#
+# The probe runs in a subshell because the other half of the same guard is an
+# abort: measured, `set -e` is suppressed inside a function invoked in an `if`
+# condition — which is how every call site spells it today — but not when the
+# helper is called plainly, and then an unguarded `cat` takes the whole file
+# down. The subshell keeps a regression to that behaviour reportable here
+# instead of ending the run.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+probe_status=0
+probe_out="$( (check_stdout_files 'probe' "${HARNESS_TMP}/no-such-expected") 2>&1 )" || probe_status=$?
+if ! check_eq "unreadable expectation: status" 1 "$probe_status"; then fails_here=1; fi
+# The message is asserted, not just the status: an unguarded `cat` also ends up
+# non-zero, so status alone cannot tell the guard from its absence.
+case "$probe_out" in
+  *'cannot read the expected bytes'*'no-such-expected'*) ;;
+  *)
+    printf 'FAIL unreadable expectation: message did not name the path: [%s]\n' "$probe_out"
+    fails_here=1
+    ;;
+esac
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- gitrepo.sh: a repo with the requested remote URL, branches and commits ---
@@ -157,6 +338,9 @@ if ! check_eq 'gitrepo: traversing name deleted nothing' 'yes' \
 if [ "$gr_guard_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- the sleep stub: counted, and it does not spend wall clock ---
+#
+# Last in the file deliberately: stub_sleep_instant rewrites PATH for whatever
+# follows it, so nothing should.
 total=$((total + 1))
 sl_fails=0
 stub_sleep_instant
