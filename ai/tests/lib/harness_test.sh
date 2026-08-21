@@ -5,10 +5,9 @@
 # calls so a poll loop's second iteration can differ from its first, stdout must
 # be compared byte-for-byte — a defect whose whole signature is one stray
 # newline is invisible to a line-count comparison — the one argv the manifest
-# cannot represent — the \x1f separator itself — must be
-# refused when stubbed rather than never matching while an argv spanning lines
-# must be stubbable, and the call index must count invocations rather than
-# lines of argv.
+# cannot represent — the \x1f separator itself — must be refused when stubbed
+# rather than never matching while an argv spanning lines must be stubbable,
+# and the call index must count invocations rather than lines of argv.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The

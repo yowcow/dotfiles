@@ -46,12 +46,13 @@ Each row typically does:
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
 entry answers — or `*`, meaning "any call not otherwise matched exactly." An
-exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected: that byte is the separator
-the joined form uses, so it can't be told from an element boundary. Tabs and
-newlines are fine — the joined argv lives in a file of its own (`argv.N`)
-rather than a field of the TSV manifest, because a real argv spans lines: the
-`--jq` filter `list-copilot-reviews.sh` passes is one three-line argument. A malformed index or an
-exit status outside 0-255 is rejected too.
+exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected:
+that byte is the separator the joined form uses, so it can't be told from an
+element boundary. Tabs and newlines are fine — the joined argv lives in a file
+of its own (`argv.N`) rather than a field of the TSV manifest, because a real
+argv spans lines: the `--jq` filter `list-copilot-reviews.sh` passes is one
+three-line argument. A malformed index or an exit status outside 0-255 is
+rejected too.
 
 ## The mechanism properties (and why they matter)
 

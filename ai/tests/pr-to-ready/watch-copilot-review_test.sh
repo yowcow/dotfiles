@@ -53,8 +53,17 @@ JQ_FILTER='.reviews[]
 #   empty       — an empty regular file
 #   all         — every line of the fixture, so nothing is new
 #   first       — only the fixture's first line, so the second is new
+#   id-only     — just the first line's id, a proper substring of that line.
+#                 This is the malformed baseline SKILL.md used to prescribe
+#                 before 9600d30 ("record the id"), and it is the only shape
+#                 that tells whole-line matching apart from substring
+#                 matching: the filter is `grep -v -F -x -f`, and with -x
+#                 dropped the id would match line 1 as a substring and
+#                 swallow a review the caller has never seen. Measured: with
+#                 -x removed from the script, every other row here still
+#                 passes, so this one carries that detection power alone.
 make_baseline() {
-  local kind="$1" dir path
+  local kind="$1" dir path first_line id
   dir="$(mktemp -d "${HARNESS_TMP}/baseline.XXXXXX")"
   path="${dir}/baseline"
   case "$kind" in
@@ -75,6 +84,22 @@ make_baseline() {
     empty) : >"$path" ;;
     all) cat "$TWO" >"$path" ;;
     first) head -n 1 "$TWO" >"$path" ;;
+    id-only)
+      # Derived from the fixture rather than written out again, so the two
+      # cannot drift into a pair where the "substring" is no longer a
+      # substring. Asserted rather than assumed, because `sed` prints a
+      # non-matching line through unchanged: a fixture that stopped carrying
+      # an `id` key would silently turn this kind into a copy of `first`, and
+      # the row would go on passing with the detection power it exists for
+      # gone. Same reason the `unreadable` kind above checks its own result.
+      first_line="$(head -n 1 "$TWO")"
+      id="$(printf '%s' "$first_line" | sed 's/.*"id":"\([^"]*\)".*/\1/')"
+      if [ -z "$id" ] || [ "$id" = "$first_line" ]; then
+        echo "make_baseline: no id extracted from the fixture's first line" >&2
+        return 1
+      fi
+      printf '%s\n' "$id" >"$path"
+      ;;
     *)
       echo "make_baseline: unknown kind '${kind}'" >&2
       return 1
@@ -131,6 +156,7 @@ done <<'ROWS'
 # name|responses|baseline|args|exit|calls|stdout
 new-review-prints-both|copilot-reviews-two|empty|acme widgets 7 %B 1 1|0|1|{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNbcig","state":"COMMENTED","submittedAt":"2026-08-20T07:29:15Z"}\n{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNnbbA","state":"COMMENTED","submittedAt":"2026-08-20T07:54:06Z"}\n
 only-the-line-not-in-baseline|copilot-reviews-two|first|acme widgets 7 %B 1 1|0|1|{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNnbbA","state":"COMMENTED","submittedAt":"2026-08-20T07:54:06Z"}\n
+ids-only-baseline-swallows-nothing|copilot-reviews-two|id-only|acme widgets 7 %B 1 1|0|1|{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNbcig","state":"COMMENTED","submittedAt":"2026-08-20T07:29:15Z"}\n{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNnbbA","state":"COMMENTED","submittedAt":"2026-08-20T07:54:06Z"}\n
 arrives-on-the-second-poll|-,copilot-reviews-two|empty|acme widgets 7 %B 3 1|0|2|{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNbcig","state":"COMMENTED","submittedAt":"2026-08-20T07:29:15Z"}\n{"author":"copilot-pull-request-reviewer","id":"PRR_kwDOAZjEl88AAAABKNnbbA","state":"COMMENTED","submittedAt":"2026-08-20T07:54:06Z"}\n
 everything-already-in-baseline|copilot-reviews-two|all|acme widgets 7 %B 1 1|1|1|
 no-review-yet|-|empty|acme widgets 7 %B 1 1|1|1|
