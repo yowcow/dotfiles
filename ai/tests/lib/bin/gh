@@ -55,10 +55,20 @@ while [ "$i" -lt "${#args[@]}" ]; do
 done
 
 # serve <status> <body>: what gh would write to stdout for that response.
-# `jq -r -c` reproduces gh's --jq byte for byte (measured for an object-valued
-# and a string-valued filter against a real page body). A non-zero status means
-# gh failed, and a failing gh prints the raw body — filtering it would erase the
-# error the caller has to see.
+#
+# `jq -r -c -S` reproduces gh's --jq byte for byte. The `-S` is load-bearing and
+# not tidiness: gh filters with gojq, which sorts object keys, while jq preserves
+# input order. Measured against a real page body whose fields were requested in
+# deliberately non-alphabetical order — gh emitted
+# `{"comments":…,"id":…,"isResolved":…}` where plain `jq -c` emitted
+# `{"isResolved":…,"id":…,"comments":…}`, and `jq -c -S` matched gh exactly,
+# nested objects included. An earlier measurement missed this because the node it
+# used happened to have alphabetical keys already (id before isResolved), so both
+# spellings agreed by accident. Without `-S` every golden file in this suite
+# would freeze bytes real gh never produces.
+#
+# A non-zero status means gh failed, and a failing gh prints the raw body —
+# filtering it would erase the error the caller has to see.
 #
 # A jq failure here is a broken fixture or a broken filter, not a modelled gh
 # behaviour, so it is recorded as a violation and exits 99 rather than being
@@ -67,7 +77,7 @@ done
 serve() {
   local status="$1" body="$2"
   if [ "$status" -eq 0 ] && [ "$HAVE_JQ" -eq 1 ]; then
-    if ! jq -r -c "$JQ_EXPR" <"$body"; then
+    if ! jq -r -c -S "$JQ_EXPR" <"$body"; then
       printf 'call %s: --jq %s failed on the stubbed body %s\n' \
         "$n" "$JQ_EXPR" "$body" >>"${GH_STUB_DIR}/violations"
       echo "gh stub: --jq failed on the stubbed body for call ${n}" >&2

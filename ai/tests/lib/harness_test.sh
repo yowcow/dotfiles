@@ -146,7 +146,8 @@ if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 # --- property 7: --jq is applied to a successful body, never to a failing one -
 # Real `gh` filters a 200 through --jq and prints an error body verbatim
 # (measured: a 200 carrying `errors` and a 401 both reach stdout raw, and
-# `jq -r -c` reproduces gh's --jq byte for byte). Fixtures are therefore raw API
+# `jq -r -c -S` reproduces gh's --jq byte for byte — `-S` because gh filters with
+# gojq, which sorts object keys where jq keeps input order). Fixtures are raw API
 # bodies and the filter under test really runs. Getting this backwards would
 # filter every error fixture down to nothing, and the error cases would assert
 # emptiness where reality has a body.

@@ -14,6 +14,13 @@
 # runs. The expected files are hand-written, so a wrong filter cannot bake
 # itself into its own expectation.
 #
+# The expected files carry each object's keys in ALPHABETICAL order while the
+# fixtures carry them in the order the GraphQL query asks for them. That is not
+# an inconsistency to tidy up: gh filters with gojq, which sorts object keys,
+# so sorted is what a caller really sees (measured). Because the two orders
+# differ, these rows also pin that the stub sorts — with both in query order the
+# question would be invisible.
+#
 # The query and the --jq expression below are byte-identical copies of what the
 # script passes, because the stub matches the exact argv. That is deliberate
 # change control: editing the query in the script without editing it here fails

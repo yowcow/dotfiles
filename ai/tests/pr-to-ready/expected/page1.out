@@ -1,1 +1,1 @@
-{"id":"PRRT_page1","isResolved":false,"comments":{"nodes":[{"databaseId":3001,"author":{"login":"yowcow"},"path":"ai/tests/lib/harness.sh","line":50,"body":"page one thread"}]}}
+{"comments":{"nodes":[{"author":{"login":"yowcow"},"body":"page one thread","databaseId":3001,"line":50,"path":"ai/tests/lib/harness.sh"}]},"id":"PRRT_page1","isResolved":false}
