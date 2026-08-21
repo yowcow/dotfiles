@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Fake `gh` for the offline test suite. It answers from files a test case wrote
+# into $GH_STUB_DIR and never opens a socket.
+#
+# Two design points carry the suite's trustworthiness.
+#
+# An argv that no case stubbed is a *failure*, not a pass-through: letting it
+# fall through to the real `gh` would put the suite on the network, where a
+# missing stub reads as "the test passed" — the exact class of defect (an
+# unasked question answered as an absent one) this suite exists to catch. So an
+# unmatched argv is appended to $GH_STUB_DIR/violations, which the harness
+# checks after the case, and exits 99. The exit status alone is not enough:
+# every caller under test wraps `gh` in `|| true`, so it would be swallowed.
+#
+# Matching is on the *exact* argv, joined with \x1f, rather than on a
+# filename-safe digest of it. A digest has to fold characters that are illegal
+# in a filename, and two different argvs folding to one key would silently
+# serve the wrong fixture.
+set -euo pipefail
+
+if [ -z "${GH_STUB_DIR:-}" ]; then
+  echo "gh stub: GH_STUB_DIR is unset — a test must call stub_dir_new first" >&2
+  exit 99
+fi
+
+joined=""
+for arg in "$@"; do
+  joined="${joined}${arg}"$'\x1f'
+done
+
+# The counter is global over the stub dir rather than per-argv: a poll loop that
+# calls two endpoints per iteration is then addressable by "the Nth call", which
+# a per-endpoint counter cannot express.
+#
+# It lives in its own file holding nothing but the integer, and is deliberately
+# NOT derived by counting lines in the argv log below. An argument may carry a
+# newline of its own — the GraphQL query list-unresolved-threads.sh passes as
+# `-f query='...'` spans twenty lines — and counting lines would then advance the
+# index by twenty for one call, so every later exact-index entry would answer a
+# different call than the one it was written for.
+n=1
+if [ -f "${GH_STUB_DIR}/count" ]; then
+  n=$(($(cat "${GH_STUB_DIR}/count") + 1))
+fi
+printf '%s' "$n" >"${GH_STUB_DIR}/count"
+
+# The log is for diagnostics only — what a violation message quotes back.
+printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
+
+matched_exit=""
+matched_body=""
+wildcard_exit=""
+wildcard_body=""
+if [ -f "${GH_STUB_DIR}/manifest" ]; then
+  while IFS=$'\t' read -r idx status body argv; do
+    [ "$argv" = "$joined" ] || continue
+    if [ "$idx" = "$n" ]; then
+      matched_exit="$status"
+      matched_body="$body"
+    elif [ "$idx" = '*' ] && [ -z "$wildcard_exit" ]; then
+      wildcard_exit="$status"
+      wildcard_body="$body"
+    fi
+  done <"${GH_STUB_DIR}/manifest"
+fi
+
+# An exact call index wins over `*` so a case can say "the 2nd call differs"
+# while leaving every other call on a default.
+if [ -z "$matched_exit" ]; then
+  matched_exit="$wildcard_exit"
+  matched_body="$wildcard_body"
+fi
+
+if [ -z "$matched_exit" ]; then
+  printf 'call %s: %s\n' "$n" "$*" >>"${GH_STUB_DIR}/violations"
+  echo "gh stub: no stubbed response for call ${n}: gh $*" >&2
+  exit 99
+fi
+
+cat "$matched_body"
+exit "$matched_exit"
