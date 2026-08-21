@@ -372,13 +372,21 @@ if [ "$sl_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 # reaching out over the network. The assertion is on the message, not just the
 # non-zero status, because "connection refused" is also non-zero and would let
 # a dropped guard pass.
+#
+# The ssh probe is written `ssh://…:1/` rather than in scp-like form
+# (`git@127.0.0.1:path`), which carries no port and so resolves to 22. Measured
+# on a machine running a local sshd: with the guard dropped, the scp-like form
+# reaches that sshd, and under a tty it blocks on an interactive host-key
+# prompt until killed rather than failing. The explicit form keeps all three
+# probes on a port nothing listens on, so the regression this row exists to
+# catch fails fast instead of hanging.
 total=$((total + 1))
 proto_fails=0
 proto_repo="$(git_repo_scratch proto)"
 git_repo_init "$proto_repo" main
 git_repo_commit "$proto_repo" README.md 'x\n' 'only commit'
 for proto_url in 'https://127.0.0.1:1/acme/widgets.git' \
-  'git@127.0.0.1:acme/widgets.git' 'git://127.0.0.1:1/acme/widgets.git'; do
+  'ssh://git@127.0.0.1:1/acme/widgets.git' 'git://127.0.0.1:1/acme/widgets.git'; do
   git_repo_remote "$proto_repo" origin "$proto_url"
   proto_out="$(git -C "$proto_repo" push origin 'refs/heads/main:refs/heads/main' 2>&1)" && proto_status=0 || proto_status=$?
   if ! check_eq "gitrepo: ${proto_url} push is refused" '128' "$proto_status"; then proto_fails=1; fi
