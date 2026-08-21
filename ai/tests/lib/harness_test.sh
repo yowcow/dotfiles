@@ -8,8 +8,13 @@
 # represent must be refused when stubbed rather than never matching, and the
 # call index must count invocations rather than lines of argv. An argv
 # spanning lines must be stubbable and must match only itself. `--jq` must be
-# applied to a successful body and never to a failing one. One `--paginate`
-# invocation must serve a page sequence, truncating at a failing page.
+# applied to a successful body and never to a failing one. A stubbed body that
+# `--jq` cannot filter is a broken fixture or a broken filter, not a modelled
+# `gh` failure, and must be reported loudly rather than degrading into an
+# ordinary exit 1 — a quiet failure there would recreate, inside the stub
+# itself, the very absent-versus-could-not-ask confusion this suite exists to
+# catch. One `--paginate` invocation must serve a page sequence, truncating at
+# a failing page.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -155,6 +160,41 @@ out="$(gh api graphql --jq '.items[] | select(.keep == true)')" || status=$?
 if ! check_eq "a failing body is printed raw" '{"errors":[{"message":"nope"}]}' "$out"; then fails_here=1; fi
 if ! check_eq "a failing body keeps its exit status" 1 "$status"; then fails_here=1; fi
 if ! check_no_violations "--jq: no violations"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 9: a --jq failure on a stubbed status-0 body exits 99, loudly ---
+# `serve()` treats a jq failure on a successful body as a broken fixture or a
+# broken filter — a test-authoring error — not as a modelled `gh` behaviour: it
+# records a violation and exits 99 rather than degrading into gh's ordinary
+# exit 1. "gh received garbage" is modelled separately, by stubbing a non-zero
+# status with a raw body (property 7). Iterating a number is a filter no body
+# can satisfy, so `.n[]` against `{"n":1}` reproduces the failure on demand.
+# stderr is discarded on the probe call, as the surrounding properties do,
+# because the stub lets jq's own error text through and a clean test run must
+# not print it.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response 1 0 api graphql --jq '.n[]' <<<'{"n":1}'
+status=0
+gh api graphql --jq '.n[]' >/dev/null 2>/dev/null || status=$?
+if ! check_eq "jq failure: exit 99, not gh's ordinary 1 nor a silent 0" 99 "$status"; then
+  fails_here=1
+fi
+if check_no_violations "jq failure: probe" >/dev/null 2>&1; then
+  echo "FAIL jq failure: no violation was recorded"
+  fails_here=1
+fi
+# The violation text names the --jq failure specifically, which is what tells
+# this case apart from the unmatched-argv path (property 1): both exit 99 and
+# both record a violation, but only this one's message says --jq failed.
+case "$(gh_violations)" in
+  *'--jq'*'failed on the stubbed body'*) ;;
+  *)
+    echo "FAIL jq failure: violation text doesn't name the --jq failure: $(gh_violations)"
+    fails_here=1
+    ;;
+esac
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- property 8: one --paginate invocation serves a page sequence ------------
