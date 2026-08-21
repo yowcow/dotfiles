@@ -51,6 +51,57 @@ exact index wins over `*`. An `<argv>` element containing a tab, a newline, or
 field, and those bytes can't be represented there. A malformed index or an
 exit status outside 0-255 is rejected too.
 
+## Real git: `ai/tests/lib/gitrepo.sh`
+
+Scripts that shell out to `git` are tested against **real repositories**, not a
+git stub: they lean on behaviour a stub would only encode an opinion about —
+`FETCH_HEAD` being overwritten by each fetch, `git merge-tree` exiting 1 for a
+genuine conflict and an unresolvable ref alike. Source `gitrepo.sh` after
+`harness.sh`; everything it builds lives under `$HARNESS_TMP` and is removed
+with it.
+
+- `git_repo_bare <owner> <repo>` — a new bare repo at
+  `$HARNESS_TMP/remotes/<owner>/<repo>.git`; prints the path. The **path is the
+  identity**: `check-pr-state.sh` reduces a remote URL to its last two
+  segments, so this repo reads as `<owner>/<repo>` while still being a local
+  directory `git fetch` can reach offline.
+- `git_repo_scratch <name>` — a fresh empty directory; prints the path.
+- `git_repo_init <dir> <initial-branch>` — an empty non-bare repo with `HEAD`
+  on that branch.
+- `git_repo_commit <dir> <file> <content> <message>` — `<content>` goes
+  through `printf '%b'`, so `\n` works.
+- `git_repo_checkout <dir> <branch> [<start-point>]` — with a start point it
+  creates the branch there.
+- `git_repo_remote <dir> <name> <url>` / `git_repo_push <dir> <remote> <refspec>...`
+
+`git_repo_scratch` and `git_repo_bare` refuse a name containing `/` or `..`.
+Both clear the directory with `rm -rf` before rebuilding it, and a name is a
+single path segment by contract, so `..` would aim that rm at a path the
+caller never named. `rm` itself only catches the blunt form: POSIX makes it
+refuse an operand whose *last* component is `..`, so `../..` is rejected
+loudly while `../../x` deletes a sibling of `$HARNESS_TMP` and exits 0 without
+printing anything. The guard is for that silent case.
+
+Sourcing the file cuts the developer's own git configuration out of the
+picture (`GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`,
+`GIT_TERMINAL_PROMPT=0`, fixed author/committer identity and timestamps). That
+is not only determinism: a personal `url.<base>.insteadOf` can rewrite a local
+path into a network URL, which would put this suite on the network through a
+setting no test can see.
+
+## Instant `sleep`: `stub_sleep_instant`
+
+Call `stub_sleep_instant` in a test file whose script under test polls. It puts
+`ai/tests/lib/bin-nosleep/` first on `PATH` and asserts the resolution;
+`sleep_call_count` then reports how many sleeps happened in the current stub
+directory, so a bounded poll is asserted by **count** rather than by wall
+clock. `check-pr-state.sh`'s `UNKNOWN` re-read alone is 5 × 3 s per row.
+
+It is opt-in, not always on, so it cannot change the meaning of a test file
+written expecting real waits. Unlike the fake `gh`, it accepts any argv: the
+`gh` rule exists because an unstubbed call would be answered by the network,
+and `sleep` hands the caller nothing it reads.
+
 ## The mechanism properties (and why they matter)
 
 `ai/tests/lib/harness_test.sh` proves the properties the rest of the suite
@@ -83,3 +134,6 @@ SUT="$tmp/old.sh" ai/tests/run.sh <one-test-file>
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
 single script and pointing a whole suite at it would apply it to every file.
+
+`check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
+working tree's `origin` was the PR's repository (#172).

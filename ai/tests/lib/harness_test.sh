@@ -16,6 +16,10 @@ set -euo pipefail
 # shellcheck source=harness.sh
 # shellcheck disable=SC1091
 . "$(dirname -- "${BASH_SOURCE[0]}")/harness.sh"
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=gitrepo.sh
+# shellcheck disable=SC1091
+. "$(dirname -- "${BASH_SOURCE[0]}")/gitrepo.sh"
 
 failed=0
 total=0
@@ -89,5 +93,69 @@ if ! check_eq "counter: a multi-line argv counts as one call" 1 "$(gh_call_count
 gh api plain >/dev/null 2>&1 || true
 if ! check_eq "counter: the next call is index 2" 2 "$(gh_call_count)"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a repo with the requested remote URL, branches and commits ---
+total=$((total + 1))
+gr_fails=0
+gr_bare="$(git_repo_bare acme widgets)"
+gr_seed="$(git_repo_scratch seed)"
+git_repo_init "$gr_seed" main
+git_repo_commit "$gr_seed" README.md 'common\n' 'base'
+git_repo_checkout "$gr_seed" feature main
+git_repo_commit "$gr_seed" FEATURE.md 'f\n' 'feature work'
+git_repo_push "$gr_seed" "$gr_bare" main feature
+gr_work="$(git_repo_scratch work)"
+git_repo_init "$gr_work" main
+git_repo_remote "$gr_work" origin "$gr_bare"
+
+if ! check_eq 'gitrepo: bare path encodes owner/repo' \
+  'acme/widgets.git' "$(basename "$(dirname "$gr_bare")")/$(basename "$gr_bare")"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: remote url is the one set' \
+  "$gr_bare" "$(git -C "$gr_work" remote get-url origin)"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: branches reached the remote' \
+  'feature main' "$(git -C "$gr_bare" for-each-ref --format='%(refname:short)' refs/heads | sort | tr '\n' ' ' | sed 's/ $//')"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: commit message is the one given' \
+  'base' "$(git -C "$gr_bare" log -1 --format=%s main)"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: file content is the one given' \
+  'common' "$(git -C "$gr_bare" show main:README.md)"; then gr_fails=1; fi
+if [ "$gr_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a name that would walk the rm -rf out of its own subtree ---
+#
+# The victim sits one level up, inside $HARNESS_TMP, rather than beside it:
+# that is enough to prove the traversal is refused, while never aiming an
+# `rm -rf` anywhere a regression could do damage outside the harness's own
+# temp dir. The surviving-file check is the load-bearing half — an exit-status
+# check alone would still pass if the guard ever moved below the `rm -rf` it
+# exists to prevent. It asserts a *file* specifically, because the unguarded
+# path deletes the file and then recreates the name as a directory, which an
+# existence test would read as untouched.
+total=$((total + 1))
+gr_guard_fails=0
+: >"${HARNESS_TMP}/victim"
+gr_status=0
+(git_repo_scratch '../victim') >/dev/null 2>&1 || gr_status=$?
+if ! check_eq 'gitrepo: traversing name is refused' '1' "$gr_status"; then gr_guard_fails=1; fi
+if ! check_eq 'gitrepo: traversing name deleted nothing' 'yes' \
+  "$([ -f "${HARNESS_TMP}/victim" ] && echo yes || echo no)"; then gr_guard_fails=1; fi
+if [ "$gr_guard_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- the sleep stub: counted, and it does not spend wall clock ---
+total=$((total + 1))
+sl_fails=0
+stub_sleep_instant
+stub_dir_new
+sl_before="$SECONDS"
+sleep 3
+sleep 3
+sl_elapsed=$((SECONDS - sl_before))
+if ! check_eq 'sleep stub: calls counted' '2' "$(sleep_call_count)"; then sl_fails=1; fi
+if [ "$sl_elapsed" -ge 2 ]; then
+  printf 'FAIL sleep stub: two 3s sleeps took %ss of wall clock\n' "$sl_elapsed"
+  sl_fails=1
+fi
+if ! check_eq 'sleep stub: resolves to the stub' \
+  "${HARNESS_LIB_DIR}/bin-nosleep/sleep" "$(command -v sleep)"; then sl_fails=1; fi
+if [ "$sl_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
