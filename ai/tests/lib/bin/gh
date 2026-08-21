@@ -85,8 +85,8 @@ serve() {
 # It lives in its own file holding nothing but the integer, and is deliberately
 # NOT derived by counting lines in the argv log below. An argument may carry a
 # newline of its own — the GraphQL query list-unresolved-threads.sh passes as
-# `-f query='...'` spans twenty lines — and counting lines would then advance the
-# index by twenty for one call, so every later exact-index entry would answer a
+# `-f query='...'` spans 23 lines — and counting lines would then advance the
+# index by 23 for one call, so every later exact-index entry would answer a
 # different call than the one it was written for.
 #
 # It counts *responses served*: invocations for an ordinary call, pages for a
