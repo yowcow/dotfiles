@@ -16,6 +16,10 @@ set -euo pipefail
 # shellcheck source=harness.sh
 # shellcheck disable=SC1091
 . "$(dirname -- "${BASH_SOURCE[0]}")/harness.sh"
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=gitrepo.sh
+# shellcheck disable=SC1091
+. "$(dirname -- "${BASH_SOURCE[0]}")/gitrepo.sh"
 
 failed=0
 total=0
@@ -89,5 +93,31 @@ if ! check_eq "counter: a multi-line argv counts as one call" 1 "$(gh_call_count
 gh api plain >/dev/null 2>&1 || true
 if ! check_eq "counter: the next call is index 2" 2 "$(gh_call_count)"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a repo with the requested remote URL, branches and commits ---
+total=$((total + 1))
+gr_fails=0
+gr_bare="$(git_repo_bare acme widgets)"
+gr_seed="$(git_repo_scratch seed)"
+git_repo_init "$gr_seed" main
+git_repo_commit "$gr_seed" README.md 'common\n' 'base'
+git_repo_checkout "$gr_seed" feature main
+git_repo_commit "$gr_seed" FEATURE.md 'f\n' 'feature work'
+git_repo_push "$gr_seed" "$gr_bare" main feature
+gr_work="$(git_repo_scratch work)"
+git_repo_init "$gr_work" main
+git_repo_remote "$gr_work" origin "$gr_bare"
+
+if ! check_eq 'gitrepo: bare path encodes owner/repo' \
+  'acme/widgets.git' "$(basename "$(dirname "$gr_bare")")/$(basename "$gr_bare")"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: remote url is the one set' \
+  "$gr_bare" "$(git -C "$gr_work" remote get-url origin)"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: branches reached the remote' \
+  'feature main' "$(git -C "$gr_bare" for-each-ref --format='%(refname:short)' refs/heads | sort | tr '\n' ' ' | sed 's/ $//')"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: commit message is the one given' \
+  'base' "$(git -C "$gr_bare" log -1 --format=%s main)"; then gr_fails=1; fi
+if ! check_eq 'gitrepo: file content is the one given' \
+  'common' "$(git -C "$gr_bare" show main:README.md)"; then gr_fails=1; fi
+if [ "$gr_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
