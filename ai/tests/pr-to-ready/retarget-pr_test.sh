@@ -275,4 +275,79 @@ check_one 'push-failed: the remote branch did not move' \
 check_contains 'push-failed: the merge did land locally' \
   "$W" HEAD "$MAIN_SHA"
 
+# --- the PR already points at <base>: the second gate decides ---------------
+
+# Both gates hold. The completion condition here is a negative one -- that
+# nothing which changes the remote or the working tree runs -- so it is
+# asserted from three directions: no `gh pr edit` stub is registered, so an
+# edit would be a violation; the remote branch's sha is unchanged, so no push
+# happened; and the local HEAD is unchanged with a clean tree, so no merge did.
+total=$((total + 1))
+stub_dir_new
+stub_view main
+BARE="$(build_remote bothgates merged)"
+FEATURE_BEFORE="$(bare_sha "$BARE" feature)"
+W="$(git_repo_clone bothgates "$BARE" feature)"
+LOCAL_BEFORE="$(git -C "$W" rev-parse HEAD)"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" feature main
+cd "$REPO_ROOT"
+assert_row 'both-gates-hold' 0 'BASE-OK main\n' 1
+check_one 'both-gates-hold: the remote branch did not move' \
+  "$FEATURE_BEFORE" "$(bare_sha "$BARE" feature)"
+check_one 'both-gates-hold: the local branch did not move' \
+  "$LOCAL_BEFORE" "$(git -C "$W" rev-parse HEAD)"
+check_one 'both-gates-hold: the working tree was not touched' \
+  '' "$(git -C "$W" status --porcelain)"
+
+# The pointer matches but the base is not in the remote branch: stage 1 is
+# done and stage 2 is not, so the run resumes at the merge. No `gh pr edit`
+# stub is registered -- editing the base to what it already is would be the
+# one mutation with nothing to do, and a call would be a violation.
+#
+# This is the row #170 is about. Against 80376f3^ it reports BASE-OK main and
+# pushes nothing, so both this assertion and the next one fail.
+total=$((total + 1))
+stub_dir_new
+stub_view main
+BARE="$(build_remote resume clean)"
+MAIN_SHA="$(bare_sha "$BARE" main)"
+W="$(git_repo_clone resume "$BARE" feature)"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" feature main
+cd "$REPO_ROOT"
+assert_row 'pointer-matches-but-remote-lacks-the-base' 0 'RETARGETED main main\n' 1
+check_contains 'resume: the remote branch now carries the base' \
+  "$BARE" refs/heads/feature "$MAIN_SHA"
+
+# The second gate needs the branch's remote tip, and this branch has never
+# been pushed. A missing tip is not "the base is not in it": the run stops.
+total=$((total + 1))
+stub_dir_new
+stub_view main
+BARE="$(build_remote branchfetch clean)"
+W="$(git_repo_clone branchfetch "$BARE" feature)"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" nosuchbranch main
+cd "$REPO_ROOT"
+assert_row 'branch-missing-on-the-remote' 0 'STOP branch-fetch-failed\n' 1
+
+# The ancestor check fails for a reason of its own rather than returning
+# either verdict: the base ref resolves to a blob, so `git merge-base
+# --is-ancestor` exits 128. Reading that as either verdict would report
+# BASE-OK over an unmerged base, or push a merge nobody asked for.
+total=$((total + 1))
+stub_dir_new
+stub_view blobref
+BARE="$(build_remote blobref clean)"
+git_repo_blob_ref "$BARE" blobref 'not a commit\n'
+FEATURE_BEFORE="$(bare_sha "$BARE" feature)"
+W="$(git_repo_clone blobref "$BARE" feature)"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" feature blobref
+cd "$REPO_ROOT"
+assert_row 'ancestor-check-errors' 0 'STOP ancestor-check-failed\n' 1
+check_one 'ancestor-check-failed: the remote branch did not move' \
+  "$FEATURE_BEFORE" "$(bare_sha "$BARE" feature)"
+
 harness_exit "$failed" "$total"
