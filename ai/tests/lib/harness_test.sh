@@ -174,4 +174,107 @@ if ! check_eq 'sleep stub: resolves to the stub' \
   "${HARNESS_LIB_DIR}/bin-nosleep/sleep" "$(command -v sleep)"; then sl_fails=1; fi
 if [ "$sl_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- gitrepo.sh: git cannot leave the machine, whatever URL it is handed ---
+#
+# This is the guarantee that makes it safe to let a script under test run a
+# real `git push`. Convention is not enough: `retarget-pr.sh` pushes to
+# whatever `origin` says, and a test that mis-wired a remote would otherwise
+# push to a real repository. GIT_ALLOW_PROTOCOL (exported by gitrepo.sh) makes
+# git itself refuse every network transport before it opens a socket, so the
+# guarantee holds even for a URL no test author looked at.
+#
+# The URL points at 127.0.0.1:1 rather than a real host so that a *regression*
+# — the guard being dropped — fails against a closed local port instead of
+# reaching out over the network. The assertion is on the message, not just the
+# non-zero status, because "connection refused" is also non-zero and would let
+# a dropped guard pass.
+total=$((total + 1))
+proto_fails=0
+proto_repo="$(git_repo_scratch proto)"
+git_repo_init "$proto_repo" main
+git_repo_commit "$proto_repo" README.md 'x\n' 'only commit'
+for proto_url in 'https://127.0.0.1:1/acme/widgets.git' \
+  'git@127.0.0.1:acme/widgets.git' 'git://127.0.0.1:1/acme/widgets.git'; do
+  git_repo_remote "$proto_repo" origin "$proto_url"
+  proto_out="$(git -C "$proto_repo" push origin 'refs/heads/main:refs/heads/main' 2>&1)" && proto_status=0 || proto_status=$?
+  if ! check_eq "gitrepo: ${proto_url} push is refused" '128' "$proto_status"; then proto_fails=1; fi
+  case "$proto_out" in
+    *"not allowed"*) ;;
+    *)
+      printf 'FAIL gitrepo: %s was refused for the wrong reason: %s\n' \
+        "$proto_url" "$(printf '%s' "$proto_out" | head -1)"
+      proto_fails=1
+      ;;
+  esac
+done
+if [ "$proto_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a clone of a local bare remote can be pushed to ------------
+total=$((total + 1))
+clone_fails=0
+clone_bare="$(git_repo_bare acme pushable)"
+clone_seed="$(git_repo_scratch pushable-seed)"
+git_repo_init "$clone_seed" main
+git_repo_commit "$clone_seed" README.md 'common\n' 'base'
+git_repo_push "$clone_seed" "$clone_bare" main
+clone_work="$(git_repo_clone pushable-work "$clone_bare" main)"
+if ! check_eq 'gitrepo: clone checked out the requested branch' \
+  'main' "$(git -C "$clone_work" rev-parse --abbrev-ref HEAD)"; then clone_fails=1; fi
+if ! check_eq 'gitrepo: clone origin is the bare repo' \
+  "$clone_bare" "$(git -C "$clone_work" remote get-url origin)"; then clone_fails=1; fi
+git_repo_commit "$clone_work" README.md 'changed\n' 'a change to push'
+clone_status=0
+git -C "$clone_work" push -q origin 'refs/heads/main:refs/heads/main' 2>/dev/null || clone_status=$?
+if ! check_eq 'gitrepo: pushing to the local bare remote succeeds' '0' "$clone_status"; then clone_fails=1; fi
+if ! check_eq 'gitrepo: the bare repo received the commit' \
+  'a change to push' "$(git -C "$clone_bare" log -1 --format=%s main)"; then clone_fails=1; fi
+if [ "$clone_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a push can be made to fail, and then to succeed again -------
+#
+# A push that fails while everything around it works is the state #170 was
+# about, and there is no way to reach it with a correctly configured remote.
+# The hook is the only lever that produces it without breaking anything else,
+# so that a *later* run in the same repository can then succeed.
+total=$((total + 1))
+deny_fails=0
+git_repo_commit "$clone_work" README.md 'denied\n' 'a change the hook rejects'
+deny_before="$(git -C "$clone_bare" rev-parse refs/heads/main)"
+git_repo_deny_push "$clone_bare"
+deny_status=0
+git -C "$clone_work" push -q origin 'refs/heads/main:refs/heads/main' 2>/dev/null || deny_status=$?
+if [ "$deny_status" -eq 0 ]; then
+  echo 'FAIL gitrepo: the push succeeded while the deny hook was installed'
+  deny_fails=1
+fi
+if ! check_eq 'gitrepo: a denied push moved nothing' \
+  "$deny_before" "$(git -C "$clone_bare" rev-parse refs/heads/main)"; then deny_fails=1; fi
+git_repo_allow_push "$clone_bare"
+deny_status=0
+git -C "$clone_work" push -q origin 'refs/heads/main:refs/heads/main' 2>/dev/null || deny_status=$?
+if ! check_eq 'gitrepo: the push succeeds once the hook is removed' '0' "$deny_status"; then deny_fails=1; fi
+if ! check_eq 'gitrepo: the bare repo caught up' \
+  'a change the hook rejects' "$(git -C "$clone_bare" log -1 --format=%s main)"; then deny_fails=1; fi
+if [ "$deny_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- gitrepo.sh: a ref that points at a blob rather than a commit ------------
+#
+# retarget-pr.sh's ancestor gate has a third branch for `git merge-base
+# --is-ancestor` failing for a reason of its own, rather than returning either
+# verdict. A ref pointing at a non-commit is how that is reachable with real
+# git and no stub: the fetch succeeds, FETCH_HEAD is a blob, and the ancestor
+# check exits 128.
+total=$((total + 1))
+blob_fails=0
+git_repo_blob_ref "$clone_bare" blobref 'not a commit\n'
+git -C "$clone_work" fetch -q origin -- blobref
+blob_sha="$(git -C "$clone_work" rev-parse FETCH_HEAD)"
+if ! check_eq 'gitrepo: the fetched ref is a blob' \
+  'blob' "$(git -C "$clone_work" cat-file -t "$blob_sha")"; then blob_fails=1; fi
+git -C "$clone_work" fetch -q origin -- main
+blob_status=0
+git -C "$clone_work" merge-base --is-ancestor "$blob_sha" "$(git -C "$clone_work" rev-parse FETCH_HEAD)" 2>/dev/null || blob_status=$?
+if ! check_eq 'gitrepo: is-ancestor on a blob is neither verdict' '128' "$blob_status"; then blob_fails=1; fi
+if [ "$blob_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
 harness_exit "$failed" "$total"
