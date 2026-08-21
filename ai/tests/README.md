@@ -225,3 +225,8 @@ working tree's `origin` was the PR's repository (#172).
 `resolve-pr-base.sh` → `bb8d8b8^` — the `Base-Branch` trailer scan walked to
 root, so a branch that recorded nothing picked up whatever trailer it inherited
 from shared history and handed that branch back as `--base` (#171).
+
+`watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
+of the listing, so the filter printed `[]` and the caller read the review as
+never arriving (#173). Also `e14114a^`, where the workflow search was
+cwd-relative: from a subdirectory it reported Claude as unavailable.
