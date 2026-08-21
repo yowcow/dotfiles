@@ -83,6 +83,16 @@ git show <fix>^:<path> >"$tmp/old.sh"
 SUT="$tmp/old.sh" ai/tests/run.sh <one-test-file>
 ```
 
+A script that shells out to a sibling needs that sibling beside the copy:
+`watch-copilot-review.sh` finds `list-copilot-reviews.sh` through
+`dirname "$0"`, so a pre-fix copy alone in a temp dir cannot find it, every
+listing comes back empty, and rows fail for a reason that has nothing to do
+with the defect.
+
+```bash
+cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
+```
+
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
 single script and pointing a whole suite at it would apply it to every file.
