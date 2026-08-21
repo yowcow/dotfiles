@@ -16,10 +16,30 @@ else
   # so `**` degrades to a single `*` and silently matches only the one nesting
   # depth, dropping any test file shallower or deeper than that. Files nobody
   # noticed were skipped would read as a suite that passed.
+  #
+  # The listing is a plain foreground pipeline into a temp file, not a process
+  # substitution feeding the loop directly. In `done < <(find ...)` the
+  # producer's exit status is unreachable: a `find` that dies partway through
+  # the tree — an unreadable subdirectory, say — leaves the loop running on
+  # whatever it managed to emit, and the run reports the files it did collect as
+  # a suite that passed. Measured: a chmod-000 subdirectory holding one test
+  # file printed "all 1 test files passed", exit 0, having never run it.
+  #
+  # `pipefail` (set above) is what makes the single `if !` sufficient — it
+  # catches a failure in either stage, so neither `find` nor `sort` can fail
+  # unnoticed.
+  LISTING="$(mktemp)"
+  trap 'rm -f "$LISTING"' EXIT
+
+  if ! find "$ROOT" -type f -name '*_test.sh' -print0 | sort -z >"$LISTING"; then
+    echo "listing ${ROOT} failed — the tree was not fully read" >&2
+    exit 1
+  fi
+
   files=()
   while IFS= read -r -d '' f; do
     files+=("$f")
-  done < <(find "$ROOT" -type f -name '*_test.sh' -print0 | sort -z)
+  done <"$LISTING"
 fi
 
 if [ "${#files[@]}" -eq 0 ]; then
