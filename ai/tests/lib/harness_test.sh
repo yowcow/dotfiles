@@ -6,14 +6,13 @@
 # be compared byte-for-byte — a defect whose whole signature is one stray
 # newline is invisible to a line-count comparison — an argv the manifest cannot
 # disambiguate from another must be refused when stubbed rather than never
-# matching, and the call index must count invocations rather than lines of
-# argv. An argv
-# spanning lines must be stubbable and must match only itself. `--jq` must be
-# applied to a successful body and never to a failing one. One `--paginate`
-# invocation must serve a page sequence, truncating at a failing page. And a
-# stubbed body that `--jq` cannot filter is a broken fixture or a broken
-# filter, not a modelled `gh` failure, so it must be reported loudly rather
-# than degrading into an ordinary exit 1 — a quiet failure there would
+# matching, and the call index must count invocations rather than lines of argv.
+# An argv spanning lines must be stubbable and must match only itself. `--jq`
+# must be applied to a successful body and never to a failing one. One
+# `--paginate` invocation must serve a page sequence, truncating at a failing
+# page. And a stubbed body that `--jq` cannot filter is a broken fixture or a
+# broken filter, not a modelled `gh` failure, so it must be reported loudly
+# rather than degrading into an ordinary exit 1 — a quiet failure there would
 # recreate, inside the stub itself, the very absent-versus-could-not-ask
 # confusion this suite exists to catch.
 #
