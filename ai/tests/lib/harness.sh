@@ -48,26 +48,33 @@ gh_stub_response() {
   fi
   local arg joined=""
   for arg in "$@"; do
-    # The manifest is TSV with one line per entry and the argv in its last
-    # field, so an argv carrying a tab, a newline, or the \x1f separator cannot
-    # be represented; matching would then silently miss and the case would fail
-    # as "unexpected argv" with no hint why.
+    # \x1f is the separator the joined form uses, so an element containing one
+    # cannot be told from an element boundary; matching would then silently miss
+    # and the case would fail as "unexpected argv" with no hint why. Tabs and
+    # newlines are representable: the joined form goes in a file of its own
+    # rather than the last field of the TSV manifest, because a real argv spans
+    # lines (list-copilot-reviews.sh:41-43 passes a three-line --jq filter) and
+    # refusing those would leave that call unstubbable.
     case "$arg" in
-      *$'\t'* | *$'\n'* | *$'\x1f'*)
-        printf '%s\n' "gh_stub_response: argv element contains tab, newline or \\x1f: '${arg}'" >&2
+      *$'\x1f'*)
+        printf '%s\n' "gh_stub_response: argv element contains \\x1f: '${arg}'" >&2
         return 1
         ;;
     esac
     joined="${joined}${arg}"$'\x1f'
   done
-  local entry_no body
+  local entry_no body argvfile
+  # One manifest line per entry still, so counting lines is still the entry
+  # number: the argv has moved out of the line, so nothing in it spans lines.
   entry_no=1
   if [ -f "${GH_STUB_DIR}/manifest" ]; then
     entry_no=$(($(wc -l <"${GH_STUB_DIR}/manifest") + 1))
   fi
   body="${GH_STUB_DIR}/body.${entry_no}"
+  argvfile="${GH_STUB_DIR}/argv.${entry_no}"
   cat >"$body"
-  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$joined" >>"${GH_STUB_DIR}/manifest"
+  printf '%s' "$joined" >"$argvfile"
+  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argvfile" >>"${GH_STUB_DIR}/manifest"
 }
 
 gh_call_count() {

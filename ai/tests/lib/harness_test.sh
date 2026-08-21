@@ -4,9 +4,11 @@
 # case instead of reaching the real `gh` (and the network), the stub must count
 # calls so a poll loop's second iteration can differ from its first, stdout must
 # be compared byte-for-byte — a defect whose whole signature is one stray
-# newline is invisible to a line-count comparison — an argv the manifest cannot
-# represent must be refused when stubbed rather than never matching, and the
-# call index must count invocations rather than lines of argv.
+# newline is invisible to a line-count comparison — the one argv the manifest
+# cannot represent — the \x1f separator itself — must be
+# refused when stubbed rather than never matching while an argv spanning lines
+# must be stubbable, and the call index must count invocations rather than
+# lines of argv.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -62,16 +64,31 @@ fi
 if ! check_bytes "bytes: newline matches newline" '\n'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
-# --- property 4: an argv element the manifest cannot represent is rejected -----
+# --- property 4: \x1f is unrepresentable, a multi-line argv is not ------------
+# Only the separator itself cannot be represented. Tabs and newlines can: a real
+# argv spans lines — list-copilot-reviews.sh:41-43 passes its whole --jq filter
+# as one three-line argument — and a manifest that could not hold one would
+# leave that call unstubbable, so the pair could not be tested offline at all.
 total=$((total + 1))
 stub_dir_new
 fails_here=0
 status=0
-gh_stub_response 1 0 api "$(printf 'a\tb')" </dev/null 2>/dev/null || status=$?
-if ! check_eq "helper rejects a tab in argv" 1 "$status"; then fails_here=1; fi
+gh_stub_response 1 0 api $'a\x1fb' </dev/null 2>/dev/null || status=$?
+if ! check_eq "helper rejects \\x1f in argv" 1 "$status"; then fails_here=1; fi
 status=0
 gh_stub_response 0 0 api ok </dev/null 2>/dev/null || status=$?
 if ! check_eq "helper rejects index 0" 1 "$status"; then fails_here=1; fi
+multi=$'first\n        second'
+# Guarded and asserted, not `|| true`: this file runs under `set -e`, so an
+# unguarded call would abort the whole file the moment the helper refuses —
+# which is exactly the pre-change state this row has to report on, and the
+# remaining properties would never run. `|| true` would keep it running but
+# hide a later regression back to refusing, so the status is asserted.
+status=0
+gh_stub_response 1 0 api "$multi" <<<'matched' || status=$?
+if ! check_eq "helper accepts a multi-line argv" 0 "$status"; then fails_here=1; fi
+if ! check_eq "multi-line argv matches" 'matched' "$(gh api "$multi")"; then fails_here=1; fi
+if ! check_no_violations "multi-line argv: no violations"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- property 5: the counter counts invocations, not lines of argv ------------

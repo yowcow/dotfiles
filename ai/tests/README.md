@@ -46,9 +46,11 @@ Each row typically does:
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
 entry answers — or `*`, meaning "any call not otherwise matched exactly." An
-exact index wins over `*`. An `<argv>` element containing a tab, a newline, or
-`\x1f` is rejected: the manifest is TSV with the joined argv in its last
-field, and those bytes can't be represented there. A malformed index or an
+exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected: that byte is the separator
+the joined form uses, so it can't be told from an element boundary. Tabs and
+newlines are fine — the joined argv lives in a file of its own (`argv.N`)
+rather than a field of the TSV manifest, because a real argv spans lines: the
+`--jq` filter `list-copilot-reviews.sh` passes is one three-line argument. A malformed index or an
 exit status outside 0-255 is rejected too.
 
 ## The mechanism properties (and why they matter)
@@ -63,9 +65,10 @@ depends on:
    answer its second call differently from its first.
 3. **Stdout is compared byte-for-byte**, not line-by-line — a stray or
    missing trailing newline is invisible to a line-count comparison.
-4. **An argv the manifest cannot represent is refused when stubbed**, rather
-   than silently never matching: a tab, a newline or a `\x1f` in a stubbed
-   argv, or a malformed call index, fails the helper on the spot.
+4. **The one argv the manifest cannot represent is refused when stubbed**,
+   rather than silently never matching: a `\x1f` in a stubbed argv, or a
+   malformed call index, fails the helper on the spot — while an argv that
+   spans lines *is* stubbable and matches.
 5. **The call index counts invocations, not lines**, so an argument that
    spans lines — a GraphQL query passed as `-f query='...'` — does not
    advance the index past the call a later exact-index entry was written for.
