@@ -76,6 +76,10 @@ depends on:
 6. **An argv spanning lines is stubbable and matches only itself** — the
    23-line GraphQL query is why, and a near-miss query must still be reported
    as an unstubbed argv rather than served this case's body.
+7. **`--jq` is applied to a successful body and never to a failing one** —
+   what real `gh` does (measured). Fixtures are therefore raw API bodies and
+   the filter in the script under test really runs; an error fixture reaches
+   stdout whole, as a caller would see it.
 
 ## RED verification
 

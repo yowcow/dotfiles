@@ -28,6 +28,54 @@ for arg in "$@"; do
   joined="${joined}${arg}"$'\x1f'
 done
 
+# gh's own flags have to be read off the argv, because the stub stands in for
+# gh's behaviour and not just for its output: --jq is applied by gh, so a stub
+# that ignored it would leave the filter in the script under test unexecuted.
+JQ_EXPR=""
+HAVE_JQ=0
+args=("$@")
+i=0
+while [ "$i" -lt "${#args[@]}" ]; do
+  case "${args[$i]}" in
+    --jq)
+      i=$((i + 1))
+      if [ "$i" -lt "${#args[@]}" ]; then
+        JQ_EXPR="${args[$i]}"
+        HAVE_JQ=1
+      fi
+      ;;
+    --jq=*)
+      JQ_EXPR="${args[$i]#--jq=}"
+      HAVE_JQ=1
+      ;;
+  esac
+  i=$((i + 1))
+done
+
+# serve <status> <body>: what gh would write to stdout for that response.
+# `jq -r -c` reproduces gh's --jq byte for byte (measured for an object-valued
+# and a string-valued filter against a real page body). A non-zero status means
+# gh failed, and a failing gh prints the raw body — filtering it would erase the
+# error the caller has to see.
+#
+# A jq failure here is a broken fixture or a broken filter, not a modelled gh
+# behaviour, so it is recorded as a violation and exits 99 rather than being
+# handed back as gh's ordinary exit 1. "gh received garbage" is modelled by
+# stubbing a non-zero status with a raw body instead.
+serve() {
+  local status="$1" body="$2"
+  if [ "$status" -eq 0 ] && [ "$HAVE_JQ" -eq 1 ]; then
+    if ! jq -r -c "$JQ_EXPR" <"$body"; then
+      printf 'call %s: --jq %s failed on the stubbed body %s\n' \
+        "$n" "$JQ_EXPR" "$body" >>"${GH_STUB_DIR}/violations"
+      echo "gh stub: --jq failed on the stubbed body for call ${n}" >&2
+      exit 99
+    fi
+  else
+    cat "$body"
+  fi
+}
+
 # The counter is global over the stub dir rather than per-argv: a poll loop that
 # calls two endpoints per iteration is then addressable by "the Nth call", which
 # a per-endpoint counter cannot express.
@@ -105,5 +153,5 @@ if [ "$FOUND" -eq 0 ]; then
   exit 99
 fi
 
-cat "$FOUND_BODY"
+serve "$FOUND_STATUS" "$FOUND_BODY"
 exit "$FOUND_STATUS"

@@ -7,7 +7,8 @@
 # newline is invisible to a line-count comparison — an argv the manifest cannot
 # represent must be refused when stubbed rather than never matching, and the
 # call index must count invocations rather than lines of argv. An argv
-# spanning lines must be stubbable and must match only itself.
+# spanning lines must be stubbable and must match only itself. `--jq` must be
+# applied to a successful body and never to a failing one.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -130,6 +131,29 @@ gh api "$(printf 'first\nsecond')" >/dev/null 2>&1 || true
 if ! check_eq "counter: a multi-line argv counts as one call" 1 "$(gh_call_count)"; then fails_here=1; fi
 gh api plain >/dev/null 2>&1 || true
 if ! check_eq "counter: the next call is index 2" 2 "$(gh_call_count)"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 7: --jq is applied to a successful body, never to a failing one -
+# Real `gh` filters a 200 through --jq and prints an error body verbatim
+# (measured: a 200 carrying `errors` and a 401 both reach stdout raw, and
+# `jq -r -c` reproduces gh's --jq byte for byte). Fixtures are therefore raw API
+# bodies and the filter under test really runs. Getting this backwards would
+# filter every error fixture down to nothing, and the error cases would assert
+# emptiness where reality has a body.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response 1 0 api graphql --jq '.items[] | select(.keep == true)' \
+  <<<'{"items":[{"keep":false,"n":1},{"keep":true,"n":2}]}'
+gh_stub_response 2 1 api graphql --jq '.items[] | select(.keep == true)' \
+  <<<'{"errors":[{"message":"nope"}]}'
+if ! check_eq "--jq filters a successful body" '{"keep":true,"n":2}' \
+  "$(gh api graphql --jq '.items[] | select(.keep == true)')"; then fails_here=1; fi
+status=0
+out="$(gh api graphql --jq '.items[] | select(.keep == true)')" || status=$?
+if ! check_eq "a failing body is printed raw" '{"errors":[{"message":"nope"}]}' "$out"; then fails_here=1; fi
+if ! check_eq "a failing body keeps its exit status" 1 "$status"; then fails_here=1; fi
+if ! check_no_violations "--jq: no violations"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
