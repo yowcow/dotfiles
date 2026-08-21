@@ -62,6 +62,22 @@ fi
 # is printed rather than enforced because a file may consume $SUT indirectly —
 # grepping for the name would refuse legitimate runs.
 if [ -n "${SUT:-}" ]; then
+  # Checked before anything runs, and before the line below claims the override
+  # is in effect. A $SUT that isn't there makes every `run_sut bash "$SUT"` exit
+  # 127, so nearly every row FAILs — which is the shape of a *successful* RED
+  # verification, and the "override in effect" line then reads as confirmation
+  # that the right file was measured. Measured (#214): the same test file
+  # reported `not ok 7/31` against the real pre-fix script and `not ok 20/31`
+  # against a path that did not exist.
+  #
+  # Emptiness is refused too, and it is the quieter half: an empty file exists,
+  # and `bash <empty>` exits 0, so the script under test appears to succeed at
+  # everything and the RED comes back *green* — read as "this test cannot detect
+  # the defect", which retires a test that was never run.
+  if [ ! -f "$SUT" ] || [ ! -s "$SUT" ]; then
+    printf 'run.sh: SUT names no existing non-empty file: %s\n' "$SUT" >&2
+    exit 1
+  fi
   printf 'run.sh: SUT override in effect: %s\n' "$SUT"
 fi
 
