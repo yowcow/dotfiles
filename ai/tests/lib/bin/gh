@@ -16,6 +16,9 @@
 # filename-safe digest of it. A digest has to fold characters that are illegal
 # in a filename, and two different argvs folding to one key would silently
 # serve the wrong fixture.
+#
+# The joined argv is compared as a file rather than as a manifest field, so an
+# argument that spans lines — a --jq filter, a GraphQL query — is matchable.
 set -euo pipefail
 
 if [ -z "${GH_STUB_DIR:-}" ]; then
@@ -47,13 +50,25 @@ printf '%s' "$n" >"${GH_STUB_DIR}/count"
 # The log is for diagnostics only — what a violation message quotes back.
 printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
 
+# Written out so the comparison below is `cmp` on two files. A command
+# substitution would strip trailing newlines from the manifest's copy, and an
+# argv whose last element ends in a newline would then match one that does not.
+printf '%s' "$joined" >"${GH_STUB_DIR}/argv.actual"
+
 matched_exit=""
 matched_body=""
 wildcard_exit=""
 wildcard_body=""
 if [ -f "${GH_STUB_DIR}/manifest" ]; then
-  while IFS=$'\t' read -r idx status body argv; do
-    [ "$argv" = "$joined" ] || continue
+  while IFS=$'\t' read -r idx status body argvfile; do
+    # A manifest entry whose argv file is gone would otherwise be skipped as
+    # "does not match", which is this suite's own defect class 1: an entry
+    # nobody could read, reported as an entry that did not apply.
+    if [ ! -f "$argvfile" ]; then
+      echo "gh stub: manifest entry names a missing argv file: ${argvfile}" >&2
+      exit 99
+    fi
+    cmp -s "$argvfile" "${GH_STUB_DIR}/argv.actual" || continue
     if [ "$idx" = "$n" ]; then
       matched_exit="$status"
       matched_body="$body"

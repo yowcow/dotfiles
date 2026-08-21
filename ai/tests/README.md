@@ -46,10 +46,13 @@ Each row typically does:
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
 entry answers — or `*`, meaning "any call not otherwise matched exactly." An
-exact index wins over `*`. An `<argv>` element containing a tab, a newline, or
-`\x1f` is rejected: the manifest is TSV with the joined argv in its last
-field, and those bytes can't be represented there. A malformed index or an
-exit status outside 0-255 is rejected too.
+exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected:
+that byte is the separator the joined form uses, so it can't be told from an
+element boundary. Tabs and newlines are fine — the joined argv lives in a file
+of its own (`argv.N`) rather than a field of the TSV manifest, because a real
+argv spans lines: the `--jq` filter `list-copilot-reviews.sh` passes is one
+three-line argument. A malformed index or an exit status outside 0-255 is
+rejected too.
 
 ## Real git: `ai/tests/lib/gitrepo.sh`
 
@@ -114,9 +117,10 @@ depends on:
    answer its second call differently from its first.
 3. **Stdout is compared byte-for-byte**, not line-by-line — a stray or
    missing trailing newline is invisible to a line-count comparison.
-4. **An argv the manifest cannot represent is refused when stubbed**, rather
-   than silently never matching: a tab, a newline or a `\x1f` in a stubbed
-   argv, or a malformed call index, fails the helper on the spot.
+4. **The one argv the manifest cannot represent is refused when stubbed**,
+   rather than silently never matching: a `\x1f` in a stubbed argv, or a
+   malformed call index, fails the helper on the spot — while an argv that
+   spans lines *is* stubbable and matches.
 5. **The call index counts invocations, not lines**, so an argument that
    spans lines — a GraphQL query passed as `-f query='...'` — does not
    advance the index past the call a later exact-index entry was written for.
@@ -129,6 +133,16 @@ pre-fix version of the script under test:
 ```bash
 git show <fix>^:<path> >"$tmp/old.sh"
 SUT="$tmp/old.sh" ai/tests/run.sh <one-test-file>
+```
+
+A script that shells out to a sibling needs that sibling beside the copy:
+`watch-copilot-review.sh` finds `list-copilot-reviews.sh` through
+`dirname "$0"`, so a pre-fix copy alone in a temp dir cannot find it, every
+listing comes back empty, and rows fail for a reason that has nothing to do
+with the defect.
+
+```bash
+cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
 ```
 
 `SUT` names one script under test in place of a test file's default. `run.sh`
