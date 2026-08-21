@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Run the offline test suite: every tests/**/*_test.sh, each in its own bash
-# process so one file's failure neither aborts nor infects the rest.
-# Usage: tests/run.sh [test-file ...]
+# Run the offline test suite: every *_test.sh under this directory, each in its
+# own bash process so one file's failure neither aborts nor infects the rest.
+# Usage: ai/tests/run.sh [test-file ...]
 set -uo pipefail
 
 ROOT="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,8 +9,17 @@ ROOT="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 if [ "$#" -gt 0 ]; then
   files=("$@")
 else
-  shopt -s nullglob globstar
-  files=("${ROOT}"/**/*_test.sh)
+  # Collected with `find` rather than `**`, which needs bash 4's globstar. The
+  # sibling scripts this suite tests are deliberately kept running on bash 3.2
+  # (ai/skills/pr-to-ready/scripts/check-pr-state.sh says so where it avoids
+  # ${x,,}), and `shopt -s globstar` there fails while nullglob still applies —
+  # so `**` degrades to a single `*` and silently matches only the one nesting
+  # depth, dropping any test file shallower or deeper than that. Files nobody
+  # noticed were skipped would read as a suite that passed.
+  files=()
+  while IFS= read -r -d '' f; do
+    files+=("$f")
+  done < <(find "$ROOT" -type f -name '*_test.sh' -print0 | sort -z)
 fi
 
 if [ "${#files[@]}" -eq 0 ]; then

@@ -8,7 +8,8 @@
 # and the failure mode is a suite that still passes.
 
 HARNESS_LIB_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(CDPATH='' cd -- "${HARNESS_LIB_DIR}/../.." && pwd)"
+# ai/tests/lib -> ai/tests -> ai -> the repository root.
+REPO_ROOT="$(CDPATH='' cd -- "${HARNESS_LIB_DIR}/../../.." && pwd)"
 export REPO_ROOT
 
 PATH="${HARNESS_LIB_DIR}/bin:${PATH}"

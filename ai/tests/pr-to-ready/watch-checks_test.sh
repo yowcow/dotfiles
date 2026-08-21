@@ -9,10 +9,10 @@
 # without a single call.
 #
 # RED verification (each row that covers a fix must fail against the pre-fix
-# script) — see tests/README.md:
+# script) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"
 #   git show 9600d30^:ai/skills/pr-to-ready/scripts/watch-checks.sh >"$tmp/old.sh"
-#   SUT="$tmp/old.sh" tests/run.sh tests/pr-to-ready/watch-checks_test.sh
+#   SUT="$tmp/old.sh" ai/tests/run.sh ai/tests/pr-to-ready/watch-checks_test.sh
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The

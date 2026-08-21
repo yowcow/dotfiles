@@ -1,28 +1,32 @@
-# tests/
+# ai/tests/
 
 An offline test suite for the `gh`-wrapping scripts under `ai/skills/*/scripts/`.
-The tree lives at the repository root, not inside any skill directory: the
-Makefile symlinks each skill directory whole into five agent directories, so a
-`tests/` dir inside a skill would get installed everywhere along with it.
+The tree sits beside the skills it tests, but **not inside any skill
+directory**: the Makefile symlinks each skill directory whole into five agent
+directories, so a `tests/` dir inside a skill would get installed into all of
+them. `ai/` itself is never installed as a directory — only `ai/GUIDELINES.md`
+and the individual skill directories are — so `ai/tests/` reaches none of them.
 
 ## Layout
 
-- `tests/run.sh` — the runner.
-- `tests/lib/harness.sh` — sourced by every test file: sets up `PATH`, hands
+- `ai/tests/run.sh` — the runner.
+- `ai/tests/lib/harness.sh` — sourced by every test file: sets up `PATH`, hands
   out stub directories, runs the script under test, and provides the
   assertion helpers.
-- `tests/lib/bin/gh` — the fake `gh`. `harness.sh` puts it first on `PATH`, so
-  any script under test that calls `gh` reaches this stub, never the network.
-- `tests/lib/harness_test.sh` — a self-test of the harness mechanism itself
+- `ai/tests/lib/bin/gh` — the fake `gh`. `harness.sh` puts it first on `PATH`,
+  so any script under test that calls `gh` reaches this stub, never the network.
+- `ai/tests/lib/harness_test.sh` — a self-test of the harness mechanism itself
   (no script under test).
-- `<name>_test.sh` anywhere under `tests/` — the actual test cases.
+- `<name>_test.sh` anywhere under `ai/tests/` — the actual test cases.
 
 ## Running
 
-- `tests/run.sh` — runs every `tests/**/*_test.sh`, each in its own `bash`
-  process so one file's failure can't infect another, and reports how many
-  files failed.
-- `tests/run.sh <file> [<file> ...]` — runs only the named file(s).
+- `ai/tests/run.sh` — runs every `*_test.sh` under `ai/tests/`, each in its own
+  `bash` process so one file's failure can't infect another, and reports how
+  many files failed. Discovery uses `find`, not bash 4's `globstar`, because the
+  scripts under test are kept running on bash 3.2 and a degraded `**` would
+  silently match only one nesting depth.
+- `ai/tests/run.sh <file> [<file> ...]` — runs only the named file(s).
 
 ## Writing a table-test case
 
@@ -49,7 +53,7 @@ exit status outside 0-255 is rejected too.
 
 ## The mechanism properties (and why they matter)
 
-`tests/lib/harness_test.sh` proves the properties the rest of the suite
+`ai/tests/lib/harness_test.sh` proves the properties the rest of the suite
 depends on:
 
 1. **An unstubbed argv fails the case** rather than passing through to the
@@ -73,7 +77,7 @@ pre-fix version of the script under test:
 
 ```bash
 git show <fix>^:<path> >"$tmp/old.sh"
-SUT="$tmp/old.sh" tests/run.sh <one-test-file>
+SUT="$tmp/old.sh" ai/tests/run.sh <one-test-file>
 ```
 
 `SUT` names one script under test in place of a test file's default. `run.sh`
