@@ -34,6 +34,35 @@ stub_dir_new() {
   printf '%s' 0 >"${GH_STUB_DIR}/count"
 }
 
+# Make `sleep` instant for this test file. Opt-in: a bounded poll loop in a
+# script under test is worth asserting the *count* of, never the wall clock,
+# and check-pr-state.sh's UNKNOWN re-read alone would otherwise cost 15s a row.
+# The resolution is asserted rather than assumed, for the same reason the `gh`
+# assertion above exists: a PATH mistake would leave the suite silently slow
+# instead of failing.
+stub_sleep_instant() {
+  case ":${PATH}:" in
+    *":${HARNESS_LIB_DIR}/bin-nosleep:"*) ;;
+    *)
+      PATH="${HARNESS_LIB_DIR}/bin-nosleep:${PATH}"
+      export PATH
+      hash -r 2>/dev/null || true
+      ;;
+  esac
+  if [ "$(command -v sleep)" != "${HARNESS_LIB_DIR}/bin-nosleep/sleep" ]; then
+    echo "harness: sleep resolves to $(command -v sleep), not the stub — refusing to run" >&2
+    exit 1
+  fi
+}
+
+sleep_call_count() {
+  local n=0
+  if [ -f "${GH_STUB_DIR}/sleeps" ]; then
+    n="$(wc -l <"${GH_STUB_DIR}/sleeps" | tr -d ' ')"
+  fi
+  printf '%s\n' "$n"
+}
+
 # gh_stub_response <index|*> <exit-status> <argv...>   body on stdin
 gh_stub_response() {
   local idx="$1" status="$2"

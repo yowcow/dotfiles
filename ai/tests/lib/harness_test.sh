@@ -120,4 +120,22 @@ if ! check_eq 'gitrepo: file content is the one given' \
   'common' "$(git -C "$gr_bare" show main:README.md)"; then gr_fails=1; fi
 if [ "$gr_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- the sleep stub: counted, and it does not spend wall clock ---
+total=$((total + 1))
+sl_fails=0
+stub_sleep_instant
+stub_dir_new
+sl_before="$SECONDS"
+sleep 3
+sleep 3
+sl_elapsed=$((SECONDS - sl_before))
+if ! check_eq 'sleep stub: calls counted' '2' "$(sleep_call_count)"; then sl_fails=1; fi
+if [ "$sl_elapsed" -ge 2 ]; then
+  printf 'FAIL sleep stub: two 3s sleeps took %ss of wall clock\n' "$sl_elapsed"
+  sl_fails=1
+fi
+if ! check_eq 'sleep stub: resolves to the stub' \
+  "${HARNESS_LIB_DIR}/bin-nosleep/sleep" "$(command -v sleep)"; then sl_fails=1; fi
+if [ "$sl_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
 harness_exit "$failed" "$total"
