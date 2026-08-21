@@ -217,7 +217,11 @@ cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
 
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
-single script and pointing a whole suite at it would apply it to every file.
+single script and pointing a whole suite at it would apply it to every file. It
+also refuses a `SUT` naming no existing non-empty file, before running anything:
+a missing path makes nearly every row fail, which is the shape of a successful
+RED, and an empty one makes them all pass, which reads as a test with no
+detection power.
 
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).
@@ -225,6 +229,10 @@ working tree's `origin` was the PR's repository (#172).
 `resolve-pr-base.sh` → `bb8d8b8^` — the `Base-Branch` trailer scan walked to
 root, so a branch that recorded nothing picked up whatever trailer it inherited
 from shared history and handed that branch back as `--base` (#171).
+
+`run.sh` → `8876873^` — a `SUT` naming a nonexistent or an empty file was
+accepted, and the resulting failures were indistinguishable from a successful
+RED verification (#214).
 
 `watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
 of the listing, so the filter printed `[]` and the caller read the review as
