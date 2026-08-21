@@ -1,0 +1,79 @@
+name: ci
+
+# push and pull_request both. A same-repository pull request therefore produces
+# two runs of each job; both have to pass, so the duplication costs runner time
+# and nothing else.
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: bash -n and shellcheck every shell file under ai/
+        run: |
+          set -euo pipefail
+
+          # Selection is by shebang, not by a *.sh glob. The fake `gh` at
+          # ai/tests/lib/bin/gh has to be named `gh` to work as a PATH stub, so
+          # it cannot carry an extension, and `find -name '*.sh'` drops exactly
+          # that one file — the ground truth the whole offline suite rests on.
+          # shellcheck reads the shebang when handed a path, so an extensionless
+          # file is checked normally.
+          #
+          # The first line is read with `read`, not `head | grep`: `grep -q`
+          # exits on its first match, and the resulting SIGPIPE to `head` would
+          # fail the pipeline under `pipefail`, silently dropping the file.
+          #
+          # Only sh and bash are selected, because those are the shells
+          # shellcheck supports. A zsh or ksh script added under ai/ later would
+          # be silently left out of the selection — not checked, and not an error
+          # either. The printed list below is the only signal for that, so it is
+          # printed on every run rather than kept quiet.
+          files=()
+          while IFS= read -r -d '' f; do
+            if [ ! -r "$f" ]; then
+              echo "cannot read ${f}" >&2
+              exit 1
+            fi
+            first=''
+            IFS= read -r first <"$f" || true
+            case "$first" in
+              '#!'*bash* | '#!'*/sh | '#!'*/sh[[:space:]]* | '#!'*[[:space:]]sh | '#!'*[[:space:]]sh[[:space:]]*)
+                files+=("$f")
+                ;;
+            esac
+          done < <(find ai -type f -print0 | sort -z)
+
+          # An empty selection means the selection broke, not that the tree is
+          # clean. Without this the job would report success having checked
+          # nothing at all — the same "absent vs. could not ask" confusion this
+          # whole suite exists to catch.
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no shell file found under ai/ — the selection is broken" >&2
+            exit 1
+          fi
+
+          printf 'selected %s shell file(s):\n' "${#files[@]}"
+          printf '  %s\n' "${files[@]}"
+
+          for f in "${files[@]}"; do
+            bash -n -- "$f"
+          done
+          echo "bash -n: ok"
+
+          shellcheck --version
+          shellcheck -- "${files[@]}"
+          echo "shellcheck: ok"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run the offline test suite
+        run: ai/tests/run.sh
