@@ -14,9 +14,11 @@
 # broken filter, not a modelled `gh` failure, so it must be reported loudly
 # rather than degrading into an ordinary exit 1 — a quiet failure there would
 # recreate, inside the stub itself, the very absent-versus-could-not-ask
-# confusion this suite exists to catch.
+# confusion this suite exists to catch. And an expectation the harness cannot
+# read must be named as such, rather than compared against as far as it got and
+# charged to the script under test.
 #
-# The nine numbered blocks below run in that order, matching the numbered list
+# The ten numbered blocks below run in that order, matching the numbered list
 # in ai/tests/README.md. The blocks after them cover the other two pieces of
 # machinery the suite rests on: the disposable git repository helper and the
 # `sleep` stub.
@@ -254,6 +256,36 @@ case "$(gh_violations)" in
   *'--jq'*'failed on the stubbed body'*) ;;
   *)
     echo "FAIL jq failure: violation text doesn't name the --jq failure: $(gh_violations)"
+    fails_here=1
+    ;;
+esac
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 10: an unreadable expectation is named, not charged to the SUT --
+# A mistyped golden path makes `cat` fail, which leaves the want file empty, and
+# a byte comparison then reports "stdout differs, want: <nothing>" — the test's
+# own mistake billed to the script under test. That is this suite's defect
+# class 1 turned inward, so the helper names the path instead of comparing
+# against whatever it managed to read.
+#
+# The probe runs in a subshell because the other half of the same guard is an
+# abort: measured, `set -e` is suppressed inside a function invoked in an `if`
+# condition — which is how every call site spells it today — but not when the
+# helper is called plainly, and then an unguarded `cat` takes the whole file
+# down. The subshell keeps a regression to that behaviour reportable here
+# instead of ending the run.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+probe_status=0
+probe_out="$( (check_stdout_files 'probe' "${HARNESS_TMP}/no-such-expected") 2>&1 )" || probe_status=$?
+if ! check_eq "unreadable expectation: status" 1 "$probe_status"; then fails_here=1; fi
+# The message is asserted, not just the status: an unguarded `cat` also ends up
+# non-zero, so status alone cannot tell the guard from its absence.
+case "$probe_out" in
+  *'cannot read the expected bytes'*'no-such-expected'*) ;;
+  *)
+    printf 'FAIL unreadable expectation: message did not name the path: [%s]\n' "$probe_out"
     fails_here=1
     ;;
 esac

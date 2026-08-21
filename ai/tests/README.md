@@ -182,6 +182,12 @@ depends on:
    status with a raw body instead. Degrading it to exit 1 would make the
    mechanism itself commit the confusion between "absent" and "could not ask"
    that this suite exists to catch.
+10. **An expectation the harness cannot read is named, not charged to the
+    script under test** — a mistyped golden path leaves the want file empty,
+    and a byte comparison would then report "stdout differs, want: nothing",
+    blaming the code for the test's own mistake. Defect class 1, pointed
+    inward. The same guard keeps a plain (non-`if`) call from aborting the
+    whole test file under `set -e`.
 
 ## RED verification
 

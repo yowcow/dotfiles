@@ -181,7 +181,18 @@ check_stdout_files() {
   local label="$1"
   shift
   local wantfile="${HARNESS_TMP}/want.files"
-  cat -- "$@" >"$wantfile"
+  # Guarded, and the quieter half is the reason. An unreadable expectation — a
+  # mistyped golden path — leaves this file empty, and the `cmp` below then
+  # reports "stdout differs, want: <nothing>", charging the test's own mistake
+  # to the script under test. That is this suite's defect class 1 pointed
+  # inward, so the path is named instead. The louder half: `set -e` is
+  # suppressed inside a function invoked in an `if` condition, which is how
+  # every call site spells it today, but not when the helper is called plainly
+  # — and there an unguarded `cat` would abort the whole test file (measured).
+  if ! cat -- "$@" >"$wantfile" 2>/dev/null; then
+    printf 'FAIL %s: cannot read the expected bytes from: %s\n' "$label" "$*"
+    return 1
+  fi
   if cmp -s "$wantfile" "${SUT_STDOUT}"; then
     return 0
   fi
