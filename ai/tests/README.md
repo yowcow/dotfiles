@@ -54,6 +54,15 @@ body, so a multi-line argv (the GraphQL query `list-unresolved-threads.sh`
 passes as `-f query='...'` spans 23 lines) is matched on its exact bytes. A
 malformed index or an exit status outside 0-255 is rejected too.
 
+For an argv carrying `--paginate`, successive indices are the **pages of one
+invocation**: gh pages internally, so a script that calls it once still sees
+every page's output concatenated. The stub stops at the first of — no entry for
+the next index (the scripted pages ran out, which is how a real run ends), a
+non-zero status (it exits with that status, the pages already served still on
+stdout), or an entry matched via `*` (which matches every index and would
+repeat forever, so it answers one page). `gh_call_count` therefore counts
+responses served: invocations for an ordinary call, pages for a paginated one.
+
 ## The mechanism properties (and why they matter)
 
 `ai/tests/lib/harness_test.sh` proves the properties the rest of the suite
@@ -80,6 +89,10 @@ depends on:
    what real `gh` does (measured). Fixtures are therefore raw API bodies and
    the filter in the script under test really runs; an error fixture reaches
    stdout whole, as a caller would see it.
+8. **One `--paginate` invocation serves a page sequence, truncating at a
+   failing page** — "page 1 arrived, page 2 failed" is the state in which
+   stdout is non-empty and the listing is incomplete, and a caller keying on
+   emptiness alone cannot tell it from success.
 
 ## RED verification
 

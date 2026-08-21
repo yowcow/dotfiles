@@ -33,6 +33,7 @@ done
 # that ignored it would leave the filter in the script under test unexecuted.
 JQ_EXPR=""
 HAVE_JQ=0
+PAGINATE=0
 args=("$@")
 i=0
 while [ "$i" -lt "${#args[@]}" ]; do
@@ -48,6 +49,7 @@ while [ "$i" -lt "${#args[@]}" ]; do
       JQ_EXPR="${args[$i]#--jq=}"
       HAVE_JQ=1
       ;;
+    --paginate) PAGINATE=1 ;;
   esac
   i=$((i + 1))
 done
@@ -86,14 +88,15 @@ serve() {
 # `-f query='...'` spans twenty lines — and counting lines would then advance the
 # index by twenty for one call, so every later exact-index entry would answer a
 # different call than the one it was written for.
-n=1
+#
+# It counts *responses served*: invocations for an ordinary call, pages for a
+# paginated one. gh pages inside a single invocation, so there is no other way
+# to address "the second page" — and addressing it is the whole point, since a
+# failure there is what leaves stdout non-empty and the listing incomplete.
+count=0
 if [ -f "${GH_STUB_DIR}/count" ]; then
-  n=$(($(cat "${GH_STUB_DIR}/count") + 1))
+  count="$(cat "${GH_STUB_DIR}/count")"
 fi
-printf '%s' "$n" >"${GH_STUB_DIR}/count"
-
-# The log is for diagnostics only — what a violation message quotes back.
-printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
 
 # lookup <index>: sets FOUND / FOUND_STATUS / FOUND_BODY / FOUND_WILDCARD from
 # the manifest entry answering call <index> for this argv. An exact index wins
@@ -139,19 +142,39 @@ lookup() {
     FOUND=1
     FOUND_STATUS="$w_status"
     FOUND_BODY="$w_body"
-    # Not read below yet — a later task's pagination loop reads it to decide
-    # whether a `*` entry may serve more than one page.
-    # shellcheck disable=SC2034
     FOUND_WILDCARD=1
   fi
 }
 
-lookup "$n"
-if [ "$FOUND" -eq 0 ]; then
-  printf 'call %s: %s\n' "$n" "$*" >>"${GH_STUB_DIR}/violations"
-  echo "gh stub: no stubbed response for call ${n}: gh $*" >&2
-  exit 99
-fi
-
-serve "$FOUND_STATUS" "$FOUND_BODY"
-exit "$FOUND_STATUS"
+served=0
+while :; do
+  n=$((count + 1))
+  lookup "$n"
+  if [ "$FOUND" -eq 0 ]; then
+    if [ "$served" -ne 0 ]; then
+      # The argv is fixed for the whole invocation, so "no entry for the next
+      # index" cannot mean "the test mistyped an argv" — it means the scripted
+      # pages ran out, which is how a real --paginate run ends. The counter is
+      # left at the number of pages actually served.
+      exit 0
+    fi
+    count="$n"
+    printf '%s' "$count" >"${GH_STUB_DIR}/count"
+    printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
+    printf 'call %s: %s\n' "$count" "$*" >>"${GH_STUB_DIR}/violations"
+    echo "gh stub: no stubbed response for call ${count}: gh $*" >&2
+    exit 99
+  fi
+  count="$n"
+  printf '%s' "$count" >"${GH_STUB_DIR}/count"
+  # The log is for diagnostics only — what a violation message quotes back.
+  printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
+  serve "$FOUND_STATUS" "$FOUND_BODY"
+  served=$((served + 1))
+  if [ "$FOUND_STATUS" -ne 0 ]; then
+    exit "$FOUND_STATUS"
+  fi
+  if [ "$PAGINATE" -eq 0 ] || [ "$FOUND_WILDCARD" -eq 1 ]; then
+    exit 0
+  fi
+done

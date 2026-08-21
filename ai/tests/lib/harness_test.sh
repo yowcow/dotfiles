@@ -8,7 +8,8 @@
 # represent must be refused when stubbed rather than never matching, and the
 # call index must count invocations rather than lines of argv. An argv
 # spanning lines must be stubbable and must match only itself. `--jq` must be
-# applied to a successful body and never to a failing one.
+# applied to a successful body and never to a failing one. One `--paginate`
+# invocation must serve a page sequence, truncating at a failing page.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -154,6 +155,58 @@ out="$(gh api graphql --jq '.items[] | select(.keep == true)')" || status=$?
 if ! check_eq "a failing body is printed raw" '{"errors":[{"message":"nope"}]}' "$out"; then fails_here=1; fi
 if ! check_eq "a failing body keeps its exit status" 1 "$status"; then fails_here=1; fi
 if ! check_no_violations "--jq: no violations"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 8: one --paginate invocation serves a page sequence ------------
+# gh pages internally, so a script that calls it once still sees several pages'
+# output concatenated. Modelling that with one response per invocation would
+# make "page 1 arrived, page 2 failed" inexpressible — and that is the state in
+# which stdout is non-empty while the listing is incomplete.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response 1 0 api graphql --paginate --jq '.n' <<<'{"n":1}'
+gh_stub_response 2 0 api graphql --paginate --jq '.n' <<<'{"n":2}'
+run_sut gh api graphql --paginate --jq '.n'
+if ! check_bytes "paginate: both pages, in order" '1\n2\n'; then fails_here=1; fi
+if ! check_eq "paginate: exit" 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: pages served" 2 "$(gh_call_count)"; then fails_here=1; fi
+if ! check_no_violations "paginate: no violations"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# A failure on page 2 keeps page 1's output and hands back the failing status:
+# non-empty stdout with a non-zero exit is precisely "you did not see all of
+# it", and a caller reading emptiness alone cannot tell this from success.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response 1 0 api graphql --paginate --jq '.n' <<<'{"n":1}'
+gh_stub_response 2 1 api graphql --paginate --jq '.n' <<<'{"errors":[{"message":"boom"}]}'
+run_sut gh api graphql --paginate --jq '.n'
+if ! check_bytes "paginate: page 1 then the raw error body" \
+  '1\n{"errors":[{"message":"boom"}]}\n'; then fails_here=1; fi
+if ! check_eq "paginate: failing exit propagates" 1 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: pages served before the failure" 2 "$(gh_call_count)"; then fails_here=1; fi
+if ! check_no_violations "paginate: no violations after a mid-page failure"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# A `*` entry answers one page and stops. It matches every index, so continuing
+# would loop forever; a multi-page sequence needs explicit indices.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+gh_stub_response '*' 0 api graphql --paginate <<<'only'
+run_sut gh api graphql --paginate
+if ! check_bytes "paginate: a wildcard entry serves one page" 'only\n'; then fails_here=1; fi
+if ! check_eq "paginate: wildcard exit" 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_eq "paginate: wildcard pages served" 1 "$(gh_call_count)"; then fails_here=1; fi
+# An unstubbed paginated argv is still a violation on its first page, not a
+# quietly empty listing.
+stub_dir_new
+status=0
+gh api graphql --paginate -f nothing=stubbed >/dev/null 2>&1 || status=$?
+if ! check_eq "paginate: unstubbed first page fails" 99 "$status"; then fails_here=1; fi
+if ! check_eq "paginate: the unstubbed call is counted" 1 "$(gh_call_count)"; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
