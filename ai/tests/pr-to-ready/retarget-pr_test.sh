@@ -350,4 +350,48 @@ assert_row 'ancestor-check-errors' 0 'STOP ancestor-check-failed\n' 1
 check_one 'ancestor-check-failed: the remote branch did not move' \
   "$FEATURE_BEFORE" "$(bare_sha "$BARE" feature)"
 
+# --- a failed push, then a re-run: #170 end to end --------------------------
+#
+# Every other row builds the state it wants directly. This one lets the script
+# produce it: run 1 retargets, merges, and fails at the push, so the second run
+# starts from a real half-finished retarget rather than a test author's idea of
+# one -- in the same checkout, as a person re-running the command would.
+#
+# Against 80376f3^, run 2 sees a matching pointer, prints BASE-OK main, and
+# pushes nothing: the caller then reads run 1's green CI as this retarget's
+# verification, which is the whole of #170.
+
+BARE="$(build_remote resumeseq clean)"
+MAIN_SHA="$(bare_sha "$BARE" main)"
+FEATURE_BEFORE="$(bare_sha "$BARE" feature)"
+W="$(git_repo_clone resumeseq "$BARE" feature)"
+
+# run 1: the remote refuses the push, so stage 1 lands and stage 2 does not.
+total=$((total + 1))
+stub_dir_new
+stub_view develop
+stub_edit main 0
+git_repo_deny_push "$BARE"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" feature main
+cd "$REPO_ROOT"
+assert_row 'resume-sequence: run 1 stops at the push' 0 'STOP push-failed\n' 2
+check_one 'resume-sequence: run 1 moved nothing on the remote' \
+  "$FEATURE_BEFORE" "$(bare_sha "$BARE" feature)"
+
+# run 2: GitHub now reports the new base, so the first gate holds -- and the
+# remote branch still lacks it, which is the only thing left to notice. No
+# `gh pr edit` stub: the base is already right, so an edit would be a
+# violation.
+total=$((total + 1))
+stub_dir_new
+stub_view main
+git_repo_allow_push "$BARE"
+cd "$W"
+run_sut bash "$SUT" "$OWNER" "$REPO" "$PR" feature main
+cd "$REPO_ROOT"
+assert_row 'resume-sequence: run 2 finishes the push' 0 'RETARGETED main main\n' 1
+check_contains 'resume-sequence: the remote branch finally carries the base' \
+  "$BARE" refs/heads/feature "$MAIN_SHA"
+
 harness_exit "$failed" "$total"
