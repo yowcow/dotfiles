@@ -47,35 +47,63 @@ printf '%s' "$n" >"${GH_STUB_DIR}/count"
 # The log is for diagnostics only — what a violation message quotes back.
 printf '%s\n' "$joined" >>"${GH_STUB_DIR}/calls"
 
-matched_exit=""
-matched_body=""
-wildcard_exit=""
-wildcard_body=""
-if [ -f "${GH_STUB_DIR}/manifest" ]; then
-  while IFS=$'\t' read -r idx status body argv; do
+# lookup <index>: sets FOUND / FOUND_STATUS / FOUND_BODY / FOUND_WILDCARD from
+# the manifest entry answering call <index> for this argv. An exact index wins
+# over `*`, so a case can say "the 2nd call differs" while leaving every other
+# call on a default.
+FOUND=0
+FOUND_STATUS=""
+FOUND_BODY=""
+FOUND_WILDCARD=0
+lookup() {
+  local want="$1" idx status body argv_file argv w_status="" w_body=""
+  FOUND=0
+  FOUND_STATUS=""
+  FOUND_BODY=""
+  FOUND_WILDCARD=0
+  [ -f "${GH_STUB_DIR}/manifest" ] || return 0
+  while IFS=$'\t' read -r idx status body argv_file; do
+    # The joined argv lives in its own file because an element may carry a tab
+    # or a newline — the GraphQL query list-unresolved-threads.sh passes as
+    # `-f query='...'` spans 23 lines — which a TSV field cannot hold. The
+    # comparison is still on the exact bytes, not on a digest of them: a digest
+    # would have to fold characters, and two argvs folding to one key would
+    # silently serve the wrong fixture.
+    #
+    # `$(cat ...)` strips trailing newlines, which cannot lose anything here:
+    # the joined form always ends with the \x1f separator, so there is no
+    # trailing newline to strip.
+    argv="$(cat "$argv_file")"
     [ "$argv" = "$joined" ] || continue
-    if [ "$idx" = "$n" ]; then
-      matched_exit="$status"
-      matched_body="$body"
-    elif [ "$idx" = '*' ] && [ -z "$wildcard_exit" ]; then
-      wildcard_exit="$status"
-      wildcard_body="$body"
+    if [ "$idx" = "$want" ]; then
+      FOUND=1
+      FOUND_STATUS="$status"
+      FOUND_BODY="$body"
+      FOUND_WILDCARD=0
+      return 0
+    fi
+    if [ "$idx" = '*' ] && [ -z "$w_status" ]; then
+      w_status="$status"
+      w_body="$body"
     fi
   done <"${GH_STUB_DIR}/manifest"
-fi
+  if [ -n "$w_status" ]; then
+    FOUND=1
+    FOUND_STATUS="$w_status"
+    FOUND_BODY="$w_body"
+    # Not read below yet — a later task's pagination loop reads it to decide
+    # whether a `*` entry may serve more than one page.
+    # shellcheck disable=SC2034
+    FOUND_WILDCARD=1
+  fi
+}
 
-# An exact call index wins over `*` so a case can say "the 2nd call differs"
-# while leaving every other call on a default.
-if [ -z "$matched_exit" ]; then
-  matched_exit="$wildcard_exit"
-  matched_body="$wildcard_body"
-fi
-
-if [ -z "$matched_exit" ]; then
+lookup "$n"
+if [ "$FOUND" -eq 0 ]; then
   printf 'call %s: %s\n' "$n" "$*" >>"${GH_STUB_DIR}/violations"
   echo "gh stub: no stubbed response for call ${n}: gh $*" >&2
   exit 99
 fi
 
-cat "$matched_body"
-exit "$matched_exit"
+cat "$FOUND_BODY"
+exit "$FOUND_STATUS"

@@ -6,7 +6,8 @@
 # be compared byte-for-byte — a defect whose whole signature is one stray
 # newline is invisible to a line-count comparison — an argv the manifest cannot
 # represent must be refused when stubbed rather than never matching, and the
-# call index must count invocations rather than lines of argv.
+# call index must count invocations rather than lines of argv. An argv
+# spanning lines must be stubbable and must match only itself.
 set -euo pipefail
 
 # harness.sh is linted on its own, so following it from here buys nothing. The
@@ -62,16 +63,57 @@ fi
 if ! check_bytes "bytes: newline matches newline" '\n'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
-# --- property 4: an argv element the manifest cannot represent is rejected -----
+# --- property 4: only an argv the manifest cannot disambiguate is rejected ----
+# The joined argv lives in its own file, so a tab or a newline inside an element
+# is representable and must match. \x1f is different in kind: it is the element
+# separator, so ["a\x1fb"] and ["a","b"] join to the same bytes and one case's
+# body would be served to the other. That one stays refused.
 total=$((total + 1))
 stub_dir_new
 fails_here=0
 status=0
-gh_stub_response 1 0 api "$(printf 'a\tb')" </dev/null 2>/dev/null || status=$?
-if ! check_eq "helper rejects a tab in argv" 1 "$status"; then fails_here=1; fi
+gh_stub_response 1 0 api "$(printf 'a\x1fb')" </dev/null 2>/dev/null || status=$?
+if ! check_eq "helper rejects \\x1f in argv" 1 "$status"; then fails_here=1; fi
 status=0
 gh_stub_response 0 0 api ok </dev/null 2>/dev/null || status=$?
 if ! check_eq "helper rejects index 0" 1 "$status"; then fails_here=1; fi
+status=0
+gh_stub_response 1 300 api ok </dev/null 2>/dev/null || status=$?
+if ! check_eq "helper rejects an exit status above 255" 1 "$status"; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 6: an argv spanning lines can be stubbed and matched exactly ----
+# The GraphQL query list-unresolved-threads.sh passes as `-f query='...'` spans
+# 23 lines. Refusing it would leave that script untestable; matching it loosely
+# would let a different query be served this case's body.
+total=$((total + 1))
+stub_dir_new
+fails_here=0
+multi="$(printf 'query {\n  field\n}')"
+other="$(printf 'query {\n  other\n}')"
+# `*` rather than index 1, so the near-miss probe below can only fail on the
+# argv. With an exact index it would fail for want of an entry at index 2
+# whatever argv it carried, and would prove nothing about matching.
+#
+# The status is captured rather than left to `set -e`. This file runs under
+# `set -euo pipefail`, and until the fix below lands the helper refuses this
+# argv — an unguarded call would abort the whole file right here, so the run
+# would report nothing about which property failed. Capturing it also makes
+# "a multi-line argv can be stubbed at all" an assertion in its own right,
+# which is the property being added.
+status=0
+gh_stub_response '*' 0 api graphql -f "query=${multi}" <<<'matched' || status=$?
+if ! check_eq "multi-line argv: stubbable" 0 "$status"; then fails_here=1; fi
+if ! check_eq "multi-line argv: matched" 'matched' \
+  "$(gh api graphql -f "query=${multi}")"; then fails_here=1; fi
+if ! check_no_violations "multi-line argv: no violations"; then fails_here=1; fi
+status=0
+gh api graphql -f "query=${other}" >/dev/null 2>&1 || status=$?
+if ! check_eq "a different multi-line argv is not matched" 99 "$status"; then fails_here=1; fi
+if check_no_violations "multi-line argv: probe" >/dev/null 2>&1; then
+  echo "FAIL multi-line argv: a near-miss argv recorded no violation"
+  fails_here=1
+fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- property 5: the counter counts invocations, not lines of argv ------------

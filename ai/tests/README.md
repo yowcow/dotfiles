@@ -46,10 +46,13 @@ Each row typically does:
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
 entry answers — or `*`, meaning "any call not otherwise matched exactly." An
-exact index wins over `*`. An `<argv>` element containing a tab, a newline, or
-`\x1f` is rejected: the manifest is TSV with the joined argv in its last
-field, and those bytes can't be represented there. A malformed index or an
-exit status outside 0-255 is rejected too.
+exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected:
+that byte joins the elements, so `["a\x1fb"]` and `["a","b"]` would be
+indistinguishable and one case's body would be served to the other. Tabs and
+newlines are fine — the joined argv is written to its own file beside the
+body, so a multi-line argv (the GraphQL query `list-unresolved-threads.sh`
+passes as `-f query='...'` spans 23 lines) is matched on its exact bytes. A
+malformed index or an exit status outside 0-255 is rejected too.
 
 ## The mechanism properties (and why they matter)
 
@@ -63,12 +66,16 @@ depends on:
    answer its second call differently from its first.
 3. **Stdout is compared byte-for-byte**, not line-by-line — a stray or
    missing trailing newline is invisible to a line-count comparison.
-4. **An argv the manifest cannot represent is refused when stubbed**, rather
-   than silently never matching: a tab, a newline or a `\x1f` in a stubbed
-   argv, or a malformed call index, fails the helper on the spot.
+4. **An argv the manifest cannot disambiguate is refused when stubbed**,
+   rather than silently never matching: an `\x1f` in a stubbed argv, a
+   malformed call index, or an out-of-range exit status fails the helper on
+   the spot.
 5. **The call index counts invocations, not lines**, so an argument that
    spans lines — a GraphQL query passed as `-f query='...'` — does not
    advance the index past the call a later exact-index entry was written for.
+6. **An argv spanning lines is stubbable and matches only itself** — the
+   23-line GraphQL query is why, and a near-miss query must still be reported
+   as an unstubbed argv rather than served this case's body.
 
 ## RED verification
 

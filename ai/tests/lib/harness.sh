@@ -48,26 +48,28 @@ gh_stub_response() {
   fi
   local arg joined=""
   for arg in "$@"; do
-    # The manifest is TSV with one line per entry and the argv in its last
-    # field, so an argv carrying a tab, a newline, or the \x1f separator cannot
-    # be represented; matching would then silently miss and the case would fail
-    # as "unexpected argv" with no hint why.
+    # \x1f is the element separator, so an element carrying it would make two
+    # different argv lists join to the same bytes — ["a\x1fb"] and ["a","b"] —
+    # and the stub would serve one case's body to the other. Tabs and newlines
+    # are fine: the joined argv goes to its own file, not into the TSV manifest.
     case "$arg" in
-      *$'\t'* | *$'\n'* | *$'\x1f'*)
-        printf '%s\n' "gh_stub_response: argv element contains tab, newline or \\x1f: '${arg}'" >&2
+      *$'\x1f'*)
+        printf '%s\n' "gh_stub_response: argv element contains the \\x1f separator: '${arg}'" >&2
         return 1
         ;;
     esac
     joined="${joined}${arg}"$'\x1f'
   done
-  local entry_no body
+  local entry_no body argv_file
   entry_no=1
   if [ -f "${GH_STUB_DIR}/manifest" ]; then
     entry_no=$(($(wc -l <"${GH_STUB_DIR}/manifest") + 1))
   fi
   body="${GH_STUB_DIR}/body.${entry_no}"
+  argv_file="${GH_STUB_DIR}/argv.${entry_no}"
   cat >"$body"
-  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$joined" >>"${GH_STUB_DIR}/manifest"
+  printf '%s' "$joined" >"$argv_file"
+  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argv_file" >>"${GH_STUB_DIR}/manifest"
 }
 
 gh_call_count() {
