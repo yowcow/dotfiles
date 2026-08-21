@@ -130,6 +130,11 @@ REMOTE_PLAIN="$(build_remote plain - -)"
 # `main`'s single commit carries a trailer that the task branch merely
 # inherits -- the shape that used to escape the scan's range (#171).
 REMOTE_ANCESTOR="$(build_remote ancestor ancestor-base -)"
+# `feature` records a prerequisite branch of its own.
+REMOTE_DEP="$(build_remote dep - dep)"
+# Two commits on one stack, the newer one recording a different branch: the
+# newer trailer has to win.
+REMOTE_SHADOW="$(build_remote shadow - older-base newer-base)"
 
 # ---- the default-branch ladder, with no trailer to find ------------------
 
@@ -176,5 +181,76 @@ printf '9 OPEN\n' | stub_pr_list ancestor-base 0
 W="$(work_repo ancestor "$REMOTE_ANCESTOR" main)"
 run_in "$W" feature
 assert_row 'ancestor-trailer-is-out-of-scope' 0 'BASE main\n' 0
+
+# ---- a trailer the task branch recorded itself --------------------------
+#
+# Both branches' lookups are stubbed, so a scan reading the stack oldest-first
+# fails as `BASE older-base` against `BASE newer-base` rather than as an argv
+# no case stubbed. The `gh calls` assertion holds the unused entry to being
+# unused: a correct scan asks about `newer-base` and nothing else.
+
+total=$((total + 1))
+stub_dir_new
+printf '9 OPEN\n' | stub_pr_list newer-base 0
+printf '8 OPEN\n' | stub_pr_list older-base 0
+W="$(work_repo shadow "$REMOTE_SHADOW" main)"
+run_in "$W" feature
+assert_row 'newest-trailer-shadows-older' 0 'BASE newer-base\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '9 OPEN\n' | stub_pr_list dep 0
+W="$(work_repo prereq-open "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-open-keeps-its-branch' 0 'BASE dep\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '9 MERGED\n' | stub_pr_list dep 0
+W="$(work_repo prereq-merged "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-merged-falls-back-to-default' 0 'BASE main\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '9 CLOSED\n' | stub_pr_list dep 0
+W="$(work_repo prereq-closed "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-closed-stops' 0 'STOP abandoned-prerequisite\n' 1
+
+total=$((total + 1))
+stub_dir_new
+: | stub_pr_list dep 0
+W="$(work_repo prereq-none "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-has-no-pr' 0 'STOP no-prereq-pr\n' 1
+
+total=$((total + 1))
+stub_dir_new
+: | stub_pr_list dep 1
+W="$(work_repo prereq-unreadable "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-lookup-fails' 0 'STOP prereq-lookup-failed\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '9 OPEN\n8 CLOSED\n' | stub_pr_list dep 0
+W="$(work_repo prereq-multiple "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-has-several-prs' 0 'STOP ask-multiple-prs\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '9 DRAFT\n' | stub_pr_list dep 0
+W="$(work_repo prereq-unknown-state "$REMOTE_DEP" main)"
+run_in "$W" feature
+assert_row 'prerequisite-state-unrecognised' 1 '' 1
+
+total=$((total + 1))
+if ! grep -q "unexpected PR state 'DRAFT'" "$SUT_STDERR"; then
+  printf 'FAIL prerequisite-state-unrecognised: stderr does not name the state:\n%s\n' \
+    "$(head -c 400 "$SUT_STDERR")"
+  failed=$((failed + 1))
+fi
 
 harness_exit "$failed" "$total"
