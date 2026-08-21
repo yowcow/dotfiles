@@ -61,7 +61,7 @@ fi
 # rather than inward. Following them with -L would let the selection escape the
 # tree and would turn any dangling link into a hard failure via the check above.
 # Recorded as a decision rather than left as an unstated gap, same as the
-# zsh/ksh exclusion below.
+# zsh/ksh exclusion above.
 files=()
 while IFS= read -r -d '' f; do
   if [ ! -r "$f" ]; then
