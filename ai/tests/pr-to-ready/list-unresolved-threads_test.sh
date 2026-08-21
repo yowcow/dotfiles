@@ -94,7 +94,7 @@ while IFS='|' read -r name responses args want_exit want_calls want_files; do
     case "$entry" in *:*) status="${entry##*:}" ;; esac
     body=/dev/null
     if [ "$fixture" != '-' ]; then body="${HERE}/fixtures/${fixture}.json"; fi
-    gh_stub_response "$i" "$status" \
+    gh_stub_raw_response "$i" "$status" \
       api graphql --paginate \
       -f "owner=${OWNER}" -f "repo=${REPO}" -F "pr=${PR}" \
       -f "query=${QUERY}" --jq "$JQ" <"$body"

@@ -16,6 +16,9 @@
 # filename-safe digest of it. A digest has to fold characters that are illegal
 # in a filename, and two different argvs folding to one key would silently
 # serve the wrong fixture.
+#
+# The joined argv is compared as a file rather than as a manifest field, so an
+# argument that spans lines — a --jq filter, a GraphQL query — is matchable.
 set -euo pipefail
 
 if [ -z "${GH_STUB_DIR:-}" ]; then
@@ -27,6 +30,13 @@ joined=""
 for arg in "$@"; do
   joined="${joined}${arg}"$'\x1f'
 done
+
+# Written out so the comparison in lookup() is `cmp` on two files. A command
+# substitution would strip trailing newlines from the manifest's copy, and an
+# argv whose last element ends in a newline would then match one that does not.
+# Written once here rather than per page: the argv is fixed for the whole
+# invocation, so a paginated call compares the same bytes on every page.
+printf '%s' "$joined" >"${GH_STUB_DIR}/argv.actual"
 
 # gh's own flags have to be read off the argv, because the stub stands in for
 # gh's behaviour and not just for its output: --jq is applied by gh, so a stub
@@ -54,7 +64,15 @@ while [ "$i" -lt "${#args[@]}" ]; do
   i=$((i + 1))
 done
 
-# serve <status> <body>: what gh would write to stdout for that response.
+# serve <status> <body> <mode>: what gh would write to stdout for that response.
+#
+# `<mode>` is the entry's own, from whichever helper the test called. `filtered`
+# means the body is already gh's stdout, so it is handed back verbatim; `raw`
+# means it is the response gh received, so the call's own --jq is applied to it.
+# The stub cannot tell these apart by looking, and guessing either way fails
+# silently in one direction and loudly in the other — a filter applied to an
+# already-filtered body errors out, and a filter skipped on a raw body hands the
+# caller the whole document as though it had been selected from.
 #
 # `jq -r -c -S` reproduces gh's --jq byte for byte. The `-S` is load-bearing and
 # not tidiness: gh filters with gojq, which sorts object keys, while jq preserves
@@ -75,8 +93,8 @@ done
 # handed back as gh's ordinary exit 1. "gh received garbage" is modelled by
 # stubbing a non-zero status with a raw body instead.
 serve() {
-  local status="$1" body="$2"
-  if [ "$status" -eq 0 ] && [ "$HAVE_JQ" -eq 1 ]; then
+  local status="$1" body="$2" mode="$3"
+  if [ "$mode" = raw ] && [ "$status" -eq 0 ] && [ "$HAVE_JQ" -eq 1 ]; then
     if ! jq -r -c -S "$JQ_EXPR" <"$body"; then
       printf 'call %s: --jq %s failed on the stubbed body %s\n' \
         "$n" "$JQ_EXPR" "$body" >>"${GH_STUB_DIR}/violations"
@@ -116,14 +134,16 @@ FOUND=0
 FOUND_STATUS=""
 FOUND_BODY=""
 FOUND_WILDCARD=0
+FOUND_MODE=filtered
 lookup() {
-  local want="$1" idx status body argv_file argv w_status="" w_body=""
+  local want="$1" idx status body argv_file mode w_status="" w_body="" w_mode=""
   FOUND=0
   FOUND_STATUS=""
   FOUND_BODY=""
   FOUND_WILDCARD=0
+  FOUND_MODE=filtered
   [ -f "${GH_STUB_DIR}/manifest" ] || return 0
-  while IFS=$'\t' read -r idx status body argv_file; do
+  while IFS=$'\t' read -r idx status body argv_file mode; do
     # The joined argv lives in its own file because an element may carry a tab
     # or a newline — the GraphQL query list-unresolved-threads.sh passes as
     # `-f query='...'` spans 23 lines — which a TSV field cannot hold. The
@@ -131,21 +151,26 @@ lookup() {
     # would have to fold characters, and two argvs folding to one key would
     # silently serve the wrong fixture.
     #
-    # `$(cat ...)` strips trailing newlines, which cannot lose anything here:
-    # the joined form always ends with the \x1f separator, so there is no
-    # trailing newline to strip.
-    argv="$(cat "$argv_file")"
-    [ "$argv" = "$joined" ] || continue
+    # A manifest entry whose argv file is gone would otherwise be skipped as
+    # "does not match", which is this suite's own defect class 1: an entry
+    # nobody could read, reported as an entry that did not apply.
+    if [ ! -f "$argv_file" ]; then
+      echo "gh stub: manifest entry names a missing argv file: ${argv_file}" >&2
+      exit 99
+    fi
+    cmp -s "$argv_file" "${GH_STUB_DIR}/argv.actual" || continue
     if [ "$idx" = "$want" ]; then
       FOUND=1
       FOUND_STATUS="$status"
       FOUND_BODY="$body"
       FOUND_WILDCARD=0
+      FOUND_MODE="$mode"
       return 0
     fi
     if [ "$idx" = '*' ] && [ -z "$w_status" ]; then
       w_status="$status"
       w_body="$body"
+      w_mode="$mode"
     fi
   done <"${GH_STUB_DIR}/manifest"
   if [ -n "$w_status" ]; then
@@ -153,6 +178,7 @@ lookup() {
     FOUND_STATUS="$w_status"
     FOUND_BODY="$w_body"
     FOUND_WILDCARD=1
+    FOUND_MODE="$w_mode"
   fi
 }
 
@@ -181,7 +207,7 @@ while :; do
     echo "gh stub: no stubbed response for call ${count}: gh $*" >&2
     exit 99
   fi
-  serve "$FOUND_STATUS" "$FOUND_BODY"
+  serve "$FOUND_STATUS" "$FOUND_BODY" "$FOUND_MODE"
   served=$((served + 1))
   if [ "$FOUND_STATUS" -ne 0 ]; then
     exit "$FOUND_STATUS"

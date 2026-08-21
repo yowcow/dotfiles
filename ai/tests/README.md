@@ -15,6 +15,10 @@ and the individual skill directories are — so `ai/tests/` reaches none of them
   assertion helpers.
 - `ai/tests/lib/bin/gh` — the fake `gh`. `harness.sh` puts it first on `PATH`,
   so any script under test that calls `gh` reaches this stub, never the network.
+- `ai/tests/lib/gitrepo.sh` — builders for disposable real git repositories,
+  for the scripts that shell out to `git`. Sourced after `harness.sh`.
+- `ai/tests/lib/bin-nosleep/sleep` — the instant `sleep`, put on `PATH` only by
+  an explicit `stub_sleep_instant` call.
 - `ai/tests/lib/harness_test.sh` — a self-test of the harness mechanism itself
   (no script under test).
 - `<name>_test.sh` anywhere under `ai/tests/` — the actual test cases.
@@ -49,10 +53,33 @@ entry answers — or `*`, meaning "any call not otherwise matched exactly." An
 exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected:
 that byte joins the elements, so `["a\x1fb"]` and `["a","b"]` would be
 indistinguishable and one case's body would be served to the other. Tabs and
-newlines are fine — the joined argv is written to its own file beside the
-body, so a multi-line argv (the GraphQL query `list-unresolved-threads.sh`
-passes as `-f query='...'` spans 23 lines) is matched on its exact bytes. A
+newlines are fine — the joined argv lives in a file of its own (`argv.N`)
+rather than a field of the TSV manifest, because real argvs span lines: the
+`--jq` filter `list-copilot-reviews.sh` passes is one three-line argument, and
+the GraphQL query `list-unresolved-threads.sh` passes as `-f query='...'` spans
+23 lines. Either is matched on its exact bytes, by `cmp` on two files. A
 malformed index or an exit status outside 0-255 is rejected too.
+
+**`gh_stub_response` versus `gh_stub_raw_response`** — same signature, and they
+differ only in what the body on stdin is:
+
+- `gh_stub_response` — the body is gh's **stdout**, already filtered if the call
+  carries `--jq`. The stub hands it back verbatim. Use this by default: most
+  cases hold the script under test to an output contract, and the fixture states
+  that contract directly.
+- `gh_stub_raw_response` — the body is the raw **response gh received**, and the
+  stub applies the call's own `--jq` to it (with `-S`, since gh filters through
+  gojq, which sorts object keys where jq keeps input order). Use it when the
+  filter is part of what is under test: `list-unresolved-threads.sh`'s
+  `select(.isResolved == false)` lives in the script, so a pre-filtered fixture
+  would decide the very answer the test is checking, and "zero unresolved
+  threads" would assert nothing.
+
+The distinction is explicit rather than inferred because the stub cannot tell
+the two kinds of body apart by looking, and each wrong guess fails in a
+different direction: a filter applied to an already-filtered body errors out,
+while a filter skipped on a raw body silently hands the caller the whole
+document as though it had been selected from.
 
 For an argv carrying `--paginate`, successive indices are the **pages of one
 invocation**: gh pages internally, so a script that calls it once still sees
@@ -62,6 +89,57 @@ non-zero status (it exits with that status, the pages already served still on
 stdout), or an entry matched via `*` (which matches every index and would
 repeat forever, so it answers one page). `gh_call_count` therefore counts
 responses served: invocations for an ordinary call, pages for a paginated one.
+
+## Real git: `ai/tests/lib/gitrepo.sh`
+
+Scripts that shell out to `git` are tested against **real repositories**, not a
+git stub: they lean on behaviour a stub would only encode an opinion about —
+`FETCH_HEAD` being overwritten by each fetch, `git merge-tree` exiting 1 for a
+genuine conflict and an unresolvable ref alike. Source `gitrepo.sh` after
+`harness.sh`; everything it builds lives under `$HARNESS_TMP` and is removed
+with it.
+
+- `git_repo_bare <owner> <repo>` — a new bare repo at
+  `$HARNESS_TMP/remotes/<owner>/<repo>.git`; prints the path. The **path is the
+  identity**: `check-pr-state.sh` reduces a remote URL to its last two
+  segments, so this repo reads as `<owner>/<repo>` while still being a local
+  directory `git fetch` can reach offline.
+- `git_repo_scratch <name>` — a fresh empty directory; prints the path.
+- `git_repo_init <dir> <initial-branch>` — an empty non-bare repo with `HEAD`
+  on that branch.
+- `git_repo_commit <dir> <file> <content> <message>` — `<content>` goes
+  through `printf '%b'`, so `\n` works.
+- `git_repo_checkout <dir> <branch> [<start-point>]` — with a start point it
+  creates the branch there.
+- `git_repo_remote <dir> <name> <url>` / `git_repo_push <dir> <remote> <refspec>...`
+
+`git_repo_scratch` and `git_repo_bare` refuse a name containing `/` or `..`.
+Both clear the directory with `rm -rf` before rebuilding it, and a name is a
+single path segment by contract, so `..` would aim that rm at a path the
+caller never named. `rm` itself only catches the blunt form: POSIX makes it
+refuse an operand whose *last* component is `..`, so `../..` is rejected
+loudly while `../../x` deletes a sibling of `$HARNESS_TMP` and exits 0 without
+printing anything. The guard is for that silent case.
+
+Sourcing the file cuts the developer's own git configuration out of the
+picture (`GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`,
+`GIT_TERMINAL_PROMPT=0`, fixed author/committer identity and timestamps). That
+is not only determinism: a personal `url.<base>.insteadOf` can rewrite a local
+path into a network URL, which would put this suite on the network through a
+setting no test can see.
+
+## Instant `sleep`: `stub_sleep_instant`
+
+Call `stub_sleep_instant` in a test file whose script under test polls. It puts
+`ai/tests/lib/bin-nosleep/` first on `PATH` and asserts the resolution;
+`sleep_call_count` then reports how many sleeps happened in the current stub
+directory, so a bounded poll is asserted by **count** rather than by wall
+clock. `check-pr-state.sh`'s `UNKNOWN` re-read alone is 5 × 3 s per row.
+
+It is opt-in, not always on, so it cannot change the meaning of a test file
+written expecting real waits. Unlike the fake `gh`, it accepts any argv: the
+`gh` rule exists because an unstubbed call would be answered by the network,
+and `sleep` hands the caller nothing it reads.
 
 ## The mechanism properties (and why they matter)
 
@@ -78,7 +156,8 @@ depends on:
 4. **An argv the manifest cannot disambiguate is refused when stubbed**,
    rather than silently never matching: an `\x1f` in a stubbed argv, a
    malformed call index, or an out-of-range exit status fails the helper on
-   the spot.
+   the spot. It is the *only* thing refused — an argv that spans lines is
+   stubbable, which is property 6.
 5. **The call index counts invocations, not lines**, so an argument that
    spans lines — a GraphQL query passed as `-f query='...'` — does not
    advance the index past the call a later exact-index entry was written for.
@@ -86,9 +165,10 @@ depends on:
    23-line GraphQL query is why, and a near-miss query must still be reported
    as an unstubbed argv rather than served this case's body.
 7. **`--jq` is applied to a successful body and never to a failing one** —
-   what real `gh` does (measured). Fixtures are therefore raw API bodies and
-   the filter in the script under test really runs; an error fixture reaches
-   stdout whole, as a caller would see it.
+   what real `gh` does (measured), for entries registered with
+   `gh_stub_raw_response`. That is what lets the filter in the script under
+   test really run; an error fixture reaches stdout whole, as a caller would
+   see it.
 8. **One `--paginate` invocation serves a page sequence, truncating at a
    failing page** — "page 1 arrived, page 2 failed" is the state in which
    stdout is non-empty and the listing is incomplete, and a caller keying on
@@ -111,6 +191,19 @@ git show <fix>^:<path> >"$tmp/old.sh"
 SUT="$tmp/old.sh" ai/tests/run.sh <one-test-file>
 ```
 
+A script that shells out to a sibling needs that sibling beside the copy:
+`watch-copilot-review.sh` finds `list-copilot-reviews.sh` through
+`dirname "$0"`, so a pre-fix copy alone in a temp dir cannot find it, every
+listing comes back empty, and rows fail for a reason that has nothing to do
+with the defect.
+
+```bash
+cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
+```
+
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
 single script and pointing a whole suite at it would apply it to every file.
+
+`check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
+working tree's `origin` was the PR's repository (#172).

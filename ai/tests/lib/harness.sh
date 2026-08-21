@@ -34,16 +34,69 @@ stub_dir_new() {
   printf '%s' 0 >"${GH_STUB_DIR}/count"
 }
 
-# gh_stub_response <index|*> <exit-status> <argv...>   body on stdin
+# Make `sleep` instant for this test file. Opt-in: a bounded poll loop in a
+# script under test is worth asserting the *count* of, never the wall clock,
+# and check-pr-state.sh's UNKNOWN re-read alone would otherwise cost 15s a row.
+# The resolution is asserted rather than assumed, for the same reason the `gh`
+# assertion above exists: a PATH mistake would leave the suite silently slow
+# instead of failing.
+stub_sleep_instant() {
+  case ":${PATH}:" in
+    *":${HARNESS_LIB_DIR}/bin-nosleep:"*) ;;
+    *)
+      PATH="${HARNESS_LIB_DIR}/bin-nosleep:${PATH}"
+      export PATH
+      hash -r 2>/dev/null || true
+      ;;
+  esac
+  if [ "$(command -v sleep)" != "${HARNESS_LIB_DIR}/bin-nosleep/sleep" ]; then
+    echo "harness: sleep resolves to $(command -v sleep), not the stub — refusing to run" >&2
+    exit 1
+  fi
+}
+
+sleep_call_count() {
+  local n=0
+  if [ -f "${GH_STUB_DIR}/sleeps" ]; then
+    n="$(wc -l <"${GH_STUB_DIR}/sleeps" | tr -d ' ')"
+  fi
+  printf '%s\n' "$n"
+}
+
+# Two spellings, because the stub cannot tell from a body whether it is what gh
+# printed or what gh received, and guessing is the failure this suite exists to
+# catch — a filter applied to an already-filtered body errors, and a filter
+# skipped on a raw body silently hands the caller the whole document.
+#
+# gh_stub_response <index|*> <exit-status> <argv...>       body on stdin
+#   The body is gh's **stdout**, already filtered if the call carries --jq. The
+#   stub hands it back verbatim. This is the default because it is what most
+#   cases want: the script under test is being held to an output contract, and
+#   the fixture states that contract directly.
+#
+# gh_stub_raw_response <index|*> <exit-status> <argv...>   body on stdin
+#   The body is the raw **response gh received**, and the stub applies the
+#   call's own --jq to it. Use it when the filter is part of what is under test:
+#   list-unresolved-threads.sh's `select(.isResolved == false)` lives in the
+#   script, so a pre-filtered fixture would decide the answer the test is
+#   supposed to be checking, and "zero unresolved threads" would assert nothing.
 gh_stub_response() {
-  local idx="$1" status="$2"
-  shift 2
+  _gh_stub_entry filtered "$@"
+}
+
+gh_stub_raw_response() {
+  _gh_stub_entry raw "$@"
+}
+
+_gh_stub_entry() {
+  local mode="$1" idx="$2" status="$3"
+  shift 3
   if ! [[ "$idx" =~ ^([1-9][0-9]*|\*)$ ]]; then
-    echo "gh_stub_response: index must be a positive integer or '*', got '${idx}'" >&2
+    echo "${FUNCNAME[1]}: index must be a positive integer or '*', got '${idx}'" >&2
     return 1
   fi
   if ! [[ "$status" =~ ^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$ ]]; then
-    echo "gh_stub_response: exit status must be 0-255, got '${status}'" >&2
+    echo "${FUNCNAME[1]}: exit status must be 0-255, got '${status}'" >&2
     return 1
   fi
   local arg joined=""
@@ -52,9 +105,12 @@ gh_stub_response() {
     # different argv lists join to the same bytes — ["a\x1fb"] and ["a","b"] —
     # and the stub would serve one case's body to the other. Tabs and newlines
     # are fine: the joined argv goes to its own file, not into the TSV manifest.
+    # Real argvs need that — list-copilot-reviews.sh:41-43 passes a three-line
+    # --jq filter, and list-unresolved-threads.sh a 23-line GraphQL query — and
+    # refusing them would leave those calls unstubbable.
     case "$arg" in
       *$'\x1f'*)
-        printf '%s\n' "gh_stub_response: argv element contains the \\x1f separator: '${arg}'" >&2
+        printf '%s\n' "${FUNCNAME[1]}: argv element contains the \\x1f separator: '${arg}'" >&2
         return 1
         ;;
     esac
@@ -69,7 +125,7 @@ gh_stub_response() {
   argv_file="${GH_STUB_DIR}/argv.${entry_no}"
   cat >"$body"
   printf '%s' "$joined" >"$argv_file"
-  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argv_file" >>"${GH_STUB_DIR}/manifest"
+  printf '%s\t%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argv_file" "$mode" >>"${GH_STUB_DIR}/manifest"
 }
 
 gh_call_count() {
