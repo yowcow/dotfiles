@@ -39,8 +39,37 @@ gitrepo_stamp() {
   printf '%s +0000\n' "$GITREPO_CLOCK"
 }
 
+# gitrepo_reject_traversal <name>...
+#
+# The names below are pasted straight into a path that is then cleared with
+# `rm -rf` before the directory is rebuilt, so a name carrying `..` aims that
+# rm somewhere the caller never named. Measured on git 2.43 / coreutils 9.4:
+# a name of exactly `../..` is refused by rm itself ("refusing to remove '.'
+# or '..' directory"), because POSIX makes rm reject an operand whose last
+# component is `..` — but that rule only inspects the last component, so
+# `../../x` sails through and deletes `$HARNESS_TMP`'s sibling `x`, exit 0,
+# with nothing printed. Silent deletion outside the sandbox is the failure
+# this refuses; the loud one rm already handles.
+#
+# A `/` is rejected on the same pass because these names are single path
+# segments by contract — `git_repo_bare` takes owner and repo separately and
+# joins them itself, so a slash inside one of them is a caller error, and it
+# is what turns a plain name into the traversal above.
+gitrepo_reject_traversal() {
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      */* | *..*)
+        echo "gitrepo: refusing a name containing '/' or '..': '${arg}'" >&2
+        exit 1
+        ;;
+    esac
+  done
+}
+
 # git_repo_scratch <name> -> prints a fresh empty directory under $HARNESS_TMP
 git_repo_scratch() {
+  gitrepo_reject_traversal "$1"
   local dir="${HARNESS_TMP}/repos/$1"
   rm -rf "$dir"
   mkdir -p "$dir"
@@ -50,6 +79,7 @@ git_repo_scratch() {
 # git_repo_bare <owner> <repo> -> prints the path of a new bare repo whose last
 # two path segments are <owner>/<repo>.git
 git_repo_bare() {
+  gitrepo_reject_traversal "$1" "$2"
   local dir="${HARNESS_TMP}/remotes/$1/$2.git"
   rm -rf "$dir"
   mkdir -p "$dir"

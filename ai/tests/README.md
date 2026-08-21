@@ -74,6 +74,14 @@ with it.
   creates the branch there.
 - `git_repo_remote <dir> <name> <url>` / `git_repo_push <dir> <remote> <refspec>...`
 
+`git_repo_scratch` and `git_repo_bare` refuse a name containing `/` or `..`.
+Both clear the directory with `rm -rf` before rebuilding it, and a name is a
+single path segment by contract, so `..` would aim that rm at a path the
+caller never named. `rm` itself only catches the blunt form: POSIX makes it
+refuse an operand whose *last* component is `..`, so `../..` is rejected
+loudly while `../../x` deletes a sibling of `$HARNESS_TMP` and exits 0 without
+printing anything. The guard is for that silent case.
+
 Sourcing the file cuts the developer's own git configuration out of the
 picture (`GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`,
 `GIT_TERMINAL_PROMPT=0`, fixed author/committer identity and timestamps). That

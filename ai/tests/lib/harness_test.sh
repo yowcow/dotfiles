@@ -120,6 +120,26 @@ if ! check_eq 'gitrepo: file content is the one given' \
   'common' "$(git -C "$gr_bare" show main:README.md)"; then gr_fails=1; fi
 if [ "$gr_fails" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- gitrepo.sh: a name that would walk the rm -rf out of its own subtree ---
+#
+# The victim sits one level up, inside $HARNESS_TMP, rather than beside it:
+# that is enough to prove the traversal is refused, while never aiming an
+# `rm -rf` anywhere a regression could do damage outside the harness's own
+# temp dir. The surviving-file check is the load-bearing half — an exit-status
+# check alone would still pass if the guard ever moved below the `rm -rf` it
+# exists to prevent. It asserts a *file* specifically, because the unguarded
+# path deletes the file and then recreates the name as a directory, which an
+# existence test would read as untouched.
+total=$((total + 1))
+gr_guard_fails=0
+: >"${HARNESS_TMP}/victim"
+gr_status=0
+(git_repo_scratch '../victim') >/dev/null 2>&1 || gr_status=$?
+if ! check_eq 'gitrepo: traversing name is refused' '1' "$gr_status"; then gr_guard_fails=1; fi
+if ! check_eq 'gitrepo: traversing name deleted nothing' 'yes' \
+  "$([ -f "${HARNESS_TMP}/victim" ] && echo yes || echo no)"; then gr_guard_fails=1; fi
+if [ "$gr_guard_fails" -ne 0 ]; then failed=$((failed + 1)); fi
+
 # --- the sleep stub: counted, and it does not spend wall clock ---
 total=$((total + 1))
 sl_fails=0
