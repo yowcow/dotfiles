@@ -368,6 +368,15 @@ assert_row 'watch-fails' 1 "$WATCH_FAIL" 1
 # review happened; that discrimination exists only in list mode, on the
 # conclusion field the mixed row pins. The row is here so the asymmetry stays
 # visible instead of being rediscovered as a bug in the caller.
+#
+# What this row does NOT do is prove that claim about `gh`: with `gh` stubbed,
+# the exit status is the one the row scripted, so the row *encodes* gh's
+# behaviour rather than measuring it. That is class 4 of the plan's 「承知した
+# 限界」 — a fixture freezes the API's shape, so a change on GitHub's side
+# leaves the suite green and only reality broken. Keying the stub to the mixed
+# fixture's skipped run id would not change that: the fake `gh` matches literal
+# argv and never reads the listing fixture, so the two would share a number and
+# nothing else. Re-measure this one against real `gh` by hand, not here.
 total=$((total + 1))
 stub_dir_new
 stub_watch 0 "$WATCH_SKIPPED"
