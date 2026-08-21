@@ -63,47 +63,69 @@ sleep_call_count() {
   printf '%s\n' "$n"
 }
 
-# gh_stub_response <index|*> <exit-status> <argv...>   body on stdin
+# Two spellings, because the stub cannot tell from a body whether it is what gh
+# printed or what gh received, and guessing is the failure this suite exists to
+# catch — a filter applied to an already-filtered body errors, and a filter
+# skipped on a raw body silently hands the caller the whole document.
+#
+# gh_stub_response <index|*> <exit-status> <argv...>       body on stdin
+#   The body is gh's **stdout**, already filtered if the call carries --jq. The
+#   stub hands it back verbatim. This is the default because it is what most
+#   cases want: the script under test is being held to an output contract, and
+#   the fixture states that contract directly.
+#
+# gh_stub_raw_response <index|*> <exit-status> <argv...>   body on stdin
+#   The body is the raw **response gh received**, and the stub applies the
+#   call's own --jq to it. Use it when the filter is part of what is under test:
+#   list-unresolved-threads.sh's `select(.isResolved == false)` lives in the
+#   script, so a pre-filtered fixture would decide the answer the test is
+#   supposed to be checking, and "zero unresolved threads" would assert nothing.
 gh_stub_response() {
-  local idx="$1" status="$2"
-  shift 2
+  _gh_stub_entry filtered "$@"
+}
+
+gh_stub_raw_response() {
+  _gh_stub_entry raw "$@"
+}
+
+_gh_stub_entry() {
+  local mode="$1" idx="$2" status="$3"
+  shift 3
   if ! [[ "$idx" =~ ^([1-9][0-9]*|\*)$ ]]; then
-    echo "gh_stub_response: index must be a positive integer or '*', got '${idx}'" >&2
+    echo "${FUNCNAME[1]}: index must be a positive integer or '*', got '${idx}'" >&2
     return 1
   fi
   if ! [[ "$status" =~ ^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$ ]]; then
-    echo "gh_stub_response: exit status must be 0-255, got '${status}'" >&2
+    echo "${FUNCNAME[1]}: exit status must be 0-255, got '${status}'" >&2
     return 1
   fi
   local arg joined=""
   for arg in "$@"; do
-    # \x1f is the separator the joined form uses, so an element containing one
-    # cannot be told from an element boundary; matching would then silently miss
-    # and the case would fail as "unexpected argv" with no hint why. Tabs and
-    # newlines are representable: the joined form goes in a file of its own
-    # rather than the last field of the TSV manifest, because a real argv spans
-    # lines (list-copilot-reviews.sh:41-43 passes a three-line --jq filter) and
-    # refusing those would leave that call unstubbable.
+    # \x1f is the element separator, so an element carrying it would make two
+    # different argv lists join to the same bytes — ["a\x1fb"] and ["a","b"] —
+    # and the stub would serve one case's body to the other. Tabs and newlines
+    # are fine: the joined argv goes to its own file, not into the TSV manifest.
+    # Real argvs need that — list-copilot-reviews.sh:41-43 passes a three-line
+    # --jq filter, and list-unresolved-threads.sh a 23-line GraphQL query — and
+    # refusing them would leave those calls unstubbable.
     case "$arg" in
       *$'\x1f'*)
-        printf '%s\n' "gh_stub_response: argv element contains \\x1f: '${arg}'" >&2
+        printf '%s\n' "${FUNCNAME[1]}: argv element contains the \\x1f separator: '${arg}'" >&2
         return 1
         ;;
     esac
     joined="${joined}${arg}"$'\x1f'
   done
-  local entry_no body argvfile
-  # One manifest line per entry still, so counting lines is still the entry
-  # number: the argv has moved out of the line, so nothing in it spans lines.
+  local entry_no body argv_file
   entry_no=1
   if [ -f "${GH_STUB_DIR}/manifest" ]; then
     entry_no=$(($(wc -l <"${GH_STUB_DIR}/manifest") + 1))
   fi
   body="${GH_STUB_DIR}/body.${entry_no}"
-  argvfile="${GH_STUB_DIR}/argv.${entry_no}"
+  argv_file="${GH_STUB_DIR}/argv.${entry_no}"
   cat >"$body"
-  printf '%s' "$joined" >"$argvfile"
-  printf '%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argvfile" >>"${GH_STUB_DIR}/manifest"
+  printf '%s' "$joined" >"$argv_file"
+  printf '%s\t%s\t%s\t%s\t%s\n' "$idx" "$status" "$body" "$argv_file" "$mode" >>"${GH_STUB_DIR}/manifest"
 }
 
 gh_call_count() {
@@ -140,9 +162,37 @@ check_eq() {
 }
 
 # check_bytes <label> <expected>   expected is a printf '%b' format string
+# A convenience spelling of check_stdout_files for an expectation short enough to
+# write inline: it materialises the expansion and defers the comparison, so both
+# helpers report a mismatch identically and there is one byte comparison to
+# trust rather than two copies of one.
 check_bytes() {
   local label="$1" want="$2" wantfile="${HARNESS_TMP}/want"
   printf '%b' "$want" >"$wantfile"
+  check_stdout_files "$label" "$wantfile"
+}
+
+# check_stdout_files <label> <file> [<file> ...]
+# The byte-for-byte stdout comparison. The expectation comes from files, several
+# of them because it is sometimes "page 1's rows, then the raw error body" — two
+# artifacts already on disk, which one glued golden file would duplicate. Pass
+# /dev/null for "nothing on stdout".
+check_stdout_files() {
+  local label="$1"
+  shift
+  local wantfile="${HARNESS_TMP}/want.files"
+  # Guarded, and the quieter half is the reason. An unreadable expectation — a
+  # mistyped golden path — leaves this file empty, and the `cmp` below then
+  # reports "stdout differs, want: <nothing>", charging the test's own mistake
+  # to the script under test. That is this suite's defect class 1 pointed
+  # inward, so the path is named instead. The louder half: `set -e` is
+  # suppressed inside a function invoked in an `if` condition, which is how
+  # every call site spells it today, but not when the helper is called plainly
+  # — and there an unguarded `cat` would abort the whole test file (measured).
+  if ! cat -- "$@" >"$wantfile" 2>/dev/null; then
+    printf 'FAIL %s: cannot read the expected bytes from: %s\n' "$label" "$*"
+    return 1
+  fi
   if cmp -s "$wantfile" "${SUT_STDOUT}"; then
     return 0
   fi

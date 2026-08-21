@@ -136,6 +136,20 @@ git_repo_remote() {
   git -C "$dir" remote add "$name" "$url"
 }
 
+# git_repo_origin_head <dir> <branch>
+#
+# Point refs/remotes/origin/HEAD at a branch, which is what a real clone gets
+# and a `git init` + `git remote add` pair does not. resolve-pr-base.sh reads
+# exactly this symref as the first rung of its default-branch ladder, so
+# without it every repository built here would look like one whose remote HEAD
+# was never recorded. The target is deliberately not required to exist:
+# `git symbolic-ref` accepts a dangling target, which is how a test builds
+# "the default branch is named but absent from the remote".
+git_repo_origin_head() {
+  local dir="$1" branch="$2"
+  git -C "$dir" symbolic-ref refs/remotes/origin/HEAD "refs/remotes/origin/${branch}"
+}
+
 # git_repo_push <dir> <remote> <refspec>...
 git_repo_push() {
   local dir="$1" remote="$2"

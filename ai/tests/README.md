@@ -15,6 +15,10 @@ and the individual skill directories are — so `ai/tests/` reaches none of them
   assertion helpers.
 - `ai/tests/lib/bin/gh` — the fake `gh`. `harness.sh` puts it first on `PATH`,
   so any script under test that calls `gh` reaches this stub, never the network.
+- `ai/tests/lib/gitrepo.sh` — builders for disposable real git repositories,
+  for the scripts that shell out to `git`. Sourced after `harness.sh`.
+- `ai/tests/lib/bin-nosleep/sleep` — the instant `sleep`, put on `PATH` only by
+  an explicit `stub_sleep_instant` call.
 - `ai/tests/lib/harness_test.sh` — a self-test of the harness mechanism itself
   (no script under test).
 - `<name>_test.sh` anywhere under `ai/tests/` — the actual test cases.
@@ -34,25 +38,59 @@ Each row typically does:
 
 1. `stub_dir_new` — fresh stub directory; resets the call counter and manifest.
 2. One or more `gh_stub_response <index|*> <exit-status> <argv...>` calls
-   (body on stdin) to script what `gh` should answer.
+   (body on stdin) to script what `gh` should answer — or
+   `gh_stub_raw_response`, where the call's own `--jq` is what the case is
+   testing. The next section says which to reach for.
 3. `run_sut <cmd...>` — runs the script under test with stdin `/dev/null`,
    capturing stdout/stderr to `$SUT_STDOUT`/`$SUT_STDERR` and status to
    `$SUT_STATUS`.
 4. Assertions: `check_eq`, `check_bytes`, `check_no_violations`, plus a check
    on `$SUT_STATUS`.
 
-## The `gh_stub_response` contract
+## The `gh_stub_response` / `gh_stub_raw_response` contract
 
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
 entry answers — or `*`, meaning "any call not otherwise matched exactly." An
 exact index wins over `*`. An `<argv>` element containing `\x1f` is rejected:
-that byte is the separator the joined form uses, so it can't be told from an
-element boundary. Tabs and newlines are fine — the joined argv lives in a file
-of its own (`argv.N`) rather than a field of the TSV manifest, because a real
-argv spans lines: the `--jq` filter `list-copilot-reviews.sh` passes is one
-three-line argument. A malformed index or an exit status outside 0-255 is
-rejected too.
+that byte joins the elements, so `["a\x1fb"]` and `["a","b"]` would be
+indistinguishable and one case's body would be served to the other. Tabs and
+newlines are fine — the joined argv lives in a file of its own (`argv.N`)
+rather than a field of the TSV manifest, because real argvs span lines: the
+`--jq` filter `list-copilot-reviews.sh` passes is one three-line argument, and
+the GraphQL query `list-unresolved-threads.sh` passes as `-f query='...'` spans
+23 lines. Either is matched on its exact bytes, by `cmp` on two files. A
+malformed index or an exit status outside 0-255 is rejected too.
+
+**`gh_stub_response` versus `gh_stub_raw_response`** — same signature, and they
+differ only in what the body on stdin is:
+
+- `gh_stub_response` — the body is gh's **stdout**, already filtered if the call
+  carries `--jq`. The stub hands it back verbatim. Use this by default: most
+  cases hold the script under test to an output contract, and the fixture states
+  that contract directly.
+- `gh_stub_raw_response` — the body is the raw **response gh received**, and the
+  stub applies the call's own `--jq` to it (with `-S`, since gh filters through
+  gojq, which sorts object keys where jq keeps input order). Use it when the
+  filter is part of what is under test: `list-unresolved-threads.sh`'s
+  `select(.isResolved == false)` lives in the script, so a pre-filtered fixture
+  would decide the very answer the test is checking, and "zero unresolved
+  threads" would assert nothing.
+
+The distinction is explicit rather than inferred because the stub cannot tell
+the two kinds of body apart by looking, and each wrong guess fails in a
+different direction: a filter applied to an already-filtered body errors out,
+while a filter skipped on a raw body silently hands the caller the whole
+document as though it had been selected from.
+
+For an argv carrying `--paginate`, successive indices are the **pages of one
+invocation**: gh pages internally, so a script that calls it once still sees
+every page's output concatenated. The stub stops at the first of — no entry for
+the next index (the scripted pages ran out, which is how a real run ends), a
+non-zero status (it exits with that status, the pages already served still on
+stdout), or an entry matched via `*` (which matches every index and would
+repeat forever, so it answers one page). `gh_call_count` therefore counts
+responses served: invocations for an ordinary call, pages for a paginated one.
 
 ## Real git: `ai/tests/lib/gitrepo.sh`
 
@@ -80,6 +118,12 @@ with it.
   `<branch>` checked out and `origin` pointing back at it; prints the path. A
   real clone rather than init + remote add, so a script under test finds the
   remote-tracking refs and fetch refspec a real checkout has.
+- `git_repo_origin_head <dir> <branch>` — points `refs/remotes/origin/HEAD` at
+  that branch, which a real clone has and a `git init` + `git remote add` pair
+  does not. `resolve-pr-base.sh` reads that symref as the first rung of its
+  default-branch ladder. The target need not exist: `git symbolic-ref` accepts
+  a dangling one, which is how a test builds "the default branch is named but
+  absent from the remote".
 - `git_repo_merge <dir> <ref>` — merges `<ref>` into `<dir>`'s current branch
   with the same fixed clock `git_repo_commit` uses.
 - `git_repo_deny_push <bare>` / `git_repo_allow_push <bare>` — install and
@@ -139,13 +183,39 @@ depends on:
    answer its second call differently from its first.
 3. **Stdout is compared byte-for-byte**, not line-by-line — a stray or
    missing trailing newline is invisible to a line-count comparison.
-4. **The one argv the manifest cannot represent is refused when stubbed**,
-   rather than silently never matching: a `\x1f` in a stubbed argv, or a
-   malformed call index, fails the helper on the spot — while an argv that
-   spans lines *is* stubbable and matches.
+4. **An argv the manifest cannot disambiguate is refused when stubbed**,
+   rather than silently never matching: an `\x1f` in a stubbed argv, a
+   malformed call index, or an out-of-range exit status fails the helper on
+   the spot. It is the *only* thing refused — an argv that spans lines is
+   stubbable, which is property 6.
 5. **The call index counts invocations, not lines**, so an argument that
    spans lines — a GraphQL query passed as `-f query='...'` — does not
    advance the index past the call a later exact-index entry was written for.
+6. **An argv spanning lines is stubbable and matches only itself** — the
+   23-line GraphQL query is why, and a near-miss query must still be reported
+   as an unstubbed argv rather than served this case's body.
+7. **`--jq` is applied to a successful body and never to a failing one** —
+   what real `gh` does (measured), for entries registered with
+   `gh_stub_raw_response`. That is what lets the filter in the script under
+   test really run; an error fixture reaches stdout whole, as a caller would
+   see it.
+8. **One `--paginate` invocation serves a page sequence, truncating at a
+   failing page** — "page 1 arrived, page 2 failed" is the state in which
+   stdout is non-empty and the listing is incomplete, and a caller keying on
+   emptiness alone cannot tell it from success.
+9. **A `--jq` that fails on a successful body is loud** — a violation and
+   exit 99, not gh's ordinary exit 1. A body the filter cannot handle is a
+   broken fixture or a broken filter, which is a test-authoring fault and has
+   to surface as one; "gh received garbage" is modelled by stubbing a non-zero
+   status with a raw body instead. Degrading it to exit 1 would make the
+   mechanism itself commit the confusion between "absent" and "could not ask"
+   that this suite exists to catch.
+10. **An expectation the harness cannot read is named, not charged to the
+    script under test** — a mistyped golden path leaves the want file empty,
+    and a byte comparison would then report "stdout differs, want: nothing",
+    blaming the code for the test's own mistake. Defect class 1, pointed
+    inward. The same guard keeps a plain (non-`if`) call from aborting the
+    whole test file under `set -e`.
 
 ## RED verification
 
@@ -174,6 +244,15 @@ single script and pointing a whole suite at it would apply it to every file.
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).
 
+`resolve-pr-base.sh` → `bb8d8b8^` — the `Base-Branch` trailer scan walked to
+root, so a branch that recorded nothing picked up whatever trailer it inherited
+from shared history and handed that branch back as `--base` (#171).
+
 `retarget-pr.sh` → `80376f3^` — a matching `baseRefName` was treated as the
 whole answer, so a run whose push had failed reported `BASE-OK` on its next
 attempt while the remote branch was still the pre-merge one (#170).
+
+`watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
+of the listing, so the filter printed `[]` and the caller read the review as
+never arriving (#173). Also `e14114a^`, where the workflow search was
+cwd-relative: from a subdirectory it reported Claude as unavailable.
