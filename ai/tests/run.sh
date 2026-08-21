@@ -32,7 +32,7 @@ else
   trap 'rm -f "$LISTING"' EXIT
 
   if ! find "$ROOT" -type f -name '*_test.sh' -print0 | sort -z >"$LISTING"; then
-    echo "listing ${ROOT} failed — the tree was not fully read" >&2
+    echo "run.sh: listing ${ROOT} failed — the tree was not fully read" >&2
     exit 1
   fi
 
