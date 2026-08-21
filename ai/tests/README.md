@@ -38,14 +38,16 @@ Each row typically does:
 
 1. `stub_dir_new` — fresh stub directory; resets the call counter and manifest.
 2. One or more `gh_stub_response <index|*> <exit-status> <argv...>` calls
-   (body on stdin) to script what `gh` should answer.
+   (body on stdin) to script what `gh` should answer — or
+   `gh_stub_raw_response`, where the call's own `--jq` is what the case is
+   testing. The next section says which to reach for.
 3. `run_sut <cmd...>` — runs the script under test with stdin `/dev/null`,
    capturing stdout/stderr to `$SUT_STDOUT`/`$SUT_STDERR` and status to
    `$SUT_STATUS`.
 4. Assertions: `check_eq`, `check_bytes`, `check_no_violations`, plus a check
    on `$SUT_STATUS`.
 
-## The `gh_stub_response` contract
+## The `gh_stub_response` / `gh_stub_raw_response` contract
 
 `gh_stub_response <index> <exit-status> <argv...>` (body from stdin). `<index>`
 is a positive integer — the global call number within the stub dir that this
