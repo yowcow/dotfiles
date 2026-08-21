@@ -151,3 +151,8 @@ single script and pointing a whole suite at it would apply it to every file.
 
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).
+
+`watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
+of the listing, so the filter printed `[]` and the caller read the review as
+never arriving (#173). Also `e14114a^`, where the workflow search was
+cwd-relative: from a subdirectory it reported Claude as unavailable.
