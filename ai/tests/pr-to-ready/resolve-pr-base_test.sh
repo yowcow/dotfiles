@@ -253,4 +253,47 @@ if ! grep -q "unexpected PR state 'DRAFT'" "$SUT_STDERR"; then
   failed=$((failed + 1))
 fi
 
+# ---- fetches that fail --------------------------------------------------
+#
+# The two failures carry different slugs on purpose: a missing default branch
+# and a missing task branch want different answers from the person the caller
+# stops for. Neither row reaches `gh`, so both assert zero calls.
+#
+# The first row's origin/HEAD points at a branch the remote does not have.
+# `git symbolic-ref` accepts a dangling target, so the ladder's first rung
+# answers `nosuch` and the fetch that follows is what fails.
+
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo default-absent "$REMOTE_PLAIN" nosuch)"
+run_in "$W" feature
+assert_row 'default-branch-absent-on-remote' 0 'STOP default-fetch-failed\n' 0
+
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo branch-absent "$REMOTE_PLAIN" main)"
+run_in "$W" nosuchbranch
+assert_row 'task-branch-absent-on-remote' 0 'STOP fetch-failed\n' 0
+
+# ---- argument validation ------------------------------------------------
+#
+# Both rows run from a work repository that could have answered, so a failure
+# here is the guard's, not the fixture's.
+
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo args-none "$REMOTE_PLAIN" main)"
+cd "$W"
+run_sut bash "$SUT"
+cd "$REPO_ROOT"
+assert_row 'no-argument' 1 '' 0
+
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo args-extra "$REMOTE_PLAIN" main)"
+cd "$W"
+run_sut bash "$SUT" feature extra
+cd "$REPO_ROOT"
+assert_row 'too-many-arguments' 1 '' 0
+
 harness_exit "$failed" "$total"

@@ -76,6 +76,12 @@ with it.
 - `git_repo_checkout <dir> <branch> [<start-point>]` — with a start point it
   creates the branch there.
 - `git_repo_remote <dir> <name> <url>` / `git_repo_push <dir> <remote> <refspec>...`
+- `git_repo_origin_head <dir> <branch>` — points `refs/remotes/origin/HEAD` at
+  that branch, which a real clone has and a `git init` + `git remote add` pair
+  does not. `resolve-pr-base.sh` reads that symref as the first rung of its
+  default-branch ladder. The target need not exist: `git symbolic-ref` accepts
+  a dangling one, which is how a test builds "the default branch is named but
+  absent from the remote".
 
 `git_repo_scratch` and `git_repo_bare` refuse a name containing `/` or `..`.
 Both clear the directory with `rm -rf` before rebuilding it, and a name is a
@@ -151,3 +157,7 @@ single script and pointing a whole suite at it would apply it to every file.
 
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).
+
+`resolve-pr-base.sh` → `bb8d8b8^` — the `Base-Branch` trailer scan walked to
+root, so a branch that recorded nothing picked up whatever trailer it inherited
+from shared history and handed that branch back as `--base` (#171).
