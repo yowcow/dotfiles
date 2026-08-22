@@ -13,9 +13,10 @@
 # only the marker distinguishes "refused before running anything" from "ran and
 # the rows failed".
 #
-# The fixture is created under $HARNESS_TMP and is deliberately NOT named
-# *_test.sh — the suite collects `find ai/tests -name '*_test.sh'`, and a
-# fixture matching that would be picked up as a real test file.
+# The fixture lives under $HARNESS_TMP, which is a bare `mktemp -d` (harness.sh)
+# and so sits outside the tree run.sh walks: suite discovery — `find ai/tests
+# -name '*_test.sh'` — cannot reach it whatever it is named. Not naming it
+# *_test.sh is belt-and-braces for the day a fixture does land under ai/tests.
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR

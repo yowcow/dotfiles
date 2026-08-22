@@ -74,6 +74,11 @@ if [ -n "${SUT:-}" ]; then
   # and `bash <empty>` exits 0, so the script under test appears to succeed at
   # everything and the RED comes back *green* — read as "this test cannot detect
   # the defect", which retires a test that was never run.
+  #
+  # Both tests are load-bearing, so the pair does not collapse to `! -s`: `-s`
+  # is true for a directory (measured — a directory's size is non-zero), and
+  # `bash <dir>` exits 126 on every row, which is the same false RED as a
+  # missing path. `-f` is what refuses that.
   if [ ! -f "$SUT" ] || [ ! -s "$SUT" ]; then
     printf 'run.sh: SUT names no existing non-empty file: %s\n' "$SUT" >&2
     exit 1
