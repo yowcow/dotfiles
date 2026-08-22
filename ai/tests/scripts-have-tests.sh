@@ -128,7 +128,23 @@ fi
 # script is reported as uncovered rather than quietly passed.
 allow=()
 if [ -e "$ALLOWLIST" ]; then
-  if [ ! -r "$ALLOWLIST" ]; then
+  # `-f` as well as `-r`, and `-f` is the load-bearing half: `-r` is true for a
+  # directory, so a directory at this path walked straight through a guard that
+  # only asked about readability, and the `done <"$ALLOWLIST"` redirection then
+  # failed inside the loop. Measured: `read error: 0: Is a directory`, then
+  # `line: unbound variable` — `read` never assigned it and `|| [ -n "$line" ]`
+  # reads it under `set -u`. Never a false green (the exit stayed non-zero), but
+  # the gate abandoned its own contract for two raw bash errors, one of them an
+  # unbound-variable abort in a script that deliberately runs without `set -e`.
+  #
+  # A FIFO at that path is the worse half, and `-f` is what refuses it too:
+  # opening one for reading blocks until a writer appears, so the `-r`-only guard
+  # did not fail at all — it hung. Measured: `timeout 3` had to kill it, exit 124.
+  # A gate that never returns cannot be read as pass or fail by anything.
+  #
+  # The message names readability alone because it stays true for both refusals,
+  # the way run.sh's SUT guard words its four.
+  if [ ! -f "$ALLOWLIST" ] || [ ! -r "$ALLOWLIST" ]; then
     printf 'scripts-have-tests: %s exists but cannot be read\n' "$ALLOWLIST" >&2
     exit 1
   fi

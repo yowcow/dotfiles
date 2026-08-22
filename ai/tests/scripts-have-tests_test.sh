@@ -407,4 +407,24 @@ if ! check_stderr_has 'split entry: the script is named, not exempted' 'no test 
 if ! check_stderr_has 'split entry: the script is counted' '3 problem(s)'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- case 19: a non-regular file at the allowlist path is refused cleanly ----
+# `-r` is true for a directory, so the readability guard alone lets one through
+# and the `done <"$ALLOWLIST"` redirection then fails inside the loop. Measured:
+# `read error: 0: Is a directory`, immediately followed by `line: unbound
+# variable` — `read` never assigned it, and `|| [ -n "$line" ]` reads it under
+# `set -u`. The exit status stays non-zero, so this was never a false green, but
+# the gate abandoned its own contract for two raw bash errors, and one of them is
+# an unbound-variable abort in a script that deliberately runs without `set -e`.
+# The row keys on the designed message rather than on the exit status, because
+# only the message separates the two versions.
+total=$((total + 1))
+fails_here=0
+root="$(tree_new)"
+mk_script "$root" alpha 'a.sh'
+mkdir -p "${root}/ai/tests/scripts-have-tests.allowlist"
+run_sut bash "$SUT" "$root"
+if ! check_eq 'directory allowlist: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_stderr_has 'directory allowlist' 'cannot be read'; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
 harness_exit "$failed" "$total"
