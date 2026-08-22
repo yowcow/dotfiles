@@ -19,6 +19,12 @@ and the individual skill directories are — so `ai/tests/` reaches none of them
   for the scripts that shell out to `git`. Sourced after `harness.sh`.
 - `ai/tests/lib/bin-nosleep/sleep` — the instant `sleep`, put on `PATH` only by
   an explicit `stub_sleep_instant` call.
+- `ai/tests/scripts-have-tests.sh` — the coverage gate: every script under
+  `ai/skills/*/scripts/` must have a test file, or a line in the allowlist
+  beside it. Not named `*_test.sh`, so `run.sh` does not collect it directly;
+  `scripts-have-tests_test.sh` is what runs it.
+- `ai/tests/scripts-have-tests.allowlist` — the scripts exempted from that gate,
+  one repo-root-relative path per line.
 - `ai/tests/lib/harness_test.sh` — a self-test of the harness mechanism itself
   (no script under test).
 - `<name>_test.sh` anywhere under `ai/tests/` — the actual test cases.
@@ -170,6 +176,70 @@ It is opt-in, not always on, so it cannot change the meaning of a test file
 written expecting real waits. Unlike the fake `gh`, it accepts any argv: the
 `gh` rule exists because an unstubbed call would be answered by the network,
 and `sleep` hands the caller nothing it reads.
+
+## The coverage gate: `scripts-have-tests.sh`
+
+Every file under `ai/skills/<skill>/scripts/` must have a non-empty test file at
+`ai/tests/<skill>/<name>_test.sh`, or a line naming it in
+`ai/tests/scripts-have-tests.allowlist`. `scripts-have-tests_test.sh` runs the
+gate against the real tree as its first two cases, which is how the gate reaches
+`make -C ai test` with no Makefile or workflow change — the same trick `lint.sh`
+uses to land in its own selection.
+
+The gate is **permanent**. An allowlist with no entries — including the state
+where only the group comments remain — and an absent allowlist file both mean
+"no exemptions", and both are success. Nothing about finishing the coverage work
+asks for the gate to be removed.
+
+Its rules, each of which `scripts-have-tests_test.sh` asserts against a synthetic
+`ai/` tree rather than stating as prose:
+
+- An entry naming a script that no longer exists is an **error**: an exemption
+  must not outlive its script, or a rename leaves the new name unchecked.
+- An entry for a script that has since gained a test is **not** an error, only
+  unnecessary. Making it one would force a PR that lands a test to also delete a
+  line it does not own.
+- Comment and blank lines are not entries — neither exemptions nor names to
+  check. The group separators outlive every entry.
+- An empty enumeration is an **error**. A broken selection and a fully covered
+  tree are otherwise the same green.
+- An empty test file is **not** coverage. `run.sh` collects it and
+  `bash <empty>` exits 0, so it is a passing test with no detection power.
+- A `find` that dies partway through `ai/skills` is a **failure**, never a green
+  over the part it managed to read.
+- Selection is by position in the tree, not by shebang: a script under
+  `scripts/` in a language ShellCheck does not cover must not be silently
+  exempt as well as unlinted.
+- An entry is matched **whole**, never as a substring of the entries joined
+  together: two adjacent lines must not be able to combine into an exemption
+  neither of them spells. Measured on the first version, which joined them with
+  newlines — a script really named `weird\nname.sh` was exempted by the pair
+  `ai/skills/alpha/scripts/weird` and `name.sh`, and `no test for` was never
+  printed for it. A name carrying a literal newline therefore cannot be exempted
+  at all, since `read -r` splits there; it is reported as uncovered, which is the
+  safe direction.
+- A **symlink** under `scripts/` is enumerated like a regular file, which is
+  where this parts company with `lint.sh`'s deliberate `-type f`. For a linter
+  that exclusion is right; for this gate `-type f` answers the wrong question,
+  since it classifies a symlink by the link. Measured: an untested symlink
+  beside one covered regular script reported `1 script(s), 1 with tests, 0
+  exempted` and exit 0, naming the symlink nowhere. The target is never resolved
+  or read — only visibility is at stake — so a dangling link is reported rather
+  than fatal.
+
+Entries are grouped per TODO item of the plan filling the coverage in, with an
+untouched comment line between groups: two branches deleting adjacent line
+blocks from one file were measured to conflict, and a line neither of them
+touches is what makes them merge cleanly.
+
+For RED verification the mutated copy has to live in `ai/tests/`, not under a
+bare `mktemp -d`: the gate anchors its default root on its own file location, so
+a copy elsewhere resolves the root to that directory's parent and dies on
+`find`, which fails cases 0 and 1 with `the tree was not fully read` even when
+the copy is unmodified. Same class as the sibling problem above — a
+self-anchoring script has to sit where its anchor resolves. `run.sh` collects
+only `*_test.sh`, so a `mut.sh` beside the gate is not picked up, but `lint.sh`
+selects it by shebang, so remove it when done.
 
 ## The mechanism properties (and why they matter)
 

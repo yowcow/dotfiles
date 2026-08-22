@@ -1,0 +1,47 @@
+# Scripts under ai/skills/*/scripts/ that have no test file yet. One line per
+# script, repo-root-relative. Blank lines and comment lines are not entries.
+#
+# This file is an exemption list, not a checklist: an entry naming a script that
+# no longer exists is an error, and an entry for a script that has since gained a
+# test is merely unnecessary. Zero entries — including "only these comments
+# remain" — and an absent file both mean "no exemptions", which is the gate's
+# success state. The gate is permanent; nothing here asks for its removal.
+#
+# Groups are the TODO items of https://github.com/yowcow/dotfiles/issues/199's
+# design comment. Each item deletes only its own lines and never touches a
+# comment line: two branches deleting adjacent line blocks from one file were
+# measured to conflict, and an untouched line between the blocks was what made
+# them merge cleanly.
+
+# item 2: check-clean.sh and resolve-branch.sh
+ai/skills/implement-work/scripts/check-clean.sh
+ai/skills/implement-work/scripts/resolve-branch.sh
+
+# item 3: attach-workspace.sh
+ai/skills/implement-work/scripts/attach-workspace.sh
+
+# item 4: resolve-base.sh
+ai/skills/implement-work/scripts/resolve-base.sh
+
+# item 5: resolve-range.sh
+ai/skills/review-code/scripts/resolve-range.sh
+
+# item 6: ensure-draft-pr.sh
+ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh
+
+# item 7: plan-work posting scripts
+ai/skills/plan-work/scripts/post-plan-comment.sh
+ai/skills/plan-work/scripts/edit-plan-comment.sh
+ai/skills/plan-work/scripts/close-dropped-sub-issue.sh
+
+# item 8: plan-work relation scripts
+ai/skills/plan-work/scripts/link-sub-issue.sh
+ai/skills/plan-work/scripts/list-sub-issues.sh
+ai/skills/plan-work/scripts/set-prerequisites.sh
+
+# item 9: Copilot review scripts
+ai/skills/pr-to-ready/scripts/request-copilot-review.sh
+ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh
+
+# item 10: resolve-thread.sh
+ai/skills/pr-to-ready/scripts/resolve-thread.sh
