@@ -60,7 +60,16 @@ while IFS= read -r path; do
   # A conflict resolved by deleting the file keeps its path in the block with
   # nothing in the tree to scan (measured).
   [ -f "$path" ] || continue
-  if grep -q -e '^<<<<<<<' -e '^>>>>>>>' -- "$path"; then
+  # All four of git's markers, not just the outer two. Deleting the `<<<<<<<`
+  # and `>>>>>>>` lines and missing the one between them is the ordinary way a
+  # hand resolution goes wrong, and it leaves a file still holding both sides;
+  # keyed on the outer two alone the scan passes it, and the tree is committed
+  # with both sides' text in it. The separator git writes is a bare `=======`,
+  # so it is anchored to exactly that -- unanchored it would also match a
+  # setext heading underline or a table rule, and refuse a conflicted markdown
+  # file for good. `|||||||` is the ancestor marker `merge.conflictStyle=diff3`
+  # adds, which carries a label like `<<<<<<<` does and so is left unanchored.
+  if grep -q -e '^<<<<<<<' -e '^|||||||' -e '^=======$' -e '^>>>>>>>' -- "$path"; then
     MARKED="${MARKED}${path} "
   fi
 done <<<"$CONFLICTED"

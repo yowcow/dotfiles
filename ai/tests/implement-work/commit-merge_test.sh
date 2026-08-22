@@ -36,6 +36,10 @@ failed=0
 total=0
 
 MARKER_BODY='<<<<<<< HEAD\ntask side\n=======\nbase side\n>>>>>>> origin/main\n'
+# Half-removed marker sets: the outer two lines deleted, the inner one missed.
+# Both hold both sides' text, so neither is a resolution.
+PARTIAL_BODY='task side\n=======\nbase side\n'
+DIFF3_BODY='task side\n||||||| 1a2b3c4\nfirst\nbase side\n'
 
 # build_conflict <name> [extra-base-file] -- prints the path of a work
 # repository on branch `task` with a conflict in shared.txt already left in
@@ -130,6 +134,36 @@ git -C "$W" add shared.txt
 run_in "$W"
 assert_row 'markers-left-behind-are-refused' 0 'MARKERS shared.txt\n'
 check_not_committed 'markers-left-behind-are-refused' "$W"
+
+# ---- a half-removed marker set is refused too ---------------------------
+#
+# Deleting the `<<<<<<<` and `>>>>>>>` lines and missing the one between them
+# is the ordinary way a hand resolution goes wrong, and it leaves a file that
+# still holds both sides. Keying the scan on the outer two markers alone would
+# pass it: the separator git writes is a bare `=======`, and under
+# `merge.conflictStyle=diff3` there is a `||||||| <sha>` ancestor marker as
+# well, neither of which begins with `<` or `>`. The tree would then be
+# committed with both sides' text in it and **Hand off** would push it -- the
+# same silent failure `markers-left-behind-are-refused` covers, reached by a
+# more likely route.
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_conflict partial)"
+printf '%b' "$PARTIAL_BODY" >"${W}/shared.txt"
+git -C "$W" add shared.txt
+run_in "$W"
+assert_row 'partial-marker-removal-is-refused' 0 'MARKERS shared.txt\n'
+check_not_committed 'partial-marker-removal-is-refused' "$W"
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_conflict diff3)"
+printf '%b' "$DIFF3_BODY" >"${W}/shared.txt"
+git -C "$W" add shared.txt
+run_in "$W"
+assert_row 'diff3-ancestor-marker-is-refused' 0 'MARKERS shared.txt\n'
+check_not_committed 'diff3-ancestor-marker-is-refused' "$W"
 
 # ---- a marker outside the conflicted set is not the scan's business ----
 #
