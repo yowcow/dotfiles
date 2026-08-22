@@ -25,6 +25,17 @@ export GIT_CONFIG_GLOBAL=/dev/null
 export GIT_CONFIG_SYSTEM=/dev/null
 export GIT_CONFIG_NOSYSTEM=1
 export GIT_TERMINAL_PROMPT=0
+# The suite lets scripts under test run real `git push`, so "no network" has to
+# be a property of the configuration rather than of every test author
+# remembering to point `origin` somewhere local. This restricts git to the
+# `file` transport, which is what a plain local path under $HARNESS_TMP uses.
+# Measured on git 2.43.0: an https, ssh or git:// URL then fails with
+# `fatal: transport '<name>' not allowed` and exit 128 *before* a socket is
+# opened, while local-path fetch and push are unaffected. It backstops the
+# GIT_CONFIG_GLOBAL=/dev/null above: that removes a personal
+# `url.<base>.insteadOf`, and this one refuses the result even if some other
+# path reintroduces a network URL.
+export GIT_ALLOW_PROTOCOL=file
 export GIT_AUTHOR_NAME='Test Author'
 export GIT_AUTHOR_EMAIL='author@example.invalid'
 export GIT_COMMITTER_NAME='Test Committer'
@@ -144,4 +155,67 @@ git_repo_push() {
   local dir="$1" remote="$2"
   shift 2
   git -C "$dir" push -q "$remote" "$@"
+}
+
+# git_repo_clone <name> <url> <branch> -> prints the path of a work repo cloned
+# from <url> with <branch> checked out.
+#
+# `git clone` rather than init + remote add, because a script under test may
+# read anything a real checkout has -- a remote-tracking ref, an upstream, the
+# fetch refspec -- and hand-wiring only the parts a test author thought of is
+# how a test comes to pass on a repository no real checkout resembles.
+git_repo_clone() {
+  gitrepo_reject_traversal "$1"
+  local dir="${HARNESS_TMP}/repos/$1"
+  rm -rf "$dir"
+  mkdir -p "$(dirname -- "$dir")"
+  git clone -q --branch "$3" -- "$2" "$dir"
+  printf '%s\n' "$dir"
+}
+
+# git_repo_merge <dir> <ref>   merges <ref> into <dir>'s current branch
+#
+# Stamped like git_repo_commit: a merge commit made with the wall clock would
+# give the suite a different sha on every run, and a test comparing shas across
+# two runs of a script would then be comparing the clock.
+git_repo_merge() {
+  local dir="$1" ref="$2" stamp
+  stamp="$(gitrepo_stamp)"
+  GIT_AUTHOR_DATE="$stamp" GIT_COMMITTER_DATE="$stamp" \
+    git -C "$dir" merge --no-edit -q "$ref"
+}
+
+# git_repo_deny_push <bare>   makes every push to <bare> fail
+#
+# The one state a correctly configured remote cannot produce, and the one #170
+# is about: the merge lands locally and the push does not, so the next run has
+# to work out that stage 2 is still outstanding. A hook rather than chmod,
+# because a suite running as root would walk straight through a mode bit.
+git_repo_deny_push() {
+  local hook="$1/hooks/pre-receive"
+  mkdir -p "$1/hooks"
+  cat >"$hook" <<'GITREPO_HOOK'
+#!/usr/bin/env bash
+echo "pre-receive: this remote is refusing pushes for a test" >&2
+exit 1
+GITREPO_HOOK
+  chmod +x "$hook"
+}
+
+# git_repo_allow_push <bare>   undoes git_repo_deny_push
+git_repo_allow_push() {
+  rm -f "$1/hooks/pre-receive"
+}
+
+# git_repo_blob_ref <bare> <tag> <content>   points refs/tags/<tag> at a blob
+#
+# A ref that resolves to something other than a commit, which is how a caller
+# reaches `git merge-base --is-ancestor`'s error exit (128) rather than either
+# of its two verdicts. Written straight into the bare repo's object database:
+# measured on git 2.43.0, both `hash-object -w` and `update-ref` accept this in
+# a bare repo, so no working repository and no push are needed.
+git_repo_blob_ref() {
+  local bare="$1" tag="$2" content="$3" blob
+  blob="$(printf '%b' "$content" | git -C "$bare" hash-object -w --stdin)"
+  git -C "$bare" update-ref "refs/tags/${tag}" "$blob"
 }
