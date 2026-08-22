@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Tests ai/tests/run.sh itself — specifically that a $SUT naming no existing
-# non-empty file stops the run before any test file executes.
+# Tests ai/tests/run.sh itself — specifically that a $SUT that does not name an
+# existing non-empty file stops the run before any test file executes.
 #
 # Why this file exists: a $SUT pointing at a path that isn't there makes every
 # `run_sut bash "$SUT"` in the selected test file exit 127, so nearly every row

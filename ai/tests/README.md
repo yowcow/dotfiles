@@ -240,10 +240,10 @@ cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
 single script and pointing a whole suite at it would apply it to every file. It
-also refuses a `SUT` naming no existing non-empty file, before running anything:
-a missing path makes nearly every row fail, which is the shape of a successful
-RED, and an empty one makes them all pass, which reads as a test with no
-detection power.
+also refuses a `SUT` that does not name an existing non-empty file, before
+running anything: a missing path makes nearly every row fail, which is the shape
+of a successful RED, and an empty one makes them all pass, which reads as a test
+with no detection power.
 
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).

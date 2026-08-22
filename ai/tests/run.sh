@@ -80,7 +80,7 @@ if [ -n "${SUT:-}" ]; then
   # `bash <dir>` exits 126 on every row, which is the same false RED as a
   # missing path. `-f` is what refuses that.
   if [ ! -f "$SUT" ] || [ ! -s "$SUT" ]; then
-    printf 'run.sh: SUT names no existing non-empty file: %s\n' "$SUT" >&2
+    printf 'run.sh: SUT does not name an existing non-empty file: %s\n' "$SUT" >&2
     exit 1
   fi
   printf 'run.sh: SUT override in effect: %s\n' "$SUT"
