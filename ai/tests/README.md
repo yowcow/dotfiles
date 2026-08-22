@@ -240,10 +240,10 @@ cp ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh "$tmp/"
 `SUT` names one script under test in place of a test file's default. `run.sh`
 refuses to run more than one test file while `SUT` is set, since it names a
 single script and pointing a whole suite at it would apply it to every file. It
-also refuses a `SUT` that does not name an existing non-empty file, before
+also refuses a `SUT` that does not name a readable non-empty file, before
 running anything: a missing path makes nearly every row fail, which is the shape
-of a successful RED, and an empty one makes them all pass, which reads as a test
-with no detection power.
+of a successful RED, an unreadable one fails them the same way at exit 126, and
+an empty one makes them all pass, which reads as a test with no detection power.
 
 `check-pr-state.sh` → `a548e36^` — the local fallback did not verify that the
 working tree's `origin` was the PR's repository (#172).
@@ -256,9 +256,14 @@ from shared history and handed that branch back as `--base` (#171).
 whole answer, so a run whose push had failed reported `BASE-OK` on its next
 attempt while the remote branch was still the pre-merge one (#170).
 
-`run.sh` → `8876873^` — a `SUT` naming a nonexistent or an empty file was
+`run.sh` → `f2b1e41^` — a `SUT` naming a nonexistent or an empty file was
 accepted, and the resulting failures were indistinguishable from a successful
-RED verification (#214).
+RED verification (#214). Also `f2b1e41` itself, **without** the caret: that
+commit is where the guard above landed, and it checked `-f` and `-s` but not
+`-r`, so a mode-000 file walked through it and failed every row at exit 126 —
+the same false RED, reached by permission rather than absence (#217). No caret,
+because `f2b1e41` is where that second defect was left standing rather than
+introduced.
 
 `watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
 of the listing, so the filter printed `[]` and the caller read the review as
