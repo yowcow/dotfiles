@@ -391,4 +391,40 @@ if ! grep -qF 'no test for ai/skills/alpha/scripts/sneaky.sh' "$SUT_STDERR"; the
 fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- case 18: two entries cannot combine into one exemption -----------------
+# A script whose name contains a literal newline cannot be written as a single
+# allowlist line at all — `read -r` splits there — so it must always come back
+# as uncovered. The first version of this gate joined the entries into one
+# newline-delimited string and asked whether it contained `\n<key>\n`, which two
+# *adjacent* entries reconstruct between them: `ai/skills/alpha/scripts/weird`
+# followed by `name.sh` matched the key `ai/skills/alpha/scripts/weird\nname.sh`
+# although no single line named it. Measured on that version: the script was
+# treated as exempted and `no test for` was never printed for it, while the two
+# fragments were each reported as stale entries — output that points a reader at
+# two entries to delete rather than at the untested script.
+#
+# The exit status alone does not separate the two versions (both exit 1, the
+# broken one only because the fragments trip the stale-entry scan), so the row
+# asserts the report: the script is named, and the problem count includes it.
+total=$((total + 1))
+fails_here=0
+root="$(tree_new)"
+mkdir -p "${root}/ai/skills/alpha/scripts"
+printf '#!/usr/bin/env bash\nexit 0\n' >"${root}/ai/skills/alpha/scripts/weird"$'\n'"name.sh"
+mk_allowlist "$root" <<'AL'
+ai/skills/alpha/scripts/weird
+name.sh
+AL
+run_sut bash "$SUT" "$root"
+if ! check_eq 'split entry: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
+if ! grep -qF 'no test for' "$SUT_STDERR"; then
+  printf 'FAIL split entry: the script was exempted by two lines that do not name it: %s\n' "$(head -c 600 "$SUT_STDERR")"
+  fails_here=1
+fi
+if ! grep -qF '3 problem(s)' "$SUT_STDERR"; then
+  printf 'FAIL split entry: the untested script was not counted: %s\n' "$(head -c 600 "$SUT_STDERR")"
+  fails_here=1
+fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
 harness_exit "$failed" "$total"

@@ -210,6 +210,14 @@ Its rules, each of which `scripts-have-tests_test.sh` asserts against a syntheti
 - Selection is by position in the tree, not by shebang: a script under
   `scripts/` in a language ShellCheck does not cover must not be silently
   exempt as well as unlinted.
+- An entry is matched **whole**, never as a substring of the entries joined
+  together: two adjacent lines must not be able to combine into an exemption
+  neither of them spells. Measured on the first version, which joined them with
+  newlines — a script really named `weird\nname.sh` was exempted by the pair
+  `ai/skills/alpha/scripts/weird` and `name.sh`, and `no test for` was never
+  printed for it. A name carrying a literal newline therefore cannot be exempted
+  at all, since `read -r` splits there; it is reported as uncovered, which is the
+  safe direction.
 - A **symlink** under `scripts/` is enumerated like a regular file, which is
   where this parts company with `lint.sh`'s deliberate `-type f`. For a linter
   that exclusion is right; for this gate `-type f` answers the wrong question,

@@ -113,10 +113,20 @@ fi
 # reading it as absent would answer "could not ask" with "nothing there" and
 # report every exempted script as uncovered.
 #
-# Entries are newline-joined into one string and matched with a `case` whose
-# needle is quoted, so the comparison is literal rather than a glob, and there is
-# no array expansion to guard under `set -u`.
-ALLOW=$'\n'
+# Entries are kept as array elements and compared whole, never joined into one
+# delimited string and matched by substring. That first version asked whether a
+# newline-joined `$ALLOW` contained `\n<key>\n`, which two *adjacent* entries
+# reconstruct between them: with a script actually named `weird\nname.sh`, the
+# pair of lines `ai/skills/alpha/scripts/weird` and `name.sh` matched its key
+# although neither line named it. Measured: the script was reported exempted,
+# `no test for` was never printed for it, and the run's stderr pointed at two
+# stale entries instead of the untested script. A whole-element `=` cannot be
+# assembled out of two elements.
+#
+# A name carrying a literal newline still cannot be exempted — `read -r` splits
+# there, so no single line can spell it — and that is the safe direction: such a
+# script is reported as uncovered rather than quietly passed.
+allow=()
 if [ -e "$ALLOWLIST" ]; then
   if [ ! -r "$ALLOWLIST" ]; then
     printf 'scripts-have-tests: %s exists but cannot be read\n' "$ALLOWLIST" >&2
@@ -137,14 +147,23 @@ if [ -e "$ALLOWLIST" ]; then
     case "$line" in
       '#'*) continue ;;
     esac
-    ALLOW="${ALLOW}${line}"$'\n'
+    allow+=("$line")
   done <"$ALLOWLIST"
 fi
 
+# The count is checked before expanding the array: `"${allow[@]}"` on an empty
+# array is an unbound-variable error under `set -u` before bash 4.4, and an empty
+# allowlist is a success state here, not an edge case.
 in_allowlist() {
-  case "$ALLOW" in
-    *$'\n'"$1"$'\n'*) return 0 ;;
-  esac
+  local entry
+  if [ "${#allow[@]}" -eq 0 ]; then
+    return 1
+  fi
+  for entry in "${allow[@]}"; do
+    if [ "$entry" = "$1" ]; then
+      return 0
+    fi
+  done
   return 1
 }
 
@@ -181,11 +200,8 @@ done
 # A stale entry is an error: an exemption must not outlive the script it exempts,
 # or a rename would silently carry the old script's pass to nothing at all while
 # the new name goes unchecked.
-if [ "$ALLOW" != $'\n' ]; then
-  while IFS= read -r entry; do
-    if [ -z "$entry" ]; then
-      continue
-    fi
+if [ "${#allow[@]}" -ne 0 ]; then
+  for entry in "${allow[@]}"; do
     found=0
     for rel in "${scripts[@]}"; do
       if [ "ai/skills/${rel}" = "$entry" ]; then
@@ -197,7 +213,7 @@ if [ "$ALLOW" != $'\n' ]; then
       printf 'scripts-have-tests: allowlist names no script under %s/*/scripts/: %s\n' "$SKILLS_ROOT" "$entry" >&2
       problems=$((problems + 1))
     fi
-  done <<<"$ALLOW"
+  done
 fi
 
 if [ "$problems" -ne 0 ]; then
