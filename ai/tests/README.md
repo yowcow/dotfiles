@@ -114,12 +114,25 @@ with it.
 - `git_repo_checkout <dir> <branch> [<start-point>]` — with a start point it
   creates the branch there.
 - `git_repo_remote <dir> <name> <url>` / `git_repo_push <dir> <remote> <refspec>...`
+- `git_repo_clone <name> <url> <branch>` — a work repo cloned from `<url>` with
+  `<branch>` checked out and `origin` pointing back at it; prints the path. A
+  real clone rather than init + remote add, so a script under test finds the
+  remote-tracking refs and fetch refspec a real checkout has.
 - `git_repo_origin_head <dir> <branch>` — points `refs/remotes/origin/HEAD` at
   that branch, which a real clone has and a `git init` + `git remote add` pair
   does not. `resolve-pr-base.sh` reads that symref as the first rung of its
   default-branch ladder. The target need not exist: `git symbolic-ref` accepts
   a dangling one, which is how a test builds "the default branch is named but
   absent from the remote".
+- `git_repo_merge <dir> <ref>` — merges `<ref>` into `<dir>`'s current branch
+  with the same fixed clock `git_repo_commit` uses.
+- `git_repo_deny_push <bare>` / `git_repo_allow_push <bare>` — install and
+  remove a `pre-receive` hook that rejects every push. This is the only way to
+  reach "the merge landed locally and the push did not", the state #170 was
+  about. A hook rather than a mode bit, which a suite running as root ignores.
+- `git_repo_blob_ref <bare> <tag> <content>` — points `refs/tags/<tag>` at a
+  blob instead of a commit, so a caller can reach `git merge-base
+  --is-ancestor`'s error exit (128) rather than either of its verdicts.
 
 `git_repo_scratch` and `git_repo_bare` refuse a name containing `/` or `..`.
 Both clear the directory with `rm -rf` before rebuilding it, and a name is a
@@ -135,6 +148,15 @@ picture (`GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`,
 is not only determinism: a personal `url.<base>.insteadOf` can rewrite a local
 path into a network URL, which would put this suite on the network through a
 setting no test can see.
+
+`git push` in this suite cannot reach the network, and not merely because the
+remotes happen to be local paths: sourcing `gitrepo.sh` exports
+`GIT_ALLOW_PROTOCOL=file`, so git refuses `https`, `ssh` and `git://` at the
+transport layer — `fatal: transport 'https' not allowed`, exit 128 — before a
+socket is opened, while a local path still fetches and pushes normally.
+`harness_test.sh` asserts all three refusals, and asserts them on the message
+rather than the exit status alone, since "connection refused" is non-zero too
+and would let a dropped guard pass.
 
 ## Instant `sleep`: `stub_sleep_instant`
 
@@ -225,6 +247,10 @@ working tree's `origin` was the PR's repository (#172).
 `resolve-pr-base.sh` → `bb8d8b8^` — the `Base-Branch` trailer scan walked to
 root, so a branch that recorded nothing picked up whatever trailer it inherited
 from shared history and handed that branch back as `--base` (#171).
+
+`retarget-pr.sh` → `80376f3^` — a matching `baseRefName` was treated as the
+whole answer, so a run whose push had failed reported `BASE-OK` on its next
+attempt while the remote branch was still the pre-merge one (#170).
 
 `watch-claude-review.sh` → `2bd1745^` — `--limit 20` pushed the target run out
 of the listing, so the filter printed `[]` and the caller read the review as
