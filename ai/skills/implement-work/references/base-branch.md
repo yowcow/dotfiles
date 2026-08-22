@@ -60,3 +60,11 @@ It needs no branch to exist: the lookup is by head branch *name*, which the PR r
 
 - **A PR's state is tested by `state`, and it has three values.** `OPEN`, `CLOSED` and `MERGED` are three cases, so "not merged" collapses the two that need opposite answers: a PR closed without merging is abandoned work, not work still in flight. This binds both sides of the mechanism — the writer reads `state` to choose what to branch from, and both readers read it to choose the base.
 - **The stop rows stop rather than falling through to the default branch.** Falling through makes an unimplemented, abandoned, or ambiguous prerequisite indistinguishable from an independent task — and that surfaces only later, as a failure whose cause is nowhere in the diff. This table's stop rows, and the writer-side rule's own stop outcomes, both exist for that one reason.
+
+## Absorbing the base at the completion gate
+
+`implement-work`'s completion gate absorbs the base as a step of its own. Three things about that are worth the reasons, because each has an obvious alternative that is wrong.
+
+- **Why at the gate, and not where the branch is cut.** Cutting from the base fixes a snapshot, and the branch then diverges from it for as long as the work takes. What has to be verified is the tree that will merge, so the absorb belongs at the point of verification — absorbed only at cut time, it is already stale by the first verify, and the gate then certifies a tree that is not the one going in.
+- **Why merge, and not rebase.** Rebase rewrites commits that are already pushed, so it needs a force-push, which `ai/GUIDELINES.md` bans outright. A merge reaches the same state — the base is in — by adding a commit instead of rewriting any, so it needs no rewrite and no exception.
+- **Why on any update, and not only on a conflict.** A conflict is only the part git can detect textually. Two changes that never touch the same lines can still be wrong together, and on the PR path nothing looks at that combination: the gate verified before the base moved, CI runs on the branch, and the review reads the diff. Absorbing whenever the base has moved is what makes the verified tree the merged tree; absorbing only on conflict leaves exactly the silent case unexamined.
