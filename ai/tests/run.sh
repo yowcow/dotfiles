@@ -79,8 +79,26 @@ if [ -n "${SUT:-}" ]; then
   # is true for a directory (measured — a directory's size is non-zero), and
   # `bash <dir>` exits 126 on every row, which is the same false RED as a
   # missing path. `-f` is what refuses that.
-  if [ ! -f "$SUT" ] || [ ! -s "$SUT" ]; then
-    printf 'run.sh: SUT does not name an existing non-empty file: %s\n' "$SUT" >&2
+  #
+  # Readability is the third, and it reaches the same false RED through a
+  # different door: a file that exists and is non-empty but cannot be read makes
+  # `bash "$SUT"` exit 126 on every row, exactly as a directory does. Measured
+  # (#217): the same test file reported `not ok 2/18` against the real pre-fix
+  # script and `not ok 18/18` against a mode-000 copy of it.
+  #
+  # `-r` rather than an inspection of the mode bits, because it asks access(2) —
+  # the same question the `bash "$SUT"` below asks — so the two cannot disagree.
+  # Under root it is true for a mode-000 file, and that is correct: root's bash
+  # really can read it, so there is nothing to refuse.
+  #
+  # `-x` is deliberately not among them. The file is run as `bash "$SUT"`, which
+  # needs no execute bit, so requiring one would refuse a legitimate run.
+  #
+  # The message names readability alone because `-r` is false for a path that
+  # isn't there as well, so one wording stays true for all four refusals —
+  # missing, directory, empty, unreadable.
+  if [ ! -f "$SUT" ] || [ ! -s "$SUT" ] || [ ! -r "$SUT" ]; then
+    printf 'run.sh: SUT does not name a readable non-empty file: %s\n' "$SUT" >&2
     exit 1
   fi
   printf 'run.sh: SUT override in effect: %s\n' "$SUT"
