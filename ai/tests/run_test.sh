@@ -9,9 +9,11 @@
 # accepted one (#214, measured while implementing #187).
 #
 # Whether a test actually ran is asserted by the fixture's own marker file, not
-# by parsing the runner's output: the runner prints a summary either way, and
-# only the marker distinguishes "refused before running anything" from "ran and
-# the rows failed".
+# by parsing the runner's output: a refused run under the guarded runner prints
+# no summary at all, while the pre-guard runner this file is also pointed at for
+# RED verification reaches its usual summary whether or not $SUT was honoured.
+# No one output-parsing rule holds for both, so only the marker separates
+# "refused before running anything" from "ran, whatever the rows did".
 #
 # The fixture lives under $HARNESS_TMP, which is a bare `mktemp -d` (harness.sh)
 # and so sits outside the tree run.sh walks: suite discovery — `find ai/tests
@@ -84,6 +86,10 @@ empty="${HARNESS_TMP}/empty-script.sh"
 run_case "$empty"
 if ! check_eq 'empty SUT: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
 if ! check_eq 'empty SUT: no test file ran' 'did-not-run' "$(marker_state)"; then fails_here=1; fi
+if ! grep -q 'SUT' "$SUT_STDERR"; then
+  printf 'FAIL empty SUT: stderr does not name SUT: %s\n' "$(head -c 400 "$SUT_STDERR")"
+  fails_here=1
+fi
 if ! grep -qF -- "$empty" "$SUT_STDERR"; then
   printf 'FAIL empty SUT: stderr does not name the path: %s\n' "$(head -c 400 "$SUT_STDERR")"
   fails_here=1
