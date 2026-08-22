@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Tests ai/tests/run.sh itself — specifically that a $SUT that does not name an
-# existing non-empty file stops the run before any test file executes.
+# Tests ai/tests/run.sh itself — specifically that a $SUT that does not name a
+# readable non-empty file stops the run before any test file executes.
 #
 # Why this file exists: a $SUT pointing at a path that isn't there makes every
 # `run_sut bash "$SUT"` in the selected test file exit 127, so nearly every row
@@ -111,5 +111,43 @@ if ! grep -qF "SUT override in effect: ${good}" "$SUT_STDOUT"; then
   fails_here=1
 fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- case 4: an unreadable SUT file stops the run -----------------------------
+# A file that exists and is non-empty but cannot be read walks straight through
+# an -f/-s guard, and `bash "$SUT"` then exits 126 on every row — the same false
+# RED a missing path produces, differing only in what caused it (#217). `test -r`
+# is what closes it, and it is the right check rather than merely a sufficient
+# one: it asks access(2), which is the same question the `bash "$SUT"` below the
+# guard asks.
+unreadable="${HARNESS_TMP}/unreadable-script.sh"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$unreadable"
+chmod 000 "$unreadable"
+if [ -r "$unreadable" ]; then
+  # Skipped rather than run, and announced rather than silent. chmod 000 does not
+  # stop uid 0, and under root `bash "$SUT"` really can read the file — so a guard
+  # that lets it through is behaving correctly, and reporting a FAIL here would
+  # charge root's correct behaviour to the script under test. Read permission has
+  # no equivalent of the pre-receive hook gitrepo.sh uses to reach "the push was
+  # refused" without a mode bit, so there is nothing to substitute. The line is
+  # printed because a case that passes while testing nothing is the exact state
+  # this suite exists to catch; the count below drops to 3/3, and this line is
+  # what says why.
+  printf 'skip unreadable SUT: chmod 000 left it readable as uid %s — the guard is right to accept it here\n' "$(id -u)"
+else
+  total=$((total + 1))
+  fails_here=0
+  run_case "$unreadable"
+  if ! check_eq 'unreadable SUT: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
+  if ! check_eq 'unreadable SUT: no test file ran' 'did-not-run' "$(marker_state)"; then fails_here=1; fi
+  if ! grep -q 'SUT' "$SUT_STDERR"; then
+    printf 'FAIL unreadable SUT: stderr does not name SUT: %s\n' "$(head -c 400 "$SUT_STDERR")"
+    fails_here=1
+  fi
+  if ! grep -qF -- "$unreadable" "$SUT_STDERR"; then
+    printf 'FAIL unreadable SUT: stderr does not name the path: %s\n' "$(head -c 400 "$SUT_STDERR")"
+    fails_here=1
+  fi
+  if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+fi
 
 harness_exit "$failed" "$total"
