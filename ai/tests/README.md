@@ -210,6 +210,14 @@ Its rules, each of which `scripts-have-tests_test.sh` asserts against a syntheti
 - Selection is by position in the tree, not by shebang: a script under
   `scripts/` in a language ShellCheck does not cover must not be silently
   exempt as well as unlinted.
+- A **symlink** under `scripts/` is enumerated like a regular file, which is
+  where this parts company with `lint.sh`'s deliberate `-type f`. For a linter
+  that exclusion is right; for this gate `-type f` answers the wrong question,
+  since it classifies a symlink by the link. Measured: an untested symlink
+  beside one covered regular script reported `1 script(s), 1 with tests, 0
+  exempted` and exit 0, naming the symlink nowhere. The target is never resolved
+  or read — only visibility is at stake — so a dangling link is reported rather
+  than fatal.
 
 Entries are grouped per TODO item of the plan filling the coverage in, with an
 untouched comment line between groups: two branches deleting adjacent line

@@ -55,7 +55,20 @@ ALLOWLIST="${TESTS_ROOT}/scripts-have-tests.allowlist"
 LISTING="$(mktemp)"
 trap 'rm -f "$LISTING"' EXIT
 
-if ! find "$SKILLS_ROOT" -type f -print0 | sort -z >"$LISTING"; then
+# Symlinks are enumerated alongside regular files, which is where this parts
+# company with ai/tests/lint.sh. That script records leaving symlinks out as a
+# deliberate decision, and for a linter it is one: ShellCheck reads a file, and
+# following a link out of the tree would let the selection escape ai/ and turn a
+# dangling link into a hard failure. Here the question is different — "did
+# something land in a scripts/ directory" — and `-type f` answers it wrongly,
+# because it classifies a symlink by the link. Measured: an untested symlink
+# beside one covered regular script gave `1 script(s), 1 with tests, 0 exempted`
+# and exit 0, the symlink named nowhere. That is this gate's own failure mode
+# reached through the same door the shebang note below refuses to leave open, so
+# a symlink under scripts/ needs a test or an allowlist line like anything else.
+# The target is never resolved and never read; only visibility is at stake, so a
+# dangling link is reported rather than fatal.
+if ! find "$SKILLS_ROOT" \( -type f -o -type l \) -print0 | sort -z >"$LISTING"; then
   printf 'scripts-have-tests: listing %s failed — the tree was not fully read\n' "$SKILLS_ROOT" >&2
   exit 1
 fi

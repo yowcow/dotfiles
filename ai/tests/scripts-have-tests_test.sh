@@ -217,15 +217,21 @@ fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 9: surrounding whitespace on an entry still exempts ----------------
+# Padded on *both* sides, and written with printf rather than a heredoc so the
+# trailing spaces are visible in the source and cannot be lost to an editor that
+# strips them. One entry carrying both is what holds both halves of the trim:
+# drop either one and this entry stops matching, becomes a stale entry, and the
+# row fails. A leading-only fixture measured nothing about the trailing trim —
+# a gate with that half removed passed it (measured in review).
 total=$((total + 1))
 fails_here=0
 root="$(tree_new)"
 mk_script "$root" alpha 'a.sh'
-mk_allowlist "$root" <<'AL'
-  ai/skills/alpha/scripts/a.sh
-AL
+printf '  %s   \n' 'ai/skills/alpha/scripts/a.sh' | mk_allowlist "$root"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'padded entry: exit' 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_bytes 'padded entry: stdout' \
+  'scripts-have-tests: 1 script(s), 0 with tests, 1 exempted by the allowlist\n'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 10: an empty test file is not coverage -----------------------------
@@ -358,6 +364,31 @@ run_sut bash "$SUT" "$root"
 if ! check_eq 'non-script files: exit' 0 "$SUT_STATUS"; then fails_here=1; fi
 if ! check_bytes 'non-script files: stdout' \
   'scripts-have-tests: 1 script(s), 1 with tests, 0 exempted by the allowlist\n'; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- case 17: a symlinked script is enumerated, not silently exempt ---------
+# `find -type f` classifies a symlink by the link, so a script landing under
+# scripts/ as a symlink is dropped from the enumeration entirely: never checked
+# for a test, never reported as needing one. Measured on the first version of
+# this gate — an untested symlink beside one covered regular script produced
+# `1 script(s), 1 with tests, 0 exempted` and exit 0, with the symlink named
+# nowhere. That is the gate's own failure mode, so it is enumerated instead.
+#
+# The covered regular script is load-bearing in this fixture: with the symlink
+# alone the tree enumerates empty and the run fails loudly on that guard
+# instead, which would let the bypass pass this case for the wrong reason.
+total=$((total + 1))
+fails_here=0
+root="$(tree_new)"
+mk_script "$root" alpha 'a.sh'
+mk_test "$root" alpha 'a_test.sh'
+ln -s /nonexistent/elsewhere.sh "${root}/ai/skills/alpha/scripts/sneaky.sh"
+run_sut bash "$SUT" "$root"
+if ! check_eq 'symlinked script: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
+if ! grep -qF 'no test for ai/skills/alpha/scripts/sneaky.sh' "$SUT_STDERR"; then
+  printf 'FAIL symlinked script: stderr does not name the symlink: %s\n' "$(head -c 400 "$SUT_STDERR")"
+  fails_here=1
+fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
