@@ -427,4 +427,28 @@ if ! check_eq 'directory allowlist: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
 if ! check_stderr_has 'directory allowlist' 'cannot be read'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
+# --- case 20: a zero-byte allowlist is "no exemptions", not an error --------
+# The third spelling of "no exemptions", after case 2's absent file and case 7's
+# comments-only file. The issue names all three as success states, and this is
+# the one where the reading loop runs against a file with nothing in it at all.
+#
+# It also pins the `read`-at-EOF half of the `|| [ -n "$line" ]` idiom. A review
+# read that as an unbound-variable hazard under `set -u`; measured, it is not —
+# bash's `read` assigns the variable the empty string at EOF, so the loop exits
+# cleanly (the directory case that *does* abort, case 19, gets there through a
+# read *error*, where nothing is assigned). This row is what would notice if that
+# ever stopped being true, or if an empty file were ever made an error.
+total=$((total + 1))
+fails_here=0
+root="$(tree_new)"
+mk_script "$root" alpha 'a.sh'
+mk_test "$root" alpha 'a_test.sh'
+mkdir -p "${root}/ai/tests"
+: >"${root}/ai/tests/scripts-have-tests.allowlist"
+run_sut bash "$SUT" "$root"
+if ! check_eq 'zero-byte allowlist: exit' 0 "$SUT_STATUS"; then fails_here=1; fi
+if ! check_bytes 'zero-byte allowlist: stdout' \
+  'scripts-have-tests: 1 script(s), 1 with tests, 0 exempted by the allowlist\n'; then fails_here=1; fi
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
 harness_exit "$failed" "$total"
