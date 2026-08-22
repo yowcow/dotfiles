@@ -70,6 +70,25 @@ mk_allowlist() {
   cat >"$1/ai/tests/scripts-have-tests.allowlist"
 }
 
+# check_stderr_has <label> <needle>
+# A file-local assertion, the way absorb-base_test.sh has assert_row and
+# check_contains: thirteen rows here hold the gate to something it must say on
+# stderr, and inlining the grep-and-report at each of them buried the needle —
+# the one part that differs — in boilerplate. The needle stays at the call site,
+# so what a row asserts is still read there rather than here.
+#
+# -F because every needle is a literal path or message fragment, and -- because
+# a needle is free to begin with a dash.
+check_stderr_has() {
+  local label="$1" needle="$2"
+  if grep -qF -- "$needle" "$SUT_STDERR"; then
+    return 0
+  fi
+  printf 'FAIL %s: stderr does not contain [%s]\n  got: %s\n' \
+    "$label" "$needle" "$(head -c 600 "$SUT_STDERR")"
+  return 1
+}
+
 # --- case 0: the real tree is clean ------------------------------------------
 # No argument, so the gate anchors on its own location and reads the real
 # ai/skills, ai/tests and allowlist. This is the row that fails when a script
@@ -113,14 +132,8 @@ root="$(tree_new)"
 mk_script "$root" alpha 'a.sh'
 run_sut bash "$SUT" "$root"
 if ! check_eq 'uncovered: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'no test for ai/skills/alpha/scripts/a.sh' "$SUT_STDERR"; then
-  printf 'FAIL uncovered: stderr does not name the script: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
-if ! grep -qF 'ai/tests/alpha/a_test.sh' "$SUT_STDERR"; then
-  printf 'FAIL uncovered: stderr does not name the expected test path: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'uncovered: names the script' 'no test for ai/skills/alpha/scripts/a.sh'; then fails_here=1; fi
+if ! check_stderr_has 'uncovered: names the expected test path' 'ai/tests/alpha/a_test.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 4: uncovered but allowlisted ---------------------------------------
@@ -149,10 +162,7 @@ ai/skills/alpha/scripts/gone.sh
 AL
 run_sut bash "$SUT" "$root"
 if ! check_eq 'stale entry: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'ai/skills/alpha/scripts/gone.sh' "$SUT_STDERR"; then
-  printf 'FAIL stale entry: stderr does not name the entry: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'stale entry: names the entry' 'ai/skills/alpha/scripts/gone.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 6: allowlist entry for a script that now has a test ----------------
@@ -210,10 +220,7 @@ mk_allowlist "$root" <<'AL'
 AL
 run_sut bash "$SUT" "$root"
 if ! check_eq 'commented-out entry: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'no test for ai/skills/alpha/scripts/a.sh' "$SUT_STDERR"; then
-  printf 'FAIL commented-out entry: stderr does not name the script: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'commented-out entry: names the script' 'no test for ai/skills/alpha/scripts/a.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 9: surrounding whitespace on an entry still exempts ----------------
@@ -245,10 +252,7 @@ mkdir -p "${root}/ai/tests/alpha"
 : >"${root}/ai/tests/alpha/a_test.sh"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'empty test file: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'no test for ai/skills/alpha/scripts/a.sh' "$SUT_STDERR"; then
-  printf 'FAIL empty test file: stderr does not name the script: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'empty test file: names the script' 'no test for ai/skills/alpha/scripts/a.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 11: an empty enumeration is an error -------------------------------
@@ -258,10 +262,7 @@ fails_here=0
 root="$(tree_new)"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'no script found: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'the enumeration is broken' "$SUT_STDERR"; then
-  printf 'FAIL no script found: stderr does not say the enumeration is broken: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'no script found' 'the enumeration is broken'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 12: a missing ai/skills is a listing failure, not an empty tree ----
@@ -271,10 +272,7 @@ root="$(tree_new)"
 rmdir "${root}/ai/skills"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'no ai/skills: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'the tree was not fully read' "$SUT_STDERR"; then
-  printf 'FAIL no ai/skills: stderr does not report a listing failure: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'no ai/skills' 'the tree was not fully read'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 13: a partially-readable tree is a failure, never a green ----------
@@ -297,10 +295,7 @@ else
   fails_here=0
   run_sut bash "$SUT" "$root"
   if ! check_eq 'unreadable subdirectory: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-  if ! grep -qF 'the tree was not fully read' "$SUT_STDERR"; then
-    printf 'FAIL unreadable subdirectory: stderr does not report a listing failure: %s\n' "$(head -c 400 "$SUT_STDERR")"
-    fails_here=1
-  fi
+  if ! check_stderr_has 'unreadable subdirectory' 'the tree was not fully read'; then fails_here=1; fi
   if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 fi
 chmod 755 "${root}/ai/skills/beta/scripts/hidden" 2>/dev/null || true
@@ -322,10 +317,7 @@ else
   fails_here=0
   run_sut bash "$SUT" "$root"
   if ! check_eq 'unreadable allowlist: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-  if ! grep -qF 'cannot be read' "$SUT_STDERR"; then
-    printf 'FAIL unreadable allowlist: stderr does not say it cannot be read: %s\n' "$(head -c 400 "$SUT_STDERR")"
-    fails_here=1
-  fi
+  if ! check_stderr_has 'unreadable allowlist' 'cannot be read'; then fails_here=1; fi
   if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 fi
 chmod 644 "${root}/ai/tests/scripts-have-tests.allowlist" 2>/dev/null || true
@@ -340,10 +332,7 @@ mkdir -p "${root}/ai/skills/alpha/scripts/lib"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${root}/ai/skills/alpha/scripts/lib/h.sh"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'nested script: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'ai/tests/alpha/lib/h_test.sh' "$SUT_STDERR"; then
-  printf 'FAIL nested script: stderr does not name the nested expected test path: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'nested script: names the nested expected test path' 'ai/tests/alpha/lib/h_test.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 16: a file outside a scripts/ directory is not enumerated ---------
@@ -385,10 +374,7 @@ mk_test "$root" alpha 'a_test.sh'
 ln -s /nonexistent/elsewhere.sh "${root}/ai/skills/alpha/scripts/sneaky.sh"
 run_sut bash "$SUT" "$root"
 if ! check_eq 'symlinked script: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'no test for ai/skills/alpha/scripts/sneaky.sh' "$SUT_STDERR"; then
-  printf 'FAIL symlinked script: stderr does not name the symlink: %s\n' "$(head -c 400 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'symlinked script: names the symlink' 'no test for ai/skills/alpha/scripts/sneaky.sh'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- case 18: two entries cannot combine into one exemption -----------------
@@ -417,14 +403,8 @@ name.sh
 AL
 run_sut bash "$SUT" "$root"
 if ! check_eq 'split entry: exit' 1 "$SUT_STATUS"; then fails_here=1; fi
-if ! grep -qF 'no test for' "$SUT_STDERR"; then
-  printf 'FAIL split entry: the script was exempted by two lines that do not name it: %s\n' "$(head -c 600 "$SUT_STDERR")"
-  fails_here=1
-fi
-if ! grep -qF '3 problem(s)' "$SUT_STDERR"; then
-  printf 'FAIL split entry: the untested script was not counted: %s\n' "$(head -c 600 "$SUT_STDERR")"
-  fails_here=1
-fi
+if ! check_stderr_has 'split entry: the script is named, not exempted' 'no test for'; then fails_here=1; fi
+if ! check_stderr_has 'split entry: the script is counted' '3 problem(s)'; then fails_here=1; fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 harness_exit "$failed" "$total"
