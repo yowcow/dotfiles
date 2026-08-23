@@ -258,4 +258,127 @@ W="$(work_repo empty-nopr "$REMOTE" fresh main)"
 run_in "$W"
 assert_row 'no-trailer-empty-when-head-is-the-default-tip' 0 'EMPTY\n' 0
 
+PR_LIST_JQ='.[] | "\(.number) \(.state)"'
+
+# stub_pr_list <head-branch> <exit-status> -- the prerequisite lookup, raw
+# body on stdin. Raw, not filtered, because the filter is itself one of the
+# guards the SUT's header names: `.[]` rather than `.[0]` is what makes an
+# empty list yield zero lines instead of one interpolated "null null", and a
+# pre-filtered fixture would decide that rather than test it. Measured
+# through this stub's own jq: `.[0] | "\(.number) \(.state)"` on `[]` prints
+# `null null`, which the SUT would read as one PR in an unknown state.
+stub_pr_list() {
+  gh_stub_raw_response '*' "$2" pr list --head "$1" --state all --json number,state --jq "$PR_LIST_JQ"
+}
+
+DEP_SHA="$(bare_sha "$REMOTE" dep)"
+TASK_SHA="$(bare_sha "$REMOTE" task)"
+
+# ---- a trailer the branch recorded itself -------------------------------
+
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"OPEN"}]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-open "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-open-uses-its-branch' 0 "RANGE ${DEP_SHA}..${TASK_SHA}\n" 1
+
+# `task` records `older-base` on its first commit and `dep` on its second, so
+# the two orders of reading the stack disagree about the answer. Both lookups
+# are stubbed even though a correct scan makes only one: without the
+# `older-base` entry a scan reading oldest-first would fail as "an argv no
+# case stubbed", which names the mechanism instead of the defect, while with
+# it the row fails on the range it printed. The gh-call assertion is what
+# holds the second entry to being unused.
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"OPEN"}]\n' | stub_pr_list dep 0
+printf '[{"number":8,"state":"OPEN"}]\n' | stub_pr_list older-base 0
+W="$(work_repo shadow "$REMOTE" task main)"
+run_in "$W"
+assert_row 'newest-trailer-shadows-older' 0 "RANGE ${DEP_SHA}..${TASK_SHA}\n" 1
+
+# ---- MERGED: the boundary is the prerequisite's own head ----------------
+#
+# This remote is built `no-dep`: branch `dep` never reached it, which is what
+# a merged prerequisite leaves behind once its branch is deleted. Its commits
+# are still reachable through `task`'s history, and its head still has a name
+# -- `refs/pull/9/head` -- which is the only thing left to bound the range
+# with. So an implementation fetching the recorded branch name reaches
+# `STOP fetch-failed` here, and one falling back to the default branch prints
+# a wider range that sweeps the prerequisite's whole diff into the review.
+REMOTE_MERGED="$(build_remote merged no-dep)"
+PULL9_SHA="$(bare_sha "$REMOTE_MERGED" refs/pull/9/head)"
+MERGED_TASK_SHA="$(bare_sha "$REMOTE_MERGED" task)"
+MERGED_MAIN_SHA="$(bare_sha "$REMOTE_MERGED" main)"
+
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"MERGED"}]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-merged "$REMOTE_MERGED" task main)"
+run_in "$W"
+assert_row 'prereq-merged-uses-the-pr-head' 0 "RANGE ${PULL9_SHA}..${MERGED_TASK_SHA}\n" 1
+
+# The measurement the row above is for, asserted on that same run: the base
+# must not be the default branch's tip. The first branch is not decoration --
+# "the base is not main's tip" proves nothing if the fixture made them the
+# same commit, and that is exactly the accident a later edit to build_remote
+# could introduce.
+total=$((total + 1))
+if [ "$PULL9_SHA" = "$MERGED_MAIN_SHA" ]; then
+  printf 'FAIL merged-base-is-not-the-default-branch: the fixture cannot discriminate -- refs/pull/9/head and main are the same commit\n'
+  failed=$((failed + 1))
+elif grep -q "RANGE ${MERGED_MAIN_SHA}" "$SUT_STDOUT"; then
+  printf 'FAIL merged-base-is-not-the-default-branch: the range starts at the default branch tip %s\n' "$MERGED_MAIN_SHA"
+  failed=$((failed + 1))
+fi
+
+# ---- the remaining prerequisite states ---------------------------------
+#
+# Each stops before any fetch, so the fixture's branches are irrelevant to
+# them; what is under test is that four different "cannot proceed" causes
+# stay four different answers rather than collapsing into one.
+
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"CLOSED"}]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-closed "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-closed-stops' 0 'STOP abandoned-prerequisite\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '[]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-none "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-has-no-pr' 0 'STOP no-prereq-pr\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"OPEN"},{"number":8,"state":"CLOSED"}]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-multiple "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-has-several-prs' 0 'STOP ask-multiple-prs\n' 1
+
+total=$((total + 1))
+stub_dir_new
+: | stub_pr_list dep 1
+W="$(work_repo prereq-unreadable "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-lookup-fails' 0 'STOP prereq-lookup-failed\n' 1
+
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"DRAFT"}]\n' | stub_pr_list dep 0
+W="$(work_repo prereq-unknown-state "$REMOTE" task main)"
+run_in "$W"
+assert_row 'prereq-state-unrecognised' 1 '' 1
+
+total=$((total + 1))
+if ! grep -q "unexpected PR state 'DRAFT'" "$SUT_STDERR"; then
+  printf 'FAIL prereq-state-unrecognised: stderr does not name the state:\n%s\n' \
+    "$(head -c 400 "$SUT_STDERR")"
+  failed=$((failed + 1))
+fi
+
 harness_exit "$failed" "$total"
