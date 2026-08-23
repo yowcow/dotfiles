@@ -40,8 +40,6 @@ ai/skills/plan-work/scripts/list-sub-issues.sh
 ai/skills/plan-work/scripts/set-prerequisites.sh
 
 # item 9: Copilot review scripts
-ai/skills/pr-to-ready/scripts/request-copilot-review.sh
-ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh
 
 # item 10: resolve-thread.sh
 ai/skills/pr-to-ready/scripts/resolve-thread.sh
