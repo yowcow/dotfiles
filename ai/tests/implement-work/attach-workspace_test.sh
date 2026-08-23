@@ -353,4 +353,43 @@ W="$(build_repo argsthree)"
 run_in "$W" task "$(wt_path argsthree-new)" extra
 assert_row 'three-arguments' 1 ''
 
+# ---- the worktree lookup matches one exact line ------------------------
+#
+# `grep -Fx` against `branch refs/heads/<name>`, and both letters are
+# load-bearing. Without -F a "." in the branch name is a regex metacharacter,
+# so `feat.x` matches the line of `feat-x`; without -x the match may be a
+# substring, so `task` matches the line of `task-extra`. Either way the script
+# prints REUSE naming a *different* task's workspace, and the caller commits
+# its work on top of that branch.
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo dotname)"
+git_repo_checkout "$W" feat-x main
+git_repo_checkout "$W" main
+WT_DECOY="$(wt_path dotname-decoy)"
+git -C "$W" worktree add -q "$WT_DECOY" feat-x
+git_repo_checkout "$W" 'feat.x' main
+git_repo_checkout "$W" main
+WT_NEW="$(wt_path dotname-new)"
+run_in "$W" 'feat.x' "$WT_NEW"
+assert_row 'dot-in-name-does-not-grab-another-worktree' 0 "ATTACHED ${WT_NEW}\n"
+tally check_on_branch 'dot-in-name-does-not-grab-another-worktree: on the asked-for branch' \
+  "$WT_NEW" 'feat.x'
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo prefixname)"
+git_repo_checkout "$W" task-extra main
+git_repo_checkout "$W" main
+WT_DECOY="$(wt_path prefixname-decoy)"
+git -C "$W" worktree add -q "$WT_DECOY" task-extra
+git_repo_checkout "$W" task main
+git_repo_checkout "$W" main
+WT_NEW="$(wt_path prefixname-new)"
+run_in "$W" task "$WT_NEW"
+assert_row 'longer-name-does-not-grab-another-worktree' 0 "ATTACHED ${WT_NEW}\n"
+tally check_on_branch 'longer-name-does-not-grab-another-worktree: on the asked-for branch' \
+  "$WT_NEW" task
+
 harness_exit "$failed" "$total"
