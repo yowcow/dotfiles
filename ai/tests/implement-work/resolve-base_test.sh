@@ -320,4 +320,123 @@ run_in "$W" 203
 assert_row 'blockedBy-lookup-fails-loudly' 1 '' 1
 check_row x check_tracking 'blockedBy-lookup-fails: no fetch' "$W" "$REMOTE" main stale
 
+# ---- the prerequisite has no PR ----------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json | stub_prereq_prs 77 0
+W="$(work_repo prs-none "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-has-no-pr' 0 'STOP not-implemented\n' 2
+check_row x check_tracking 'prerequisite-has-no-pr: no fetch' "$W" "$REMOTE" main stale
+
+# ---- the prerequisite has two PRs --------------------------------------
+#
+# The second counting guard's row: closedByPullRequestsReferences comes back as
+# a plain array, so it is counted with `length`. The `pr view` entry is stubbed
+# and unused for the same reason as the two-prerequisites row -- a mutation
+# that counted emptiness then fails as `BASE feature` against
+# `STOP ask-multiple-prs` rather than as an unstubbed argv.
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 66 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"OPEN"}\n' | stub_pr_view 55 0
+W="$(work_repo prs-two "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-has-several-prs' 0 'STOP ask-multiple-prs\n' 2
+check_row x check_tracking 'prerequisite-has-several-prs: no fetch' "$W" "$REMOTE" main stale
+
+# ---- the PR lookup itself fails ----------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+printf 'gh: HTTP 502\n' | stub_prereq_prs 77 1
+W="$(work_repo prs-fails "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-pr-lookup-fails-loudly' 1 '' 2
+check_row x check_tracking 'prerequisite-pr-lookup-fails: no fetch' "$W" "$REMOTE" main stale
+
+# ---- PR state: OPEN ----------------------------------------------------
+#
+# The prerequisite's head is the base, and it is really fetched: origin/feature
+# has to move to the remote's tip. origin/main staying behind is the other half
+# of the answer -- it is what distinguishes this row from the MERGED one below
+# by something other than its stdout.
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"OPEN"}\n' | stub_pr_view 55 0
+W="$(work_repo state-open "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-open-uses-its-head' 0 'BASE feature\n' 3
+check_row x check_tracking 'open: origin/feature fetched' "$W" "$REMOTE" feature tip
+check_row x check_tracking 'open: origin/main untouched' "$W" "$REMOTE" main stale
+
+# ---- PR state: MERGED --------------------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"MERGED"}\n' | stub_pr_view 55 0
+W="$(work_repo state-merged "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-merged-uses-the-default-branch' 0 'BASE main\n' 3
+check_row x check_tracking 'merged: origin/main fetched' "$W" "$REMOTE" main tip
+check_row x check_tracking 'merged: origin/feature untouched' "$W" "$REMOTE" feature stale
+
+# ---- PR state: CLOSED --------------------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"CLOSED"}\n' | stub_pr_view 55 0
+W="$(work_repo state-closed "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-closed-stops' 0 'STOP abandoned-prerequisite\n' 3
+check_row x check_tracking 'closed: no fetch' "$W" "$REMOTE" main stale
+
+# ---- PR state: something else -----------------------------------------
+#
+# An unrecognised state is the one answer that is neither BASE nor STOP: the
+# SUT refuses to guess and exits 1. The stderr assertion names the state,
+# because "exit 1 with nothing readable" would leave the caller no way to tell
+# this apart from the two lookup failures above.
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"DRAFT"}\n' | stub_pr_view 55 0
+W="$(work_repo state-unknown "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'prerequisite-state-unrecognised' 1 '' 3
+check_row x check_tracking 'unrecognised: no fetch' "$W" "$REMOTE" main stale
+
+total=$((total + 1))
+if ! grep -q "unexpected PR state 'DRAFT' for PR 55" "$SUT_STDERR"; then
+  printf 'FAIL prerequisite-state-unrecognised: stderr names neither the state nor the PR:\n%s\n' \
+    "$(head -c 400 "$SUT_STDERR")"
+  failed=$((failed + 1))
+fi
+
+# ---- the pr view itself fails ------------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf 'gh: HTTP 502\n' | stub_pr_view 55 1
+W="$(work_repo pr-view-fails "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'pr-view-fails-loudly' 1 '' 3
+check_row x check_tracking 'pr-view-fails: no fetch' "$W" "$REMOTE" main stale
+
 harness_exit "$failed" "$total"
