@@ -43,6 +43,19 @@
 # violation (R3). So no row asserts a mid-readback landing; `neither-form-lands`
 # and `lands-on-the-final-readback-try` pin the poll's extent from both sides.
 #
+# R2 is also what makes `paginated-page-lengths-are-summed` possible at all: the
+# two pages of one readback are indices 3 and 4. Its BASELINE is the load-bearing
+# part, and it is 1 rather than 0 on purpose. The script sums the per-page
+# lengths, because --jq runs once per page; the defect it guards against is
+# reading one page's number as the whole answer. With a baseline of 0 that defect
+# is invisible — pages of 1 and 1 sum to 2, a single page reads as 1, and both
+# clear 0, so the row passes either way. Measured: with the script's `awk` sum
+# replaced by a last-value-only `awk`, a 0-baseline version of this row still
+# reported ok while two other rows failed. A baseline of 1 puts the threshold
+# between the two answers — 2 lands, 1 does not — so the wrong reading exhausts
+# the readback and reaches index 5, which no entry answers, and the row fails
+# loudly on the violation (R3).
+#
 # THE SUCCESS IS READ FROM THE TIMELINE, NEVER FROM requested_reviewers. Copilot
 # is a Bot and never appears in GET .../requested_reviewers — keyed on that
 # endpoint this script reported Copilot permanently unavailable while requesting
@@ -56,8 +69,17 @@
 # the timeline genuinely never carries the event. A read-side defect is the
 # opposite shape: the event is on the timeline and a reader looking at the wrong
 # surface misses it. `flag-takes` and `rest-form-takes` are that case, and they
-# exit 0. A requested_reviewers-keyed reader collapses both to exit 3, which is
-# exactly what the RED below shows.
+# exit 0. In production a requested_reviewers-keyed reader collapses both to
+# exit 3, since that endpoint answers "absent" for either — that is the #167
+# defect, and it is why the two need separate rows here.
+#
+# The RED below does NOT reproduce that collapse, and expecting exit 3 from it
+# would be a wasted hour: this suite stubs no GET of that endpoint, so the old
+# script's readback hits an unstubbed argv, the fake gh exits 99, and the old
+# script's own error path returns 4 before it can answer "absent" at all.
+# Measured: the three exit-3 rows all report `want [3], got [4]`. What the RED
+# demonstrates is the script asking the wrong surface — which is the defect —
+# not the answer that surface would have given.
 #
 # RED verification — the pre-#167 version read requested_reviewers, so it never
 # issues the TIMELINE argv at all. See ai/tests/README.md.
@@ -150,7 +172,7 @@ non-copilot-events-do-not-count|*=timeline-no-copilot|acme widgets 7|3|13|8
 previous-round-event-is-not-this-round|*=timeline-copilot-once|acme widgets 7|3|13|8
 previous-round-event-plus-a-new-one|1=timeline-copilot-once;3=timeline-copilot-twice|acme widgets 7|0|3|0
 team-request-event-does-not-abort-the-filter|1=timeline-team-only;3=timeline-team-and-copilot|acme widgets 7|0|3|0
-paginated-page-lengths-are-summed|1=timeline-empty;3=timeline-page1;4=timeline-page2|acme widgets 7|0|4|0
+paginated-page-lengths-are-summed|1=timeline-copilot-once;3=timeline-page1;4=timeline-page2|acme widgets 7|0|4|0
 baseline-timeline-unreadable|1=not-found:1|acme widgets 7|4|1|0
 readback-timeline-unreadable|1=timeline-empty;3=not-found:1|acme widgets 7|4|3|0
 too-few-args|-|acme widgets|2|0|0
