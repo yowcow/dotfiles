@@ -18,7 +18,6 @@ ai/skills/implement-work/scripts/check-clean.sh
 ai/skills/implement-work/scripts/resolve-branch.sh
 
 # item 3: attach-workspace.sh
-ai/skills/implement-work/scripts/attach-workspace.sh
 
 # item 4: resolve-base.sh
 ai/skills/implement-work/scripts/resolve-base.sh
