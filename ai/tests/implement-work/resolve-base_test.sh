@@ -165,8 +165,6 @@ stub_pr_view() {
 }
 
 # stub_default_branch <exit-status> -- the ladder's rung 2, body already filtered
-# Not called by this file's own rows; used by rows appended after them.
-# shellcheck disable=SC2317
 stub_default_branch() {
   gh_stub_response '*' "$1" repo view --json defaultBranchRef --jq .defaultBranchRef.name
 }
@@ -438,5 +436,90 @@ W="$(work_repo pr-view-fails "$REMOTE" main)"
 run_in "$W" 203
 assert_row 'pr-view-fails-loudly' 1 '' 3
 check_row x check_tracking 'pr-view-fails: no fetch' "$W" "$REMOTE" main stale
+
+# ---- the default-branch ladder ----------------------------------------
+#
+# Rung 1 is the local symref, rung 2 the API, rung 3 giving up. Every row here
+# runs with no argument, so the issue lookups stay out of the picture and the
+# gh call count is the ladder's own.
+#
+# The first row stubs rung 2 with a DIFFERENT branch name and asserts zero
+# calls: that is what pins the order. A row where both rungs answer `main`
+# would pass with the rungs swapped.
+
+total=$((total + 1))
+stub_dir_new
+printf 'decoy\n' | stub_default_branch 0
+W="$(work_repo ladder-symref "$REMOTE" main)"
+run_in "$W"
+assert_row 'symref-rung-wins-over-api' 0 'BASE main\n' 0
+check_row x check_tracking 'symref rung: origin/main fetched' "$W" "$REMOTE" main tip
+
+total=$((total + 1))
+stub_dir_new
+printf 'main\n' | stub_default_branch 0
+W="$(work_repo ladder-api "$REMOTE")"
+run_in "$W"
+assert_row 'default-branch-from-api' 0 'BASE main\n' 1
+check_row x check_tracking 'api rung: origin/main fetched' "$W" "$REMOTE" main tip
+
+# An API answer that is empty is not a branch name. Without the non-empty
+# check the SUT would print `BASE ` and fetch nothing under that name -- a
+# guessed answer where the ladder is meant to give up.
+
+total=$((total + 1))
+stub_dir_new
+: | stub_default_branch 0
+W="$(work_repo ladder-api-empty "$REMOTE")"
+run_in "$W"
+assert_row 'default-branch-api-answers-empty' 0 'STOP ask-default-branch\n' 1
+check_row x check_tracking 'api empty: no fetch' "$W" "$REMOTE" main stale
+
+total=$((total + 1))
+stub_dir_new
+printf 'gh: HTTP 502\n' | stub_default_branch 1
+W="$(work_repo ladder-api-fails "$REMOTE")"
+run_in "$W"
+assert_row 'default-branch-lookup-fails' 0 'STOP ask-default-branch\n' 1
+check_row x check_tracking 'api fails: no fetch' "$W" "$REMOTE" main stale
+
+# The MERGED path resolves the default branch through the same ladder, so it
+# reaches the same STOP. The row exists because that ladder call sits behind
+# two issue lookups there, and a version that only handled the count-0 path
+# would answer this one differently.
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"feature","state":"MERGED"}\n' | stub_pr_view 55 0
+printf 'gh: HTTP 502\n' | stub_default_branch 1
+W="$(work_repo merged-no-default "$REMOTE")"
+run_in "$W" 203
+assert_row 'merged-with-no-resolvable-default' 0 'STOP ask-default-branch\n' 4
+check_row x check_tracking 'merged, no default: no fetch' "$W" "$REMOTE" main stale
+
+# ---- fetches that fail -------------------------------------------------
+#
+# `git symbolic-ref` accepts a dangling target, which is how a row builds "the
+# default branch is named but absent from the remote". fetch_ref has no
+# handling for it, so git's 128 propagates under `set -e` and nothing is
+# printed -- the loud direction, and the row pins that it is not `BASE nosuch`.
+
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo default-absent "$REMOTE" nosuch)"
+run_in "$W"
+assert_row 'default-branch-absent-on-remote' 128 '' 0
+
+total=$((total + 1))
+stub_dir_new
+blocked_json 1 77 | stub_blocked 203 0
+prs_json 55 | stub_prereq_prs 77 0
+printf '{"headRefName":"nosuch","state":"OPEN"}\n' | stub_pr_view 55 0
+W="$(work_repo head-absent "$REMOTE" main)"
+run_in "$W" 203
+assert_row 'open-head-absent-on-remote' 128 '' 3
+check_row x check_tracking 'open head absent: origin/main untouched' "$W" "$REMOTE" main stale
 
 harness_exit "$failed" "$total"
