@@ -13,6 +13,16 @@
 # each — the stub matches `*` per argv, not globally — while TIMELINE carries
 # exact indices, because *which* read sees the event is the whole subject.
 #
+# EDIT's and POST's exit statuses come from the row's `forms` column, and three
+# rows set them non-zero. That column is not decoration: the script wraps both
+# calls in `|| true` and its header rests the claim "no gh call reaches exit
+# other" on exactly that. Stub both at 0 everywhere and the claim is untested —
+# measured, with the flag form's `|| true` deleted, all 14 rows of the previous
+# revision still passed. `flag-form-fails-and-the-rest-form-takes` covers the
+# first guard, `rest-form-fails-and-the-event-is-still-read` the second, and
+# `neither-form-lands-and-both-forms-failed` shows that two failed requests
+# still produce exit 3 — the documented answer — rather than a leaked status.
+#
 # The index map, with READBACK_TRIES=5 and every TIMELINE call serving one page:
 #
 #   1            TIMELINE, the baseline, taken before any request is sent
@@ -127,7 +137,7 @@ stub_timeline() {
 failed=0
 total=0
 
-while IFS='|' read -r name timeline args want_exit want_calls want_sleeps; do
+while IFS='|' read -r name timeline forms args want_exit want_calls want_sleeps; do
   case "$name" in '' | '#'*) continue ;; esac
   total=$((total + 1))
   stub_dir_new
@@ -136,8 +146,16 @@ while IFS='|' read -r name timeline args want_exit want_calls want_sleeps; do
   # not matter to the script, and their status is discarded on purpose. Their
   # stdout is dropped by the script, so an empty body served verbatim is the
   # honest fixture and gh_stub_response is the right helper for them.
-  gh_stub_response '*' 0 pr edit 7 --repo acme/widgets --add-reviewer '@copilot' </dev/null
-  gh_stub_response '*' 0 api --method POST repos/acme/widgets/pulls/7/requested_reviewers \
+  #
+  # `forms` is <edit-status>,<post-status>, and it exists so those statuses can
+  # be non-zero. The script guards both calls with `|| true` and documents that
+  # as the reason its exit "other" is unreachable; with every row stubbing 0,
+  # nothing held that. Measured: with the `|| true` removed from the flag form,
+  # all 14 rows of the previous revision still passed.
+  edit_status="${forms%%,*}"
+  post_status="${forms##*,}"
+  gh_stub_response '*' "$edit_status" pr edit 7 --repo acme/widgets --add-reviewer '@copilot' </dev/null
+  gh_stub_response '*' "$post_status" api --method POST repos/acme/widgets/pulls/7/requested_reviewers \
     -f 'reviewers[]=copilot-pull-request-reviewer[bot]' </dev/null
 
   if [ "$timeline" != '-' ]; then
@@ -162,21 +180,24 @@ while IFS='|' read -r name timeline args want_exit want_calls want_sleeps; do
     printf '  stderr: %s\n' "$(head -c 400 "$SUT_STDERR")"
   fi
 done <<'ROWS'
-# name|timeline|args|exit|calls|sleeps
-flag-takes|1=timeline-empty;3=timeline-copilot-once|acme widgets 7|0|3|0
-flag-takes-bot-suffix-spelling|1=timeline-empty;3=timeline-copilot-bot-suffix|acme widgets 7|0|3|0
-rest-form-takes|*=timeline-empty;9=timeline-copilot-once|acme widgets 7|0|10|4
-lands-on-the-final-readback-try|*=timeline-empty;13=timeline-copilot-once|acme widgets 7|0|14|8
-neither-form-lands|*=timeline-empty|acme widgets 7|3|13|8
-non-copilot-events-do-not-count|*=timeline-no-copilot|acme widgets 7|3|13|8
-previous-round-event-is-not-this-round|*=timeline-copilot-once|acme widgets 7|3|13|8
-previous-round-event-plus-a-new-one|1=timeline-copilot-once;3=timeline-copilot-twice|acme widgets 7|0|3|0
-team-request-event-does-not-abort-the-filter|1=timeline-team-only;3=timeline-team-and-copilot|acme widgets 7|0|3|0
-paginated-page-lengths-are-summed|1=timeline-copilot-once;3=timeline-page1;4=timeline-page2|acme widgets 7|0|4|0
-baseline-timeline-unreadable|1=not-found:1|acme widgets 7|4|1|0
-readback-timeline-unreadable|1=timeline-empty;3=not-found:1|acme widgets 7|4|3|0
-too-few-args|-|acme widgets|2|0|0
-too-many-args|-|acme widgets 7 extra|2|0|0
+# name|timeline|forms|args|exit|calls|sleeps
+flag-takes|1=timeline-empty;3=timeline-copilot-once|0,0|acme widgets 7|0|3|0
+flag-takes-bot-suffix-spelling|1=timeline-empty;3=timeline-copilot-bot-suffix|0,0|acme widgets 7|0|3|0
+rest-form-takes|*=timeline-empty;9=timeline-copilot-once|0,0|acme widgets 7|0|10|4
+lands-on-the-final-readback-try|*=timeline-empty;13=timeline-copilot-once|0,0|acme widgets 7|0|14|8
+flag-form-fails-and-the-rest-form-takes|*=timeline-empty;9=timeline-copilot-once|1,0|acme widgets 7|0|10|4
+rest-form-fails-and-the-event-is-still-read|*=timeline-empty;9=timeline-copilot-once|0,1|acme widgets 7|0|10|4
+neither-form-lands|*=timeline-empty|0,0|acme widgets 7|3|13|8
+neither-form-lands-and-both-forms-failed|*=timeline-empty|1,1|acme widgets 7|3|13|8
+non-copilot-events-do-not-count|*=timeline-no-copilot|0,0|acme widgets 7|3|13|8
+previous-round-event-is-not-this-round|*=timeline-copilot-once|0,0|acme widgets 7|3|13|8
+previous-round-event-plus-a-new-one|1=timeline-copilot-once;3=timeline-copilot-twice|0,0|acme widgets 7|0|3|0
+team-request-event-does-not-abort-the-filter|1=timeline-team-only;3=timeline-team-and-copilot|0,0|acme widgets 7|0|3|0
+paginated-page-lengths-are-summed|1=timeline-copilot-once;3=timeline-page1;4=timeline-page2|0,0|acme widgets 7|0|4|0
+baseline-timeline-unreadable|1=not-found:1|0,0|acme widgets 7|4|1|0
+readback-timeline-unreadable|1=timeline-empty;3=not-found:1|0,0|acme widgets 7|4|3|0
+too-few-args|-|0,0|acme widgets|2|0|0
+too-many-args|-|0,0|acme widgets 7 extra|2|0|0
 ROWS
 
 harness_exit "$failed" "$total"
