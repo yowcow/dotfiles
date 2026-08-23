@@ -16,9 +16,12 @@
 # recreate, inside the stub itself, the very absent-versus-could-not-ask
 # confusion this suite exists to catch. And an expectation the harness cannot
 # read must be named as such, rather than compared against as far as it got and
-# charged to the script under test.
+# charged to the script under test. And the payload of an `--input -` call must
+# be recorded, with its absence its own failure distinct from a byte mismatch —
+# without it, the three `plan-work` posting scripts' stdin-piped body is
+# unobservable, since it never reaches the argv the stub matches on.
 #
-# The ten numbered blocks below run in that order, matching the numbered list
+# The eleven numbered blocks below run in that order, matching the numbered list
 # in ai/tests/README.md. The blocks after them cover the other two pieces of
 # machinery the suite rests on: the disposable git repository helper and the
 # `sleep` stub.
@@ -289,6 +292,26 @@ case "$probe_out" in
     fails_here=1
     ;;
 esac
+if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
+
+# --- property 11: an `--input -` call's payload is recorded --------------------
+total=$((total + 1))
+stub_dir_new
+gh_stub_response 1 0 api --method POST "repos/acme/widgets/issues/7/comments" --input - <<<'{"id":1}'
+printf '%s' '{"body":"a `b` c\n"}' >"${HARNESS_TMP}/want.payload"
+gh api --method POST "repos/acme/widgets/issues/7/comments" --input - \
+  <"${HARNESS_TMP}/want.payload" >/dev/null
+fails_here=0
+if ! check_gh_stdin "stdin payload: recorded" 1 "${HARNESS_TMP}/want.payload"; then fails_here=1; fi
+# A call with no --input reads nothing, so "no payload" must be its own failure
+# rather than a comparison against an empty file, which would pass.
+stub_dir_new
+gh_stub_response 1 0 api "repos/acme/widgets" </dev/null
+gh api "repos/acme/widgets" >/dev/null
+if check_gh_stdin "stdin payload: probe" 1 "${HARNESS_TMP}/want.payload" >/dev/null 2>&1; then
+  echo "FAIL stdin payload: a call with no --input was reported as carrying one"
+  fails_here=1
+fi
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- gitrepo.sh: a repo with the requested remote URL, branches and commits ---

@@ -202,6 +202,30 @@ check_stdout_files() {
   return 1
 }
 
+# check_gh_stdin <label> <call-index> <expected-file>
+# gh が stdin で受け取ったバイト列の比較。「その呼び出しに payload が無い」は
+# 「バイト列が違う」とは別の失敗として報告する: 本文を流すのをやめた版を「別の
+# バイト列を送った」と報告すると原因を指さないし、空の期待値と突き合わせれば
+# そのまま通ってしまう。これはこの suite の欠陥クラス 1 を内側に向けたものである。
+check_gh_stdin() {
+  local label="$1" idx="$2" want="$3" got="${GH_STUB_DIR}/stdin.${2}"
+  if [ ! -f "$got" ]; then
+    printf 'FAIL %s: gh read no stdin payload for call %s\n' "$label" "$idx"
+    return 1
+  fi
+  if [ ! -r "$want" ]; then
+    printf 'FAIL %s: cannot read the expected payload from: %s\n' "$label" "$want"
+    return 1
+  fi
+  if cmp -s "$want" "$got"; then
+    return 0
+  fi
+  printf 'FAIL %s: the payload gh received differs\n  want: %s\n  got:  %s\n' \
+    "$label" "$(od -An -c <"$want" | tr -s ' \n' ' ')" \
+    "$(od -An -c <"$got" | tr -s ' \n' ' ')"
+  return 1
+}
+
 check_no_violations() {
   local label="$1" v
   v="$(gh_violations)"
