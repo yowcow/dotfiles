@@ -136,10 +136,6 @@ stub_pr_list() {
 # The failing spelling. A failing gh prints no body for --jq to reduce, so the
 # entry states "nothing on stdout" directly instead of handing the raw arm a
 # body it would not filter anyway.
-#
-# Not called by any row in this file yet: it answers the step-2/step-5 lookup
-# for a row that needs it to fail, and every row here reaches step 2 with a
-# body to filter. A later addition to this file's step-2/step-5 rows calls it.
 stub_pr_list_filtered() {
   gh_stub_response "$1" "$3" pr list --head "$2" --json number,isDraft --jq "$LIST_JQ"
 }
