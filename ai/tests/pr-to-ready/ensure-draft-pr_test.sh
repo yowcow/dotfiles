@@ -535,4 +535,33 @@ printf '[{"number":7,"isDraft":true},{"number":8,"isDraft":true}]\n' | stub_pr_l
 run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
 assert_row 'several-prs-after-create-stop' 0 'STOP ask-multiple-prs-after-create\n' 3
 
+# ---- argument validation -------------------------------------------------
+#
+# Each row builds its own fixture and calls stub_dir_new of its own, like
+# every other row in this file: gh_call_count reads ${GH_STUB_DIR}/count, and
+# only stub_dir_new resets it, so without a reset the first of these rows
+# would read the calls the previous row's fixture left behind and fail `want
+# gh calls: 0` against a perfectly correct SUT. Each row runs from a work repo
+# that could have answered, so a failure here is the guard's and not the
+# fixture's -- the same reasoning resolve-pr-base_test.sh records for its own
+# two.
+
+total=$((total + 1))
+stub_dir_new
+fixture args-none feature remote
+run_in "$FIXTURE_WORK"
+assert_row 'no-arguments' 1 '' 0
+
+total=$((total + 1))
+stub_dir_new
+fixture args-two feature remote
+run_in "$FIXTURE_WORK" feature "$TITLE"
+assert_row 'two-arguments' 1 '' 0
+
+total=$((total + 1))
+stub_dir_new
+fixture args-four feature remote
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE" extra
+assert_row 'four-arguments' 1 '' 0
+
 harness_exit "$failed" "$total"
