@@ -140,7 +140,6 @@ stub_pr_list() {
 # Not called by any row in this file yet: it answers the step-2/step-5 lookup
 # for a row that needs it to fail, and every row here reaches step 2 with a
 # body to filter. A later addition to this file's step-2/step-5 rows calls it.
-# shellcheck disable=SC2317
 stub_pr_list_filtered() {
   gh_stub_response "$1" "$3" pr list --head "$2" --json number,isDraft --jq "$LIST_JQ"
 }
@@ -317,5 +316,61 @@ total=$((total + 1))
 if ! check_eq 'named-branch-landed-not-the-checked-out-one' yes "$(remote_has_branch "$FIXTURE_BARE" feature)"; then
   failed=$((failed + 1))
 fi
+
+# ---- step 2: does a PR already exist? ------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+fixture exists-draft feature remote
+printf '[{"number":12,"isDraft":true}]\n' | stub_pr_list 1 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'existing-draft-pr-is-reported' 0 'PR 12 found draft=true\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture exists-ready feature remote
+printf '[{"number":12,"isDraft":false}]\n' | stub_pr_list 1 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'existing-ready-pr-is-reported' 0 'PR 12 found draft=false\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture lookupfail feature remote
+: | stub_pr_list_filtered 1 feature 1
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'lookup-failure-is-not-an-absent-pr' 0 'STOP pr-lookup-failed\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture multi feature remote
+printf '[{"number":12,"isDraft":true},{"number":13,"isDraft":false}]\n' | stub_pr_list 1 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'several-prs-for-one-branch-stop' 0 'STOP ask-multiple-prs\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture numeric 1234 remote
+printf '[{"number":12,"isDraft":true}]\n' | stub_pr_list 1 1234 0
+run_in "$FIXTURE_WORK" 1234 "$TITLE" "$BODY_FILE"
+assert_row 'a-numeric-branch-name-is-a-head-not-a-pr-number' 0 'PR 12 found draft=true\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture nobase feature remote
+git_repo_origin_head "$FIXTURE_WORK" nosuch
+printf '[{"number":12,"isDraft":true}]\n' | stub_pr_list 1 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'an-existing-pr-needs-no-base' 0 'PR 12 found draft=true\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture create feature remote
+printf '[]\n' | stub_pr_list 1 feature 0
+printf '[]' | gh_stub_raw_response 1 0 pr list --head feature --json number,isDraft \
+  --jq '.[0] | "\(.number) \(.isDraft)"'
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+printf '[{"number":7,"isDraft":true}]\n' | stub_pr_list 3 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'an-empty-list-is-no-pr-and-the-pr-is-created' 0 'PR 7 created draft=true base=main\n' 3
 
 harness_exit "$failed" "$total"
