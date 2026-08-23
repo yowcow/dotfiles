@@ -46,6 +46,14 @@
 #   - closedByPullRequestsReferences counted with `length` -> checked for
 #     emptiness: prerequisite-has-several-prs
 #   - rung 2's non-empty check dropped: default-branch-api-answers-empty
+#   - rung 1 (the local symref) removed from resolve_default_branch, so rung 2
+#     answers first: symref-rung-wins-over-api, which gets `BASE decoy` with
+#     one gh call instead of `BASE main` with zero. Every other row that
+#     reaches the ladder with only the symref planted -- no-argument-uses-
+#     default-branch, no-prerequisite-uses-default-branch, prerequisite-
+#     merged-uses-the-default-branch, and default-branch-absent-on-remote --
+#     fails too, but as an unstubbed `gh repo view` argv rather than a wrong
+#     answer, because none of them stubs rung 2
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
