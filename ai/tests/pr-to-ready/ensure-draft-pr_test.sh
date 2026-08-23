@@ -233,11 +233,12 @@ assert_row() {
 # ---- step 1: is the branch on the remote at all? -------------------------
 #
 # Step 1 runs before anything else -- before any PR lookup and before any base
-# resolution. `push-failure-stops` and
-# `a-branch-already-on-the-remote-is-not-pushed-again` install the *same*
-# rejecting hook for opposite reasons -- the first needs the push to fail, the
-# second needs the push never to happen -- so neither row is a copy of the
-# other.
+# resolution. `push-failure-stops` is the only row that installs a rejecting
+# hook: it needs a push attempt to fail. `a-branch-already-on-the-remote-is-
+# not-pushed-again` needs the opposite -- a push attempt that would actually
+# transmit if it happened -- so it instead puts the work repo one commit ahead
+# of the remote and reads the remote's tip directly; see that row's own
+# comment for why a hook cannot observe this case.
 
 total=$((total + 1))
 stub_dir_new
@@ -279,13 +280,28 @@ if ! check_eq 'ordering-row-landed-on-the-remote' yes "$(remote_has_branch "$FIX
   failed=$((failed + 1))
 fi
 
+# A rejecting hook cannot be used to prove this row's point: `fixture ...
+# remote` leaves the work repo's branch byte-identical to the remote's copy,
+# and re-pushing an identical ref is a no-op -- git prints "Everything
+# up-to-date" and the push never reaches `pre-receive` at all (measured). So
+# the work repo is put one commit ahead of the remote instead, which makes a
+# redundant push something that would really transmit, and the remote's tip
+# is captured before the SUT runs and compared against it afterward -- a
+# direct check that no push reached the remote, rather than one that depends
+# on a hook the redundant case cannot trigger.
 total=$((total + 1))
 stub_dir_new
 fixture nopush feature remote
-git_repo_deny_push "$FIXTURE_BARE"
+git_repo_commit "$FIXTURE_WORK" T2.md 'ahead\n' 'a commit the remote does not have'
+NOPUSH_TIP="$(git -C "$FIXTURE_BARE" rev-parse "refs/heads/feature")"
 printf '[{"number":12,"isDraft":true}]\n' | stub_pr_list 1 feature 0
 run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
 assert_row 'a-branch-already-on-the-remote-is-not-pushed-again' 0 'PR 12 found draft=true\n' 1
+
+total=$((total + 1))
+if ! check_eq 'no-redundant-push-moved-the-remote' "$NOPUSH_TIP" "$(git -C "$FIXTURE_BARE" rev-parse "refs/heads/feature")"; then
+  failed=$((failed + 1))
+fi
 
 total=$((total + 1))
 stub_dir_new
