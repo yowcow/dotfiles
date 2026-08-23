@@ -19,25 +19,37 @@
 # filter this file wrote, for real, through jq -- but never a mutated copy of
 # it, so a defect that lives only inside the filter string is invisible here.
 #
-# RED verification (see ai/tests/README.md) -- resolve-range.sh has never been
-# tested before this file, so there is no historical fix commit to check it
-# against the way the other table tests in this suite do. Task 5 confirms
-# coverage instead by hand-mutating a copy of the script and re-running this
-# file per mutant; the four below are recorded as prose pending that
-# measurement, and Task 5 corrects this list if a measurement disagrees:
-#   1. Swap emit_range's two arguments (the PR-record shape would then print
-#      the head before the base) -- pr-shape-uses-the-pr-record should read
-#      `RANGE hhh222..bbb111` and fail against the row's `bbb111..hhh222`.
-#   2. Drop emit_range's `$1 = $2` check, so it always prints RANGE -- then
-#      pr-shape-empty-when-ends-coincide should read `RANGE same111..same111`
-#      instead of `EMPTY` and fail.
-#   3. Remove the `if ! ENDS=...` guard around the `gh pr view` call, so a
-#      failing lookup aborts the script instead of printing a STOP -- then
-#      pr-lookup-fails should fail on exit status and empty stdout instead of
-#      `STOP pr-lookup-failed`.
-#   4. Loosen the `[ "$#" -gt 1 ]` guard (e.g. to `-gt 2`) -- then
-#      too-many-arguments should stop asserting exit 1 with empty stdout, since
-#      the extra argument would be let through instead of rejected.
+# RED verification (see ai/tests/README.md). resolve-range.sh has never been
+# tested before this file, so there is no pre-fix commit to point SUT= at the
+# way this suite's other table tests do. Each guard named in the script's own
+# header was removed instead, one at a time, in a copy under `mktemp -d` --
+# never inside ai/, where lint.sh would select it by shebang -- and this file
+# re-run against it as `SUT=<copy> ai/tests/run.sh <this file>`. What each
+# mutant actually produced, measured:
+#
+#   1. The trailer read guarded as well as captured (resolve-range.sh:69-83).
+#      Replacing the `if ! TRAILER_LOG=...` block with
+#      `TRAILER_LOG="$(git log ... 2>/dev/null || true)"` failed
+#      `trailer-read-fails` alone: want `STOP trailer-read-failed`, got
+#      `STOP merge-base-failed`, with the mutant's stderr showing it had
+#      fetched `main` on the way. That is the widening this file exists to
+#      pin -- a read that failed, taken for a trailer that was absent, sends
+#      the range to the default branch.
+#   2. The MERGED boundary being the prerequisite's own head (:129-134).
+#      Replacing `FETCH_SPEC="refs/pull/${PREREQ_PR}/head"` with
+#      `FETCH_SPEC="$(resolve_default_branch)"` failed three rows:
+#      `prereq-merged-uses-the-pr-head`, `merged-base-is-not-the-default-branch`
+#      (which named the default branch tip it had used), and
+#      `merged-pull-ref-absent` -- the last because a MERGED path that never
+#      builds a `refs/pull/<n>/head` spec cannot fail to fetch one.
+#   3. An empty PR list being "no prerequisite PR" (:112-115). Deleting the
+#      `[ "$LINE_COUNT" -eq 0 ]` block failed `prereq-has-no-pr` on both exit
+#      status (want 0, got 1) and stdout: the empty list fell through to the
+#      unexpected-state branch instead.
+#   4. Both shapes answering through emit_range (:32-42). Replacing its body
+#      with an unconditional `echo "RANGE $1..$2"` failed both EMPTY rows --
+#      `pr-shape-empty-when-ends-coincide` and
+#      `no-trailer-empty-when-head-is-the-default-tip`.
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
