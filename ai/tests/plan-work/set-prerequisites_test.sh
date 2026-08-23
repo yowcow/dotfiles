@@ -18,11 +18,14 @@
 # that does not edit stubs 1/2 as view/view. That is why the indices below are
 # not uniform across rows.
 #
-# One row carries 9, 12 and 100 deliberately. The script sorts lexically, and
-# says why: `comm` compares its inputs lexically and produces the wrong
-# difference when handed numerically-sorted lines. Those three numbers are the
-# smallest set where the two orders disagree, so the flag order in that row's
-# argv — 100, then 12, then 9 — is what pins it.
+# One row carries 9, 12 and 100 deliberately: they are the smallest set where
+# lexical and numeric order disagree, so the flag order in that row's argv —
+# 100, then 12, then 9 — is what pins the script's lexical sort. Measured, the
+# numerically-sorted variant does not fail the way the script's header predicts:
+# the header says `comm` "silently produces the wrong difference", but `comm`
+# detects the disorder, writes `input is not in sorted order` and exits 1, and
+# `set -euo pipefail` aborts before the edit is sent. The row catches it either
+# way — on the call count, not on a wrong argv.
 #
 # The bodies are raw `gh issue view` responses registered with
 # gh_stub_raw_response, so the script's own `--jq '.blockedBy.nodes[].number'`
