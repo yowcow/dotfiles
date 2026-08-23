@@ -20,7 +20,6 @@
 # item 4: resolve-base.sh
 
 # item 5: resolve-range.sh
-ai/skills/review-code/scripts/resolve-range.sh
 
 # item 6: ensure-draft-pr.sh
 ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh
