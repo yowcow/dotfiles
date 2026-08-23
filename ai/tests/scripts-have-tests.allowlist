@@ -14,8 +14,6 @@
 # them merge cleanly.
 
 # item 2: check-clean.sh and resolve-branch.sh
-ai/skills/implement-work/scripts/check-clean.sh
-ai/skills/implement-work/scripts/resolve-branch.sh
 
 # item 3: attach-workspace.sh
 
@@ -43,4 +41,3 @@ ai/skills/pr-to-ready/scripts/request-copilot-review.sh
 ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh
 
 # item 10: resolve-thread.sh
-ai/skills/pr-to-ready/scripts/resolve-thread.sh
