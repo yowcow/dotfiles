@@ -32,9 +32,6 @@ ai/skills/plan-work/scripts/edit-plan-comment.sh
 ai/skills/plan-work/scripts/close-dropped-sub-issue.sh
 
 # item 8: plan-work relation scripts
-ai/skills/plan-work/scripts/link-sub-issue.sh
-ai/skills/plan-work/scripts/list-sub-issues.sh
-ai/skills/plan-work/scripts/set-prerequisites.sh
 
 # item 9: Copilot review scripts
 ai/skills/pr-to-ready/scripts/request-copilot-review.sh
