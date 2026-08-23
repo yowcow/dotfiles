@@ -34,7 +34,5 @@ ai/skills/plan-work/scripts/close-dropped-sub-issue.sh
 # item 8: plan-work relation scripts
 
 # item 9: Copilot review scripts
-ai/skills/pr-to-ready/scripts/request-copilot-review.sh
-ai/skills/pr-to-ready/scripts/list-copilot-reviews.sh
 
 # item 10: resolve-thread.sh
