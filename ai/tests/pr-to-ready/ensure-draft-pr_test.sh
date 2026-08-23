@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+# Table test for ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh: the
+# branch/PR/base decision tree -- whether the branch reaches the remote,
+# whether a PR already exists for it, and only then how the base is resolved.
+#
+# git is not stubbed. The ordering guard #205 asks for is about a real `git
+# push` landing on a real remote before a real `git fetch` reads it back, and
+# a git stub would only encode the test author's belief about that ordering,
+# not git's actual behaviour.
+#
+# The sibling ./resolve-pr-base.sh is not stubbed either -- #205's scope says
+# so -- and the rows that pass a STOP straight through are only meaningful if
+# that text really came from the sibling rather than from a fixture standing
+# in for it.
+#
+# Every row runs from inside its own work repository, never from the scripts
+# directory: the SUT finds its sibling through dirname "${BASH_SOURCE[0]}", so
+# a row run from the scripts directory would pass even against a cwd-relative
+# call to the sibling -- one of the guards the SUT's own header names.
+#
+# fixture() below sets refs/remotes/origin/HEAD by hand after cloning. That is
+# not redundant: git_repo_bare leaves the bare repo's HEAD on
+# refs/heads/master, a branch these fixtures never create, so a real clone of
+# it records no refs/remotes/origin/HEAD at all. Left unset, every row would
+# fall through the sibling's default-branch ladder to its `gh repo view` rung
+# and fail as an argv no case stubbed -- so do not "simplify" this call away.
+#
+# RED verification (see ai/tests/README.md):
+#   tmp="$(mktemp -d)"
+#   cp ai/skills/pr-to-ready/scripts/resolve-pr-base.sh "$tmp/"
+#   cp ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh "$tmp/mut.sh"
+#   # apply exactly one edit to "$tmp/mut.sh"
+#   SUT="$tmp/mut.sh" ai/tests/run.sh ai/tests/pr-to-ready/ensure-draft-pr_test.sh
+#
+# Limitations:
+#   - `STOP fetch-failed` from the sibling is unreachable through this SUT:
+#     step 1 has just seen the branch on the remote (or pushed it there), so
+#     the sibling's fetch of it cannot fail without the branch disappearing
+#     mid-run. Not fixturable offline.
+#   - `STOP trailer-read-failed` from the sibling has no fixture, for the
+#     reason resolve-pr-base_test.sh records: both refs `git log` names were
+#     just created by the fetches that preceded it.
+#   - The SUT's `error: unexpected output from resolve-pr-base.sh` arm is
+#     unreachable while the real sibling is used: the sibling prints only
+#     `BASE …`/`STOP …` on exit 0. Reaching it would need the sibling stubbed,
+#     which #205 puts out of scope.
+set -euo pipefail
+
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/harness.sh
+# shellcheck disable=SC1091
+. "$(dirname -- "${BASH_SOURCE[0]}")/../lib/harness.sh"
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/gitrepo.sh
+# shellcheck disable=SC1091
+. "$(dirname -- "${BASH_SOURCE[0]}")/../lib/gitrepo.sh"
+
+SUT="${SUT:-${REPO_ROOT}/ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh}"
+
+# The two --jq filters the SUT and its sibling pass, spelled here exactly as
+# they appear in those scripts: the stub matches an argv on its exact bytes.
+LIST_JQ='.[] | "\(.number) \(.isDraft)"'
+STATE_JQ='.[] | "\(.number) \(.state)"'
+
+TITLE='tests: a title'
+BODY_FILE="${HARNESS_TMP}/body.md"
+printf 'a body\n' >"$BODY_FILE"
+
+failed=0
+total=0
+
+# commit_msg <subject> <base-branch|-> -- the trailer goes in a paragraph of
+# its own, which is where git's trailer parser looks.
+commit_msg() {
+  if [ "$2" = '-' ]; then
+    printf '%s\n' "$1"
+  else
+    printf '%s\n\nBase-Branch: %s\n' "$1" "$2"
+  fi
+}
+
+# fixture <name> <branch> <where> [<trailer>] -- sets FIXTURE_WORK to the work
+# repo's path and FIXTURE_BARE to its remote's. It prints nothing, and it must
+# be called as a plain statement: `W="$(fixture ...)"` would run it in a
+# subshell, both assignments would be discarded, and the first read of either
+# would abort the whole file under `set -u`. A row needs both paths, and
+# globals are the only way to carry two values back -- which is why this does
+# not follow resolve-pr-base_test.sh's single-value `W="$(work_repo ...)"`.
+#
+# <where> is the axis every row in this file turns on:
+#   remote  -- <branch> exists locally and on origin
+#   local   -- <branch> exists in the work repo only, so step 1 must push it
+#   nowhere -- <branch> exists in neither
+#
+# The work repo is a real clone rather than init + remote add, so it has the
+# remote-tracking refs, the upstream and the fetch refspec a real checkout has.
+#
+# refs/remotes/origin/HEAD is then set by hand, and that is not redundant:
+# git_repo_bare leaves the bare repo's HEAD on refs/heads/master, a branch
+# these fixtures never create, so the clone finds no advertised HEAD to record
+# and the symref is absent. Measured -- `git symbolic-ref --short
+# refs/remotes/origin/HEAD` fails with "is not a symbolic ref". Left absent,
+# the sibling's default-branch ladder would fall to its `gh repo view` rung in
+# every row, so every row would fail on an argv no case stubbed.
+fixture() {
+  local name="$1" branch="$2" where="$3" trailer="${4:--}" bare seed work
+  bare="$(git_repo_bare acme "$name")"
+  seed="$(git_repo_scratch "seed-${name}")"
+  git_repo_init "$seed" main
+  git_repo_commit "$seed" README.md 'base\n' 'base commit'
+  git_repo_push "$seed" "$bare" main
+  work="$(git_repo_clone "work-${name}" "$bare" main)"
+  git_repo_origin_head "$work" main
+  if [ "$where" != nowhere ]; then
+    git_repo_checkout "$work" "$branch" main
+    git_repo_commit "$work" T.md 'task\n' "$(commit_msg 'task commit' "$trailer")"
+    if [ "$where" = remote ]; then
+      git_repo_push "$work" origin "refs/heads/${branch}:refs/heads/${branch}"
+    fi
+  fi
+  FIXTURE_BARE="$bare"
+  FIXTURE_WORK="$work"
+}
+
+# The step-2 and step-5 lookups share one argv, so a row that needs them to
+# answer differently addresses them by call index.
+#
+# Raw, not filtered: the body is the JSON gh received, and the stub applies
+# the SUT's own --jq to it. That is what puts `.[]` under test -- a fixture
+# pre-reduced to "<number> <isDraft>" lines would decide the very answer the
+# row is checking, and `.[0]` would then be indistinguishable from `.[]`.
+stub_pr_list() {
+  gh_stub_raw_response "$1" "$3" pr list --head "$2" --json number,isDraft --jq "$LIST_JQ"
+}
+
+# The failing spelling. A failing gh prints no body for --jq to reduce, so the
+# entry states "nothing on stdout" directly instead of handing the raw arm a
+# body it would not filter anyway.
+#
+# Not called by any row in this file yet: it answers the step-2/step-5 lookup
+# for a row that needs it to fail, and every row here reaches step 2 with a
+# body to filter. A later addition to this file's step-2/step-5 rows calls it.
+# shellcheck disable=SC2317
+stub_pr_list_filtered() {
+  gh_stub_response "$1" "$3" pr list --head "$2" --json number,isDraft --jq "$LIST_JQ"
+}
+
+stub_pr_create() {
+  gh_stub_response "$1" "$4" pr create --draft --head "$2" --base "$3" \
+    --title "$TITLE" --body-file "$BODY_FILE"
+}
+
+# Not called by any row in this file yet: no row here reaches the sibling's
+# prerequisite-PR lookup. A later addition to this file's base-resolution rows
+# calls it.
+# shellcheck disable=SC2317
+stub_prereq_list() {
+  gh_stub_raw_response "$1" "$3" pr list --head "$2" --state all --json number,state --jq "$STATE_JQ"
+}
+
+# Not called by any row in this file yet: no row here leaves
+# refs/remotes/origin/HEAD unset, which is the only way to reach the sibling's
+# `gh repo view` rung. A later addition to this file's default-branch-ladder
+# rows calls it.
+# shellcheck disable=SC2317
+stub_default_branch() {
+  gh_stub_response "$1" "$2" repo view --json defaultBranchRef --jq .defaultBranchRef.name
+}
+
+# stamp_push_order <bare> -- a pre-receive hook that records the gh stub's call
+# count at the instant the push reaches the remote, and then allows it.
+#
+# This is what makes "the push runs before any base resolution" an assertion
+# about call *order* rather than only about the outcome. Measured: a hook
+# inherits the pushing process's exported environment, so $GH_STUB_DIR is
+# readable from inside it.
+stamp_push_order() {
+  local hook="$1/hooks/pre-receive"
+  mkdir -p "$1/hooks"
+  cat >"$hook" <<'PUSH_HOOK'
+#!/usr/bin/env bash
+cat "${GH_STUB_DIR}/count" >"${GH_STUB_DIR}/push_at_call"
+exit 0
+PUSH_HOOK
+  chmod +x "$hook"
+}
+
+# push_order_stamp -- the count that hook recorded, or `no-push` when no push
+# ever reached the remote. The two are different failures and must not read
+# alike: a version that resolves the base first never reaches the push at all,
+# because the sibling's fetch of an unpushed branch stops it first.
+push_order_stamp() {
+  if [ -f "${GH_STUB_DIR}/push_at_call" ]; then
+    cat "${GH_STUB_DIR}/push_at_call"
+  else
+    printf 'no-push'
+  fi
+}
+
+remote_has_branch() {
+  if git -C "$1" show-ref --verify --quiet "refs/heads/$2"; then
+    printf 'yes\n'
+  else
+    printf 'no\n'
+  fi
+}
+
+# run_in <work-dir> <args...> -- every row runs from inside its own work repo,
+# never from the scripts directory: the SUT reads cwd's origin, and it finds
+# its sibling through dirname "${BASH_SOURCE[0]}", so a row run from the
+# scripts directory would pass even against a cwd-relative sibling call.
+run_in() {
+  local dir="$1"
+  shift
+  cd "$dir"
+  run_sut bash "$SUT" "$@"
+  cd "$REPO_ROOT"
+}
+
+# assert_row <name> <want-exit> <want-stdout> [<want-gh-calls>]
+assert_row() {
+  local name="$1" want_exit="$2" want_out="$3" want_calls="${4:-}" fails=0
+  if ! check_eq "${name}: exit" "$want_exit" "$SUT_STATUS"; then fails=1; fi
+  if ! check_bytes "${name}: stdout" "$want_out"; then fails=1; fi
+  if [ -n "$want_calls" ] && ! check_eq "${name}: gh calls" "$want_calls" "$(gh_call_count)"; then fails=1; fi
+  if ! check_no_violations "${name}: argv"; then fails=1; fi
+  if [ "$fails" -ne 0 ]; then
+    failed=$((failed + 1))
+    printf '  stderr: %s\n' "$(head -c 400 "$SUT_STDERR")"
+  fi
+}
+
+# ---- step 1: is the branch on the remote at all? -------------------------
+#
+# Step 1 runs before anything else -- before any PR lookup and before any base
+# resolution. `push-failure-stops` and
+# `a-branch-already-on-the-remote-is-not-pushed-again` install the *same*
+# rejecting hook for opposite reasons -- the first needs the push to fail, the
+# second needs the push never to happen -- so neither row is a copy of the
+# other.
+
+total=$((total + 1))
+stub_dir_new
+fixture nowhere-b feature nowhere
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'branch-nowhere-stops' 0 'STOP branch-nowhere\n' 0
+
+total=$((total + 1))
+stub_dir_new
+fixture lsr feature remote
+git_repo_remote "$FIXTURE_WORK" origin "${HARNESS_TMP}/repos/no-such-remote.git"
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'ls-remote-failure-is-not-an-absent-branch' 0 'STOP ls-remote-failed\n' 0
+
+total=$((total + 1))
+stub_dir_new
+fixture pushfail feature local
+git_repo_deny_push "$FIXTURE_BARE"
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'push-failure-stops' 0 'STOP push-failed\n' 0
+
+total=$((total + 1))
+stub_dir_new
+fixture order feature local
+stamp_push_order "$FIXTURE_BARE"
+printf '[]\n' | stub_pr_list 1 feature 0
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+printf '[{"number":7,"isDraft":true}]\n' | stub_pr_list 3 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'local-only-branch-is-pushed-before-the-base-is-resolved' 0 'PR 7 created draft=true base=main\n' 3
+
+total=$((total + 1))
+if ! check_eq 'push-precedes-every-gh-call' 0 "$(push_order_stamp)"; then
+  failed=$((failed + 1))
+fi
+
+total=$((total + 1))
+if ! check_eq 'ordering-row-landed-on-the-remote' yes "$(remote_has_branch "$FIXTURE_BARE" feature)"; then
+  failed=$((failed + 1))
+fi
+
+total=$((total + 1))
+stub_dir_new
+fixture nopush feature remote
+git_repo_deny_push "$FIXTURE_BARE"
+printf '[{"number":12,"isDraft":true}]\n' | stub_pr_list 1 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'a-branch-already-on-the-remote-is-not-pushed-again' 0 'PR 12 found draft=true\n' 1
+
+total=$((total + 1))
+stub_dir_new
+fixture othercheckout feature local
+git_repo_checkout "$FIXTURE_WORK" main
+printf '[]\n' | stub_pr_list 1 feature 0
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+printf '[{"number":7,"isDraft":true}]\n' | stub_pr_list 3 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'the-named-branch-is-pushed-not-the-checked-out-one' 0 'PR 7 created draft=true base=main\n' 3
+
+total=$((total + 1))
+if ! check_eq 'named-branch-landed-not-the-checked-out-one' yes "$(remote_has_branch "$FIXTURE_BARE" feature)"; then
+  failed=$((failed + 1))
+fi
+
+harness_exit "$failed" "$total"
