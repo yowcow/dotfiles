@@ -127,7 +127,6 @@ check_local_branch() {
   check_eq "$1" "$4" "$got"
 }
 
-# check_stderr_has is unused by Task 1's own rows; Tasks 2-4 call it via tally.
 # shellcheck disable=SC2317 # invoked indirectly, as `tally check_stderr_has ...`
 check_stderr_has() {
   local got=no
