@@ -24,8 +24,14 @@
 #   - drop `--exit-code` from `git ls-remote`: `nowhere-is-create`
 #   - drop the `elif [ "${status}" -ne 2 ]` arm, falling through to CREATE:
 #     `unreachable-remote-is-not-absent`, `no-origin-remote-is-not-absent`
-#   - `git fetch origin "+refs/heads/<b>:refs/remotes/origin/<b>"` ->
-#     `git fetch origin "<b>"`: `remote-only-attach-is-at-the-remote-tip`
+#
+# The `git fetch origin "+refs/heads/<b>:refs/remotes/origin/<b>"` ->
+# `git fetch origin "<b>"` guard is not covered by a RED row here: the only
+# configuration where the two differ is a clone whose `remote.origin.fetch`
+# does not cover `<b>` (e.g. `--single-branch`), and in exactly that
+# configuration the following `git worktree add --track` fails regardless of
+# which fetch spelling produced the ref (measured on git 2.43.0). Recorded as
+# a defect for a follow-up issue rather than encoded here.
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
@@ -215,5 +221,84 @@ run_in "$W" task "$WT_NEW"
 assert_row 'nowhere-is-create' 0 'CREATE\n'
 tally check_absent 'nowhere-is-create: no workspace was created' "$WT_NEW"
 tally check_local_branch 'nowhere-is-create: no branch was created' "$W" task no
+
+# ---- ATTACHED: the branch exists only on the remote --------------------
+#
+# The path that matters most: creating the branch afresh here would strand
+# already-pushed work under a diverged history, and force-push is banned.
+# `build_repo` is not used, because the remote has to hold `task` before the
+# clone is taken.
+
+total=$((total + 1))
+stub_dir_new
+BARE="$(git_repo_bare acme remoteonly)"
+SEED="$(git_repo_scratch remoteonly-seed)"
+git_repo_init "$SEED" main
+git_repo_commit "$SEED" main.txt 'on main\n' 'c1'
+git_repo_checkout "$SEED" task main
+git_repo_commit "$SEED" task.txt 'pushed work\n' 'task work'
+REMOTE_TIP="$(git -C "$SEED" rev-parse task)"
+git_repo_checkout "$SEED" main
+git_repo_push "$SEED" "$BARE" main task
+W="$(git_repo_clone remoteonly "$BARE" main)"
+tally check_local_branch 'remote-only-is-attached: fixture has no local branch' "$W" task no
+WT_NEW="$(wt_path remoteonly-new)"
+run_in "$W" task "$WT_NEW"
+assert_row 'remote-only-is-attached' 0 "ATTACHED ${WT_NEW}\n"
+tally check_head 'remote-only-is-attached: the workspace is at the remote tip' "$WT_NEW" "$REMOTE_TIP"
+tally check_on_branch 'remote-only-is-attached: the workspace is on the branch' "$WT_NEW" task
+tally check_local_branch 'remote-only-is-attached: the branch now exists locally' "$W" task yes
+total=$((total + 1))
+if ! check_eq 'remote-only-is-attached: the branch tracks the remote' 'origin/task' \
+  "$(git -C "$W" rev-parse --abbrev-ref 'task@{upstream}')"; then
+  failed=$((failed + 1))
+fi
+
+# ---- the tip attached is the one this script's own fetch resolved ------
+#
+# The clone is taken while `task` is still at OLD_TIP, so
+# refs/remotes/origin/task is genuinely stale by the time the remote advances
+# to NEW_TIP -- no forced narrowing needed. A SUT that skipped the fetch (or
+# fetched into the wrong ref) would attach the workspace at OLD_TIP while
+# still printing ATTACHED; the caller would then work on top of a commit the
+# remote branch has moved past, and its own later push would be refused as
+# non-fast-forward (or, worse, the missing commits re-derived by hand).
+#
+# A narrowed `remote.origin.fetch` (what `--single-branch` leaves) was tried
+# here to also pin down the fetch's exact refspec spelling, but in that
+# configuration `git worktree add --track` fails outright regardless of the
+# spelling (measured on git 2.43.0) -- so this row only exercises the natural
+# staleness above, not the refspec wording.
+
+total=$((total + 1))
+stub_dir_new
+BARE="$(git_repo_bare acme staleref)"
+SEED="$(git_repo_scratch staleref-seed)"
+git_repo_init "$SEED" main
+git_repo_commit "$SEED" main.txt 'on main\n' 'c1'
+git_repo_checkout "$SEED" task main
+git_repo_commit "$SEED" task.txt 'first push\n' 'task work 1'
+OLD_TIP="$(git -C "$SEED" rev-parse task)"
+git_repo_checkout "$SEED" main
+git_repo_push "$SEED" "$BARE" main task
+# The clone records refs/remotes/origin/task at OLD_TIP, as a real earlier
+# fetch would have.
+W="$(git_repo_clone staleref "$BARE" main)"
+git_repo_checkout "$SEED" task
+git_repo_commit "$SEED" task.txt 'second push\n' 'task work 2'
+NEW_TIP="$(git -C "$SEED" rev-parse task)"
+git_repo_push "$SEED" "$BARE" task
+tally check_eq 'remote-only-attach-is-at-the-remote-tip: fixture ref is stale' \
+  "$OLD_TIP" "$(git -C "$W" rev-parse refs/remotes/origin/task)"
+WT_NEW="$(wt_path staleref-new)"
+run_in "$W" task "$WT_NEW"
+assert_row 'remote-only-attach-is-at-the-remote-tip' 0 "ATTACHED ${WT_NEW}\n"
+tally check_head 'remote-only-attach-is-at-the-remote-tip: at the current remote tip' \
+  "$WT_NEW" "$NEW_TIP"
+total=$((total + 1))
+if ! check_eq 'remote-only-attach-is-at-the-remote-tip: the newer commit is present' \
+  'second push' "$(cat "${WT_NEW}/task.txt" 2>&1)"; then
+  failed=$((failed + 1))
+fi
 
 harness_exit "$failed" "$total"
