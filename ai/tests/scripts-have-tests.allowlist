@@ -19,7 +19,6 @@
 ai/skills/implement-work/scripts/attach-workspace.sh
 
 # item 4: resolve-base.sh
-ai/skills/implement-work/scripts/resolve-base.sh
 
 # item 5: resolve-range.sh
 ai/skills/review-code/scripts/resolve-range.sh
