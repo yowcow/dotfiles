@@ -30,9 +30,6 @@ ai/skills/review-code/scripts/resolve-range.sh
 ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh
 
 # item 7: plan-work posting scripts
-ai/skills/plan-work/scripts/post-plan-comment.sh
-ai/skills/plan-work/scripts/edit-plan-comment.sh
-ai/skills/plan-work/scripts/close-dropped-sub-issue.sh
 
 # item 8: plan-work relation scripts
 ai/skills/plan-work/scripts/link-sub-issue.sh
