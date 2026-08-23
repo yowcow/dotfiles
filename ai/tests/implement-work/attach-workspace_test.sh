@@ -338,12 +338,14 @@ stub_dir_new
 W="$(build_repo argsnone)"
 run_in "$W"
 assert_row 'no-arguments' 1 ''
+tally check_stderr_has 'no-arguments: usage is printed' 'Usage:'
 
 total=$((total + 1))
 stub_dir_new
 W="$(build_repo argsone)"
 run_in "$W" task
 assert_row 'one-argument' 1 ''
+tally check_stderr_has 'one-argument: usage is printed' 'Usage:'
 
 total=$((total + 1))
 stub_dir_new
