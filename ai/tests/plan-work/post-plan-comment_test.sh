@@ -18,7 +18,21 @@
 # 3. Nothing here edits an existing comment: the argv is POST .../comments, and
 #    the stub matches argv exactly, so a PATCH version is an unstubbed call.
 # 4. The usage guards refuse before any call: `gh responses` is 0 on every
-#    refusing row, so a dropped guard shows up as a call that happened.
+#    refusing row, so a dropped guard shows up as a call that happened. Two
+#    rows cover the issue-number guard rather than one, and the second is the
+#    load-bearing half: `abc` proves only that some check exists, while `7x`
+#    proves the pattern is **anchored**. Measured — with only the `abc` row,
+#    weakening `^[0-9]+$` to `[0-9]+` left this file reporting ok 7/7, so a
+#    number like `7x` would have been forwarded to the API.
+#
+#    These two rows still do not exhaust "looks numeric". Measured: under a
+#    UTF-8 locale `[0-9]` also matches fullwidth `２５４４` and Arabic-Indic
+#    `٢٥٤٤` (both rejected under `LC_ALL=C`), and the script forwards such an
+#    id to `gh` rather than refusing. That is a defect in the script, so the
+#    fix is out of this task's scope (`ai/skills/` is excluded) and is tracked
+#    in #229. Deliberately NOT given a row here: asserting the current
+#    behaviour would pin a defect as correct, and asserting the intended
+#    behaviour would leave the suite red against the shipped script.
 #
 # RED verification (mutations are not committed) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/post-plan-comment.sh "$tmp/mut.sh"
@@ -94,6 +108,7 @@ posts-body-prints-numeric-id|acme widgets 7 @BODY|comment-created|0|1|expected/c
 api-failure-is-not-a-post|acme widgets 7 @BODY|not-found:1|1|1|fixtures/not-found.json|expected/plan-body.payload.json
 missing-body-file|acme widgets 7 @MISSING|-|1|0|-|-
 non-numeric-issue|acme widgets abc @BODY|-|1|0|-|-
+partially-numeric-issue|acme widgets 7x @BODY|-|1|0|-|-
 too-few-args|acme widgets 7|-|1|0|-|-
 too-many-args|acme widgets 7 @BODY extra|-|1|0|-|-
 no-args||-|1|0|-|-

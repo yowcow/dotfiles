@@ -6,13 +6,30 @@
 # 1. A GraphQL node id is refused **up front rather than sent**. The
 #    `node-id-refused` row asserts `gh responses` is 0, so a version that
 #    dropped the check and let PATCH carry an IC_... id fails on the call that
-#    happened, not merely on a message.
+#    happened, not merely on a message. `partially-numeric-id` covers the other
+#    half of that same check — that the pattern is **anchored**. Without it the
+#    node-id row happens to catch a de-anchored `[0-9]+` only by accident,
+#    because the fixture id `IC_kwDOAZjEl85e3xyz` contains digits; `2544x`
+#    makes the anchoring deliberate rather than incidental. Neither row
+#    exhausts "looks numeric": measured, under a UTF-8 locale `[0-9]` also
+#    matches fullwidth `２５４４` and Arabic-Indic `٢٥٤٤` (both rejected under
+#    `LC_ALL=C`), and the script PATCHes such an id rather than refusing. That
+#    is a defect in the script, out of this task's scope (`ai/skills/` is
+#    excluded) and tracked in #229. Deliberately given no row: pinning
+#    today's behaviour would record a defect as correct, and pinning the
+#    intended behaviour would leave the suite red against the shipped script.
 # 2. The body comes from a file and reaches gh on stdin as one JSON document
 #    (`jq -Rs`). The payload is compared byte for byte against the same
 #    hand-written golden post-plan-comment_test.sh uses, which is what makes
 #    `jq -R` — same argv, one document per line — detectable. The fixture's two
 #    $PLAN_CANARY substitutions catch a body that reached a shell.
-# 3. An unreadable body file refuses before any call.
+# 3. A body file that does not exist refuses before any call. Worded that way
+#    deliberately: the guard is `[ ! -f "$BODY_FILE" ]`, and `-f` asks whether
+#    a regular file is there, not whether it can be read. A file that exists
+#    with mode 000 passes `-f`, so the script reaches `gh` for it — measured,
+#    and tracked in #229, since the fix belongs to the script rather than to
+#    this file. Do not reword this row's name to claim readability it does not
+#    cover.
 #
 # RED verification (mutations are not committed) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/edit-plan-comment.sh "$tmp/mut.sh"
@@ -79,6 +96,7 @@ done <<'ROWS'
 edits-by-numeric-id|acme widgets 2544 @BODY|comment-edited|0|1|expected/edited.out|expected/plan-body.payload.json
 api-failure-is-not-an-edit|acme widgets 2544 @BODY|not-found:1|1|1|fixtures/not-found.json|expected/plan-body.payload.json
 node-id-refused|acme widgets IC_kwDOAZjEl85e3xyz @BODY|-|1|0|-|-
+partially-numeric-id|acme widgets 2544x @BODY|-|1|0|-|-
 missing-body-file|acme widgets 2544 @MISSING|-|1|0|-|-
 too-few-args|acme widgets 2544|-|1|0|-|-
 too-many-args|acme widgets 2544 @BODY extra|-|1|0|-|-

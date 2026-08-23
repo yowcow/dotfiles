@@ -21,6 +21,19 @@
 # reason, then close. A version closing first answers call 1 with the comment
 # entry's argv and is reported as unstubbed.
 #
+# The child-number guard gets two rows, and `partially-numeric-child` is the
+# load-bearing one: `abc` proves only that some check exists, while `7x` proves
+# the pattern is **anchored**. Measured — with only the `abc` row, weakening
+# `^[0-9]+$` to `[0-9]+` left this file reporting ok 9/9.
+#
+# Neither row exhausts "looks numeric". Measured: under a UTF-8 locale `[0-9]`
+# also matches fullwidth `２５４４` and Arabic-Indic `٢٥٤٤` (both rejected under
+# `LC_ALL=C`), and the script forwards such a child number to `gh` instead of
+# refusing. That is a defect in the script, out of this task's scope
+# (`ai/skills/` is excluded) and tracked in #229. Deliberately given no row:
+# pinning today's behaviour would fix a defect in place as correct, and pinning
+# the intended behaviour would leave the suite red against the shipped script.
+#
 # RED verification (mutations are not committed) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/close-dropped-sub-issue.sh "$tmp/mut.sh"
 #   SUT="$tmp/mut.sh" ai/tests/run.sh ai/tests/plan-work/close-dropped-sub-issue_test.sh
@@ -102,6 +115,7 @@ close-fails|acme widgets 7 @BODY|2|1|2|-|expected/plan-body.payload.json
 read-back-fails|acme widgets 7 @BODY|3|1|3|fixtures/issue-closed.json|expected/plan-body.payload.json
 missing-reason-file|acme widgets 7 @MISSING|-|1|0|-|-
 non-numeric-child|acme widgets abc @BODY|-|1|0|-|-
+partially-numeric-child|acme widgets 7x @BODY|-|1|0|-|-
 too-few-args|acme widgets 7|-|1|0|-|-
 too-many-args|acme widgets 7 @BODY extra|-|1|0|-|-
 no-args||-|1|0|-|-
