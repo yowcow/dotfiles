@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Table test for ai/skills/plan-work/scripts/edit-plan-comment.sh.
+#
+# The script's header names three guards, and each row below exists for one.
+#
+# 1. A GraphQL node id is refused **up front rather than sent**. The
+#    `node-id-refused` row asserts `gh responses` is 0, so a version that
+#    dropped the check and let PATCH carry an IC_... id fails on the call that
+#    happened, not merely on a message.
+# 2. The body comes from a file and reaches gh on stdin as one JSON document
+#    (`jq -Rs`). The payload is compared byte for byte against the same
+#    hand-written golden post-plan-comment_test.sh uses, which is what makes
+#    `jq -R` — same argv, one document per line — detectable. The fixture's two
+#    $PLAN_CANARY substitutions catch a body that reached a shell.
+# 3. An unreadable body file refuses before any call.
+#
+# RED verification (mutations are not committed) — see ai/tests/README.md:
+#   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/edit-plan-comment.sh "$tmp/mut.sh"
+#   SUT="$tmp/mut.sh" ai/tests/run.sh ai/tests/plan-work/edit-plan-comment_test.sh
+set -euo pipefail
+
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=../lib/harness.sh
+# shellcheck disable=SC1091
+. "$(dirname -- "${BASH_SOURCE[0]}")/../lib/harness.sh"
+
+SUT="${SUT:-${REPO_ROOT}/ai/skills/plan-work/scripts/edit-plan-comment.sh}"
+HERE="$(dirname -- "${BASH_SOURCE[0]}")"
+
+BODY="${HERE}/fixtures/plan-body.md"
+MISSING="${HARNESS_TMP}/no-such-body.md"
+PLAN_CANARY="${HARNESS_TMP}/canary"
+export PLAN_CANARY
+
+failed=0
+total=0
+
+while IFS='|' read -r name args response want_exit want_calls want_stdout want_payload; do
+  case "$name" in '' | '#'*) continue ;; esac
+  total=$((total + 1))
+  stub_dir_new
+
+  if [ "$response" != '-' ]; then
+    fixture="${response%%:*}"
+    status=0
+    case "$response" in *:*) status="${response##*:}" ;; esac
+    gh_stub_raw_response 1 "$status" \
+      api --method PATCH "repos/acme/widgets/issues/comments/2544" --input - \
+      --jq '.html_url' <"${HERE}/fixtures/${fixture}.json"
+  fi
+
+  args="${args//@BODY/$BODY}"
+  args="${args//@MISSING/$MISSING}"
+  read -ra argv <<<"$args"
+  run_sut bash "$SUT" ${argv[@]+"${argv[@]}"}
+
+  want_paths=(/dev/null)
+  if [ "$want_stdout" != '-' ]; then want_paths=("${HERE}/${want_stdout}"); fi
+
+  fails_here=0
+  if ! check_eq "${name}: exit" "$want_exit" "$SUT_STATUS"; then fails_here=1; fi
+  if ! check_eq "${name}: gh responses" "$want_calls" "$(gh_call_count)"; then fails_here=1; fi
+  if ! check_stdout_files "${name}: stdout" "${want_paths[@]}"; then fails_here=1; fi
+  if ! check_no_violations "${name}: argv"; then fails_here=1; fi
+  if [ "$want_payload" != '-' ]; then
+    if ! check_gh_stdin "${name}: payload" 1 "${HERE}/${want_payload}"; then fails_here=1; fi
+  fi
+  if [ -e "$PLAN_CANARY" ]; then
+    printf 'FAIL %s: the body was interpreted by a shell (%s exists)\n' "$name" "$PLAN_CANARY"
+    rm -f "$PLAN_CANARY"
+    fails_here=1
+  fi
+  if [ "$fails_here" -ne 0 ]; then
+    failed=$((failed + 1))
+    printf '  stderr: %s\n' "$(head -c 400 "$SUT_STDERR")"
+  fi
+done <<'ROWS'
+# name|args|response|exit|calls|stdout|payload
+edits-by-numeric-id|acme widgets 2544 @BODY|comment-edited|0|1|expected/edited.out|expected/plan-body.payload.json
+api-failure-is-not-an-edit|acme widgets 2544 @BODY|not-found:1|1|1|fixtures/not-found.json|expected/plan-body.payload.json
+node-id-refused|acme widgets IC_kwDOAZjEl85e3xyz @BODY|-|1|0|-|-
+missing-body-file|acme widgets 2544 @MISSING|-|1|0|-|-
+too-few-args|acme widgets 2544|-|1|0|-|-
+too-many-args|acme widgets 2544 @BODY extra|-|1|0|-|-
+no-args||-|1|0|-|-
+ROWS
+
+harness_exit "$failed" "$total"
