@@ -488,4 +488,51 @@ printf '[{"number":7,"isDraft":true}]\n' | stub_pr_list 4 feature 0
 run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
 assert_row 'a-merged-prerequisite-falls-back-to-the-default-branch' 0 'PR 7 created draft=true base=main\n' 4
 
+# ---- steps 4-5: create, then read the record back -----------------------
+#
+# `gh pr create` exiting 0 is not the PR record saying so, so step 5 reads the
+# record back with the same lookup step 2 uses. These four rows are the four
+# things that readback can find. `pr-not-created` and `pr-readback-failed` are
+# separate slugs on purpose: "the record is not there" and "I could not ask"
+# are exactly the confusion this whole suite exists to catch.
+#
+# Every fixture below is `fixture <name> feature remote`, no trailer, so the
+# base resolves to `main` on the sibling's first rung with no `gh` call of its
+# own. Call 1 is the lookup, call 2 the create, call 3 the readback.
+
+total=$((total + 1))
+stub_dir_new
+fixture create-fail feature remote
+printf '[]\n' | stub_pr_list 1 feature 0
+: | stub_pr_create 2 feature main 1
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'create-failure-stops' 0 'STOP pr-create-failed\n' 2
+
+total=$((total + 1))
+stub_dir_new
+fixture not-created feature remote
+printf '[]\n' | stub_pr_list 1 feature 0
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+printf '[]\n' | stub_pr_list 3 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'a-record-that-does-not-read-back-stops' 0 'STOP pr-not-created\n' 3
+
+total=$((total + 1))
+stub_dir_new
+fixture readback-fail feature remote
+printf '[]\n' | stub_pr_list 1 feature 0
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+: | stub_pr_list_filtered 3 feature 1
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'readback-failure-is-not-a-missing-record' 0 'STOP pr-readback-failed\n' 3
+
+total=$((total + 1))
+stub_dir_new
+fixture several-after-create feature remote
+printf '[]\n' | stub_pr_list 1 feature 0
+printf 'https://example.invalid/pull/7\n' | stub_pr_create 2 feature main 0
+printf '[{"number":7,"isDraft":true},{"number":8,"isDraft":true}]\n' | stub_pr_list 3 feature 0
+run_in "$FIXTURE_WORK" feature "$TITLE" "$BODY_FILE"
+assert_row 'several-prs-after-create-stop' 0 'STOP ask-multiple-prs-after-create\n' 3
+
 harness_exit "$failed" "$total"
