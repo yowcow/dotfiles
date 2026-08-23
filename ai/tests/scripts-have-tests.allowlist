@@ -23,7 +23,6 @@ ai/skills/implement-work/scripts/attach-workspace.sh
 # item 5: resolve-range.sh
 
 # item 6: ensure-draft-pr.sh
-ai/skills/pr-to-ready/scripts/ensure-draft-pr.sh
 
 # item 7: plan-work posting scripts
 ai/skills/plan-work/scripts/post-plan-comment.sh
