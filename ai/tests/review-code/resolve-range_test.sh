@@ -381,4 +381,61 @@ if ! grep -q "unexpected PR state 'DRAFT'" "$SUT_STDERR"; then
   failed=$((failed + 1))
 fi
 
+# ---- the three git failures the script converts into STOP ---------------
+#
+# The row this file exists for. A work repository with no commits at all
+# makes `git log HEAD` exit 128 (measured on git 2.43: "fatal: ambiguous
+# argument 'HEAD'"), which is the trailer read *failing* rather than the
+# trailer being absent -- two causes that must not collapse, because "absent"
+# sends the range to the default branch. refs/remotes/origin/HEAD is pointed
+# at `main` deliberately: it gives a collapsing implementation somewhere to
+# walk to, so this row fails on the widening itself rather than on a fixture
+# that had no answer either way.
+total=$((total + 1))
+stub_dir_new
+W="$(git_repo_scratch trailer-unreadable)"
+git_repo_init "$W" task
+git_repo_remote "$W" origin "$REMOTE"
+git_repo_origin_head "$W" main
+run_in "$W"
+assert_row 'trailer-read-fails' 0 'STOP trailer-read-failed\n' 0
+
+# Two fetches can fail, and they carry the same slug from different rungs.
+# The first row's origin/HEAD names a branch the remote does not have --
+# `git symbolic-ref` accepts a dangling target, so the ladder answers `nosuch`
+# and the fetch behind it is what fails, without ever reaching gh.
+total=$((total + 1))
+stub_dir_new
+W="$(work_repo fetch-dflt "$REMOTE" plain nosuch)"
+run_in "$W"
+assert_row 'default-branch-absent-on-remote' 0 'STOP fetch-failed\n' 0
+
+# The second is the MERGED rung: `refs/pull/77/head` exists on no fixture
+# remote, so the spec that fails is the one the MERGED path builds itself.
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":77,"state":"MERGED"}]\n' | stub_pr_list dep 0
+W="$(work_repo fetch-pull "$REMOTE" task main)"
+run_in "$W"
+assert_row 'merged-pull-ref-absent' 0 'STOP fetch-failed\n' 1
+
+# Unrelated roots, the spelling absorb-base_test.sh uses: two repositories
+# that share no history, so the fetch succeeds and `git merge-base` is what
+# fails -- exit 1 printing nothing (measured), which is indistinguishable
+# from an answer unless the exit status is read.
+total=$((total + 1))
+stub_dir_new
+printf '[{"number":9,"state":"OPEN"}]\n' | stub_pr_list unrelated 0
+LONELY="$(git_repo_bare acme lonely)"
+LSEED="$(git_repo_scratch lonely-seed)"
+git_repo_init "$LSEED" unrelated
+git_repo_commit "$LSEED" only.txt 'unrelated\n' "$(commit_msg 'unrelated root' -)"
+git_repo_push "$LSEED" "$LONELY" unrelated
+W="$(git_repo_scratch lonely-work)"
+git_repo_init "$W" task
+git_repo_commit "$W" task.txt 'task\n' "$(commit_msg 'task root' unrelated)"
+git_repo_remote "$W" origin "$LONELY"
+run_in "$W"
+assert_row 'merge-base-fails-on-unrelated-history' 0 'STOP merge-base-failed\n' 1
+
 harness_exit "$failed" "$total"
