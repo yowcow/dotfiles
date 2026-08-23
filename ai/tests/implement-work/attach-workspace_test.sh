@@ -247,11 +247,8 @@ assert_row 'remote-only-is-attached' 0 "ATTACHED ${WT_NEW}\n"
 tally check_head 'remote-only-is-attached: the workspace is at the remote tip' "$WT_NEW" "$REMOTE_TIP"
 tally check_on_branch 'remote-only-is-attached: the workspace is on the branch' "$WT_NEW" task
 tally check_local_branch 'remote-only-is-attached: the branch now exists locally' "$W" task yes
-total=$((total + 1))
-if ! check_eq 'remote-only-is-attached: the branch tracks the remote' 'origin/task' \
-  "$(git -C "$W" rev-parse --abbrev-ref 'task@{upstream}')"; then
-  failed=$((failed + 1))
-fi
+tally check_eq 'remote-only-is-attached: the branch tracks the remote' 'origin/task' \
+  "$(git -C "$W" rev-parse --abbrev-ref 'task@{upstream}')"
 
 # ---- the tip attached is the one this script's own fetch resolved ------
 #
@@ -294,11 +291,8 @@ run_in "$W" task "$WT_NEW"
 assert_row 'remote-only-attach-is-at-the-remote-tip' 0 "ATTACHED ${WT_NEW}\n"
 tally check_head 'remote-only-attach-is-at-the-remote-tip: at the current remote tip' \
   "$WT_NEW" "$NEW_TIP"
-total=$((total + 1))
-if ! check_eq 'remote-only-attach-is-at-the-remote-tip: the newer commit is present' \
-  'second push' "$(cat "${WT_NEW}/task.txt" 2>&1)"; then
-  failed=$((failed + 1))
-fi
+tally check_eq 'remote-only-attach-is-at-the-remote-tip: the newer commit is present' \
+  'second push' "$(cat "${WT_NEW}/task.txt" 2>&1)"
 
 # ---- "could not ask" is not "not there" -------------------------------
 #
