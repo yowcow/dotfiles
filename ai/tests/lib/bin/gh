@@ -44,6 +44,7 @@ printf '%s' "$joined" >"${GH_STUB_DIR}/argv.actual"
 JQ_EXPR=""
 HAVE_JQ=0
 PAGINATE=0
+STDIN_WANTED=0
 args=("$@")
 i=0
 while [ "$i" -lt "${#args[@]}" ]; do
@@ -60,6 +61,13 @@ while [ "$i" -lt "${#args[@]}" ]; do
       HAVE_JQ=1
       ;;
     --paginate) PAGINATE=1 ;;
+    --input)
+      i=$((i + 1))
+      if [ "$i" -lt "${#args[@]}" ] && [ "${args[$i]}" = '-' ]; then
+        STDIN_WANTED=1
+      fi
+      ;;
+    --input=-) STDIN_WANTED=1 ;;
   esac
   i=$((i + 1))
 done
@@ -124,6 +132,23 @@ serve() {
 count=0
 if [ -f "${GH_STUB_DIR}/count" ]; then
   count="$(cat "${GH_STUB_DIR}/count")"
+fi
+
+# `--input -` は実 gh が stdin を読む唯一の argv 形であり、この suite で stdin を
+# 読むのもその条件に限る。無条件に読むと、--input を持たない呼び出しの stdin を
+# 空読みしてしまい、実 gh が触らないものを stub が触ることになる。
+#
+# 記録する理由は 2 つある。ひとつ、本文は argv に現れない — 現れないこと自体が
+# plan-work の投稿系 3 本のヘッダが名指しする guard である — ので、payload を見
+# られないテストは `jq -Rs` と `jq -R` を区別できない。後者は本文を 1 行 1 JSON
+# 文書に壊すが argv は 1 バイトも変わらない。ふたつ、pipe buffer を超える本文で
+# は、読まれないパイプの向こう側で `jq` が SIGPIPE を受け、`pipefail` を持つ
+# 被試験スクリプトが投稿成功を exit 141 に化けさせる。
+#
+# 索引は「この invocation が答える最初の呼び出し番号」。lookup より前に書くのは、
+# argv が未 stub だった場合でも payload を残すため（violation の診断に効く）。
+if [ "$STDIN_WANTED" -eq 1 ]; then
+  cat >"${GH_STUB_DIR}/stdin.$((count + 1))"
 fi
 
 # lookup <index>: sets FOUND / FOUND_STATUS / FOUND_BODY / FOUND_WILDCARD from
