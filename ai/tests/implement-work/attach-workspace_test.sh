@@ -301,4 +301,54 @@ if ! check_eq 'remote-only-attach-is-at-the-remote-tip: the newer commit is pres
   failed=$((failed + 1))
 fi
 
+# ---- "could not ask" is not "not there" -------------------------------
+#
+# The defect class this script's header is about. Both rows below leave the
+# remote unaskable, and the correct answer is to stop: reading either as
+# "the branch does not exist" prints CREATE, the caller cuts a fresh branch,
+# and any work already pushed under that name is stranded under a diverged
+# history that force-push is banned from fixing. `ls-remote` exits 128 for
+# both, against 2 for a name it really did not match (measured, git 2.43.0).
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo unreachable)"
+git_repo_remote "$W" origin "${HARNESS_TMP}/remotes/acme/absent.git"
+WT_NEW="$(wt_path unreachable-new)"
+run_in "$W" task "$WT_NEW"
+assert_row 'unreachable-remote-is-not-absent' 128 ''
+tally check_stderr_has 'unreachable-remote-is-not-absent: the failure is named' 'ls-remote failed'
+tally check_absent 'unreachable-remote-is-not-absent: no workspace was created' "$WT_NEW"
+tally check_local_branch 'unreachable-remote-is-not-absent: no branch was created' "$W" task no
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo noorigin)"
+git -C "$W" remote remove origin
+WT_NEW="$(wt_path noorigin-new)"
+run_in "$W" task "$WT_NEW"
+assert_row 'no-origin-remote-is-not-absent' 128 ''
+tally check_stderr_has 'no-origin-remote-is-not-absent: the failure is named' 'ls-remote failed'
+tally check_absent 'no-origin-remote-is-not-absent: no workspace was created' "$WT_NEW"
+
+# ---- argument validation ----------------------------------------------
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo argsnone)"
+run_in "$W"
+assert_row 'no-arguments' 1 ''
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo argsone)"
+run_in "$W" task
+assert_row 'one-argument' 1 ''
+
+total=$((total + 1))
+stub_dir_new
+W="$(build_repo argsthree)"
+run_in "$W" task "$(wt_path argsthree-new)" extra
+assert_row 'three-arguments' 1 ''
+
 harness_exit "$failed" "$total"
