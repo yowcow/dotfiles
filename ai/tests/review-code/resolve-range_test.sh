@@ -173,6 +173,35 @@ assert_row() {
   fi
 }
 
+# stub_pr_view <pr-number> <exit-status> -- the PR record lookup, raw body on
+# stdin. Raw, not filtered, so the SUT's own interpolation of the two oids
+# into one line is what runs: a pre-filtered fixture would state the answer
+# the row is checking.
+stub_pr_view() {
+  gh_stub_raw_response '*' "$2" pr view "$1" --json baseRefOid,headRefOid --jq "$PR_VIEW_JQ"
+}
+
+# stub_default_branch <exit-status> -- the `gh repo view` rung of the
+# default-branch ladder, body on stdin. Filtered, not raw: the filter is a
+# plain field selection the SUT is not being held to, and the contract under
+# test is what the script does with the *answer*.
+stub_default_branch() {
+  gh_stub_response '*' "$1" repo view --json defaultBranchRef --jq .defaultBranchRef.name
+}
+
+PR_LIST_JQ='.[] | "\(.number) \(.state)"'
+
+# stub_pr_list <head-branch> <exit-status> -- the prerequisite lookup, raw
+# body on stdin. Raw, not filtered, because the filter is itself one of the
+# guards the SUT's header names: `.[]` rather than `.[0]` is what makes an
+# empty list yield zero lines instead of one interpolated "null null", and a
+# pre-filtered fixture would decide that rather than test it. Measured
+# through this stub's own jq: `.[0] | "\(.number) \(.state)"` on `[]` prints
+# `null null`, which the SUT would read as one PR in an unknown state.
+stub_pr_list() {
+  gh_stub_raw_response '*' "$2" pr list --head "$1" --state all --json number,state --jq "$PR_LIST_JQ"
+}
+
 # ---- the PR-number shape: the PR record's own endpoints -----------------
 #
 # The first row runs from a directory that is not a git repository at all, so
@@ -182,23 +211,21 @@ assert_row() {
 
 total=$((total + 1))
 stub_dir_new
-printf '{"headRefOid":"hhh222","baseRefOid":"bbb111"}\n' |
-  gh_stub_raw_response '*' 0 pr view 42 --json baseRefOid,headRefOid --jq "$PR_VIEW_JQ"
+printf '{"headRefOid":"hhh222","baseRefOid":"bbb111"}\n' | stub_pr_view 42 0
 NOREPO="$(git_repo_scratch pr-shape-norepo)"
 run_in "$NOREPO" 42
 assert_row 'pr-shape-uses-the-pr-record' 0 'RANGE bbb111..hhh222\n' 1
 
 total=$((total + 1))
 stub_dir_new
-printf '{"headRefOid":"same111","baseRefOid":"same111"}\n' |
-  gh_stub_raw_response '*' 0 pr view 42 --json baseRefOid,headRefOid --jq "$PR_VIEW_JQ"
+printf '{"headRefOid":"same111","baseRefOid":"same111"}\n' | stub_pr_view 42 0
 NOREPO_SAME="$(git_repo_scratch pr-shape-empty)"
 run_in "$NOREPO_SAME" 42
 assert_row 'pr-shape-empty-when-ends-coincide' 0 'EMPTY\n' 1
 
 total=$((total + 1))
 stub_dir_new
-: | gh_stub_raw_response '*' 1 pr view 42 --json baseRefOid,headRefOid --jq "$PR_VIEW_JQ"
+: | stub_pr_view 42 1
 NOREPO_FAIL="$(git_repo_scratch pr-shape-lookup-fails)"
 run_in "$NOREPO_FAIL" 42
 assert_row 'pr-lookup-fails' 0 'STOP pr-lookup-failed\n' 1
@@ -207,14 +234,6 @@ total=$((total + 1))
 stub_dir_new
 run_in "$NOREPO" 42 extra
 assert_row 'too-many-arguments' 1 '' 0
-
-# stub_default_branch <exit-status> -- the `gh repo view` rung of the
-# default-branch ladder, body on stdin. Filtered, not raw: the filter is a
-# plain field selection the SUT is not being held to, and the contract under
-# test is what the script does with the *answer*.
-stub_default_branch() {
-  gh_stub_response '*' "$1" repo view --json defaultBranchRef --jq .defaultBranchRef.name
-}
 
 REMOTE="$(build_remote ranged with-dep)"
 MAIN_SHA="$(bare_sha "$REMOTE" main)"
@@ -269,19 +288,6 @@ stub_dir_new
 W="$(work_repo empty-nopr "$REMOTE" fresh main)"
 run_in "$W"
 assert_row 'no-trailer-empty-when-head-is-the-default-tip' 0 'EMPTY\n' 0
-
-PR_LIST_JQ='.[] | "\(.number) \(.state)"'
-
-# stub_pr_list <head-branch> <exit-status> -- the prerequisite lookup, raw
-# body on stdin. Raw, not filtered, because the filter is itself one of the
-# guards the SUT's header names: `.[]` rather than `.[0]` is what makes an
-# empty list yield zero lines instead of one interpolated "null null", and a
-# pre-filtered fixture would decide that rather than test it. Measured
-# through this stub's own jq: `.[0] | "\(.number) \(.state)"` on `[]` prints
-# `null null`, which the SUT would read as one PR in an unknown state.
-stub_pr_list() {
-  gh_stub_raw_response '*' "$2" pr list --head "$1" --state all --json number,state --jq "$PR_LIST_JQ"
-}
 
 DEP_SHA="$(bare_sha "$REMOTE" dep)"
 TASK_SHA="$(bare_sha "$REMOTE" task)"
