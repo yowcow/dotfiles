@@ -304,14 +304,25 @@ gh api --method POST "repos/acme/widgets/issues/7/comments" --input - \
 fails_here=0
 if ! check_gh_stdin "stdin payload: recorded" 1 "${HARNESS_TMP}/want.payload"; then fails_here=1; fi
 # A call with no --input reads nothing, so "no payload" must be its own failure
-# rather than a comparison against an empty file, which would pass.
+# rather than a comparison against an empty file, which would pass. The message
+# is asserted, not just the return code, following property 10's pattern: `cmp
+# -s` against a nonexistent $got already returns non-zero on its own, so a
+# check_gh_stdin whose `[ ! -f "$got" ]` branch was deleted — collapsing "gh
+# read no payload" into an undifferentiated "the bytes differ" — would still
+# pass a status-only assertion here.
 stub_dir_new
 gh_stub_response 1 0 api "repos/acme/widgets" </dev/null
 gh api "repos/acme/widgets" >/dev/null
-if check_gh_stdin "stdin payload: probe" 1 "${HARNESS_TMP}/want.payload" >/dev/null 2>&1; then
-  echo "FAIL stdin payload: a call with no --input was reported as carrying one"
-  fails_here=1
-fi
+probe_status=0
+probe_out="$( (check_gh_stdin "stdin payload: probe" 1 "${HARNESS_TMP}/want.payload") 2>&1 )" || probe_status=$?
+if ! check_eq "stdin payload: probe status" 1 "$probe_status"; then fails_here=1; fi
+case "$probe_out" in
+  *'gh read no stdin payload for call 1'*) ;;
+  *)
+    printf 'FAIL stdin payload: probe message did not name the missing payload: [%s]\n' "$probe_out"
+    fails_here=1
+    ;;
+esac
 if [ "$fails_here" -ne 0 ]; then failed=$((failed + 1)); fi
 
 # --- gitrepo.sh: a repo with the requested remote URL, branches and commits ---
