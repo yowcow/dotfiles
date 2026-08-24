@@ -28,11 +28,22 @@
 #    These two rows still do not exhaust "looks numeric". Measured: under a
 #    UTF-8 locale `[0-9]` also matches fullwidth `２５４４` and Arabic-Indic
 #    `٢٥٤٤` (both rejected under `LC_ALL=C`), and the script forwards such an
-#    id to `gh` rather than refusing. That is a defect in the script, so the
-#    fix is out of this task's scope (`ai/skills/` is excluded) and is tracked
-#    in #229. Deliberately NOT given a row here: asserting the current
-#    behaviour would pin a defect as correct, and asserting the intended
-#    behaviour would leave the suite red against the shipped script.
+#    id to `gh` rather than refusing. Deliberately NOT given a row, and not
+#    tracked anywhere either: #229 measured this and settled that it will not
+#    be fixed — a fullwidth issue number is not an input path this tool has to
+#    account for — so there is no follow-up for a later reader to go looking
+#    for. Asserting today's behaviour would record it as intended, and
+#    asserting a refusal would leave the suite red against a script nobody is
+#    going to change.
+#
+#    The body-file guard gets two rows of its own: `missing-body-file` for a
+#    path that is not there, and `unreadable-body-file` for one that is there
+#    with mode 000. `-f` alone let the second through, and the `jq -Rs ... | gh`
+#    pipeline then made one API call anyway, the redirect being the only thing
+#    that failed — and under `set -o pipefail` that version exits non-zero too,
+#    so the call count is what separates it from a refusal, not the exit status.
+#    The unreadable file is built at run time and the row is skipped under uid 0;
+#    the comments at both places say why.
 #
 # RED verification (mutations are not committed) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/post-plan-comment.sh "$tmp/mut.sh"
@@ -53,6 +64,18 @@ HERE="$(dirname -- "${BASH_SOURCE[0]}")"
 BODY="${HERE}/fixtures/plan-body.md"
 MISSING="${HARNESS_TMP}/no-such-body.md"
 
+# A file that exists and cannot be read. Built here rather than in fixtures/:
+# git records only 100644 and 100755 for a regular file, so a mode-000 entry
+# would come back readable on checkout, and `git add` refuses an unreadable file
+# outright anyway (measured: `error: open(...): Permission denied`, exit 128). A
+# checked-in fixture would therefore cost this row its detection power on
+# exactly the non-root CI it exists for. It is a copy of the body rather than an
+# empty file, so the refusal is about readability and not about emptiness — the
+# guard deliberately does not check `-s`.
+UNREADABLE="${HARNESS_TMP}/unreadable-body.md"
+cp -- "$BODY" "$UNREADABLE"
+chmod 000 "$UNREADABLE"
+
 # Exported so the fixture's `touch "$PLAN_CANARY"` would land somewhere
 # observable if the body ever reached a shell. Nothing in this suite creates it.
 PLAN_CANARY="${HARNESS_TMP}/canary"
@@ -63,6 +86,29 @@ total=0
 
 while IFS='|' read -r name args response want_exit want_calls want_stdout want_payload; do
   case "$name" in '' | '#'*) continue ;; esac
+
+  # chmod 000 does not stop uid 0: there `-r` is true, the guard rightly lets
+  # the body through, and `gh responses` is 1 rather than the 0 this row wants.
+  # Failing the row would charge root's correct behaviour to the script under
+  # test, so it is skipped — not run, one line printed, not counted, and the
+  # file goes on to the end. run_test.sh:125-136 chose the same shape for the
+  # same reason. The line is printed because a row that passes while testing
+  # nothing is the state this suite exists to catch: the total drops by one, and
+  # this line is what says why.
+  #
+  # Keyed on the placeholder rather than the row's name, so renaming the row
+  # cannot silently detach the skip from it — a drift that would change nothing
+  # off root and show up only on it.
+  case "$args" in
+    *@UNREADABLE*)
+      if [ -r "$UNREADABLE" ]; then
+        printf 'skip %s: chmod 000 left %s readable as uid %s — the guard is right to accept it here\n' \
+          "$name" "$UNREADABLE" "$(id -u)"
+        continue
+      fi
+      ;;
+  esac
+
   total=$((total + 1))
   stub_dir_new
 
@@ -76,9 +122,10 @@ while IFS='|' read -r name args response want_exit want_calls want_stdout want_p
       --jq '.id, .html_url' <"${HERE}/fixtures/${fixture}.json"
   fi
 
-  # @BODY / @MISSING keep the row table free of absolute paths.
+  # @BODY / @MISSING / @UNREADABLE keep the row table free of absolute paths.
   args="${args//@BODY/$BODY}"
   args="${args//@MISSING/$MISSING}"
+  args="${args//@UNREADABLE/$UNREADABLE}"
   read -ra argv <<<"$args"
   run_sut bash "$SUT" ${argv[@]+"${argv[@]}"}
 
@@ -107,6 +154,7 @@ done <<'ROWS'
 posts-body-prints-numeric-id|acme widgets 7 @BODY|comment-created|0|1|expected/created.out|expected/plan-body.payload.json
 api-failure-is-not-a-post|acme widgets 7 @BODY|not-found:1|1|1|fixtures/not-found.json|expected/plan-body.payload.json
 missing-body-file|acme widgets 7 @MISSING|-|1|0|-|-
+unreadable-body-file|acme widgets 7 @UNREADABLE|-|1|0|-|-
 non-numeric-issue|acme widgets abc @BODY|-|1|0|-|-
 partially-numeric-issue|acme widgets 7x @BODY|-|1|0|-|-
 too-few-args|acme widgets 7|-|1|0|-|-

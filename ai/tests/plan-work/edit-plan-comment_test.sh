@@ -13,23 +13,29 @@
 #    makes the anchoring deliberate rather than incidental. Neither row
 #    exhausts "looks numeric": measured, under a UTF-8 locale `[0-9]` also
 #    matches fullwidth `２５４４` and Arabic-Indic `٢٥٤٤` (both rejected under
-#    `LC_ALL=C`), and the script PATCHes such an id rather than refusing. That
-#    is a defect in the script, out of this task's scope (`ai/skills/` is
-#    excluded) and tracked in #229. Deliberately given no row: pinning
-#    today's behaviour would record a defect as correct, and pinning the
-#    intended behaviour would leave the suite red against the shipped script.
+#    `LC_ALL=C`), and the script PATCHes such an id rather than refusing.
+#    Deliberately given no row, and not tracked anywhere either: #229 measured
+#    this and settled that it will not be fixed — a fullwidth comment id is not
+#    an input path this tool has to account for — so there is no follow-up for a
+#    later reader to go looking for. Pinning today's behaviour would record it as
+#    intended, and pinning a refusal would leave the suite red against a script
+#    nobody is going to change.
 # 2. The body comes from a file and reaches gh on stdin as one JSON document
 #    (`jq -Rs`). The payload is compared byte for byte against the same
 #    hand-written golden post-plan-comment_test.sh uses, which is what makes
 #    `jq -R` — same argv, one document per line — detectable. The fixture's two
 #    $PLAN_CANARY substitutions catch a body that reached a shell.
-# 3. A body file that does not exist refuses before any call. Worded that way
-#    deliberately: the guard is `[ ! -f "$BODY_FILE" ]`, and `-f` asks whether
-#    a regular file is there, not whether it can be read. A file that exists
-#    with mode 000 passes `-f`, so the script reaches `gh` for it — measured,
-#    and tracked in #229, since the fix belongs to the script rather than to
-#    this file. Do not reword this row's name to claim readability it does not
-#    cover.
+# 3. A body file that cannot be read refuses before any call, and the guard is
+#    `[ ! -f "$BODY_FILE" ] || [ ! -r "$BODY_FILE" ]` — two conditions because
+#    `-f` asks only whether a regular file is there. Two rows hold the two
+#    halves: `missing-body-file` for a path that is not there, and
+#    `unreadable-body-file` for one that is there with mode 000, which `-f`
+#    alone let through — the `jq -Rs ... | gh` pipeline then PATCHed anyway, the
+#    redirect being the only thing that failed. Both rows assert `gh responses`
+#    is 0, and that is what separates a refusal from that version: under
+#    `set -o pipefail` it exits non-zero too, so the exit status tells the two
+#    apart from nothing. The unreadable file is built at run time and the row is
+#    skipped under uid 0; the comments at both places say why.
 #
 # RED verification (mutations are not committed) — see ai/tests/README.md:
 #   tmp="$(mktemp -d)"; cp ai/skills/plan-work/scripts/edit-plan-comment.sh "$tmp/mut.sh"
@@ -46,6 +52,15 @@ HERE="$(dirname -- "${BASH_SOURCE[0]}")"
 
 BODY="${HERE}/fixtures/plan-body.md"
 MISSING="${HARNESS_TMP}/no-such-body.md"
+
+# A file that exists and cannot be read. Built at run time rather than checked
+# into fixtures/, because git cannot carry mode 000 through a checkout and
+# refuses to add an unreadable file at all — post-plan-comment_test.sh spells
+# that out where it does the same. A copy of the body rather than an empty file,
+# so the refusal is about readability and not about emptiness.
+UNREADABLE="${HARNESS_TMP}/unreadable-body.md"
+cp -- "$BODY" "$UNREADABLE"
+chmod 000 "$UNREADABLE"
 PLAN_CANARY="${HARNESS_TMP}/canary"
 export PLAN_CANARY
 
@@ -54,6 +69,24 @@ total=0
 
 while IFS='|' read -r name args response want_exit want_calls want_stdout want_payload; do
   case "$name" in '' | '#'*) continue ;; esac
+
+  # chmod 000 does not stop uid 0, where `-r` is true and the guard rightly
+  # lets the body through — so the row is skipped rather than failed, since
+  # failing it would charge root's correct behaviour to the script under test.
+  # Not run, one line printed, not counted, and the file goes on to the end;
+  # run_test.sh:125-136 chose the same shape, and post-plan-comment_test.sh
+  # carries the longer form of the reason. Keyed on the placeholder rather than
+  # the row's name so a rename cannot silently detach the skip from it.
+  case "$args" in
+    *@UNREADABLE*)
+      if [ -r "$UNREADABLE" ]; then
+        printf 'skip %s: chmod 000 left %s readable as uid %s — the guard is right to accept it here\n' \
+          "$name" "$UNREADABLE" "$(id -u)"
+        continue
+      fi
+      ;;
+  esac
+
   total=$((total + 1))
   stub_dir_new
 
@@ -68,6 +101,7 @@ while IFS='|' read -r name args response want_exit want_calls want_stdout want_p
 
   args="${args//@BODY/$BODY}"
   args="${args//@MISSING/$MISSING}"
+  args="${args//@UNREADABLE/$UNREADABLE}"
   read -ra argv <<<"$args"
   run_sut bash "$SUT" ${argv[@]+"${argv[@]}"}
 
@@ -98,6 +132,7 @@ api-failure-is-not-an-edit|acme widgets 2544 @BODY|not-found:1|1|1|fixtures/not-
 node-id-refused|acme widgets IC_kwDOAZjEl85e3xyz @BODY|-|1|0|-|-
 partially-numeric-id|acme widgets 2544x @BODY|-|1|0|-|-
 missing-body-file|acme widgets 2544 @MISSING|-|1|0|-|-
+unreadable-body-file|acme widgets 2544 @UNREADABLE|-|1|0|-|-
 too-few-args|acme widgets 2544|-|1|0|-|-
 too-many-args|acme widgets 2544 @BODY extra|-|1|0|-|-
 no-args||-|1|0|-|-
