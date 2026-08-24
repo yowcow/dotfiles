@@ -34,8 +34,13 @@ if ! [[ "$COMMENT_ID" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
-if [ ! -f "$BODY_FILE" ]; then
-  echo "error: body file not found: $BODY_FILE" >&2
+# `-r` as well as `-f`: with `-f` alone a file that exists with mode 000 walks
+# through and only the `<"$BODY_FILE"` redirect fails, while the `gh` on the
+# right of the pipeline is forked and runs regardless — one API call after all,
+# which is what this guard exists to prevent. post-plan-comment.sh's identical
+# guard carries the longer form of the reason.
+if [ ! -f "$BODY_FILE" ] || [ ! -r "$BODY_FILE" ]; then
+  echo "error: body file is not readable: $BODY_FILE" >&2
   exit 1
 fi
 

@@ -29,8 +29,13 @@ if ! [[ "$CHILD" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
-if [ ! -f "$REASON_FILE" ]; then
-  echo "error: reason file not found: $REASON_FILE" >&2
+# `-r` as well as `-f`: with `-f` alone a file that exists with mode 000 walks
+# through and only the `<"$REASON_FILE"` redirect fails, while the `gh` on the
+# right of the pipeline is forked and runs regardless — the reason gets posted
+# after all, which is what this guard exists to prevent. post-plan-comment.sh's
+# identical guard carries the longer form of the reason.
+if [ ! -f "$REASON_FILE" ] || [ ! -r "$REASON_FILE" ]; then
+  echo "error: reason file is not readable: $REASON_FILE" >&2
   exit 1
 fi
 
