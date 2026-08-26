@@ -70,12 +70,7 @@ AI_CODEX_DEPS      := $(AI_GUIDELINES) $(wildcard $(AI_CODEX_OVERLAY))
 AI_GROK_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_GROK_OVERLAY))
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
-# Shared AI assistant skills — one source directory, multiple symlink targets
-AI_SKILLS_DIR    := ai/skills
-AI_SKILL_NAMES   := simplify-code pr-to-ready investigate-performance investigate-anomaly review-plan review-code plan-work implement-work
-AI_SKILL_TARGETS := $(foreach skill,$(AI_SKILL_NAMES),$(HOME)/.claude/skills/$(skill) $(HOME)/.gemini/skills/$(skill) $(HOME)/.agents/skills/$(skill) $(HOME)/.codex/skills/$(skill) $(HOME)/.grok/skills/$(skill))
-
-TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS) $(AI_SKILL_TARGETS)
+TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
 FZF             := _modules/github.com/junegunn/fzf
@@ -176,26 +171,6 @@ $(AI_GROK_TARGET): FORCE $(AI_GROK_DEPS)
 	else \
 		ln -sfn $(AI_GUIDELINES_ABS) $@; \
 	fi
-
-$(HOME)/.claude/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.gemini/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.agents/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.codex/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
-
-$(HOME)/.grok/skills/%: $(AI_SKILLS_DIR)/%
-	mkdir -p $(@D)
-	ln -sfn `pwd`/$< $@
 
 $(HOME)/.config/alacritty-theme: $(ALACRITTY_THEME)
 	mkdir -p $(@D)
