@@ -1,6 +1,6 @@
 # AI Assistant Guidelines
 
-When editing this file or anything under `ai/skills/`, read https://github.com/yowcow/dude/blob/master/AUTHORING.md first.
+When editing this file, read https://github.com/yowcow/dude/blob/master/AUTHORING.md first.
 
 ## Skills & runtime adaptation
 
