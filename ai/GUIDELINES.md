@@ -45,7 +45,6 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 - Never commit directly to `master`/`main` without explicit permission. For any non-trivial change, use `superpowers:using-git-worktrees` to establish isolation; prefer an existing isolated environment or a runtime-native worktree, and create a Git worktree only when necessary. Fall back to a plain feature branch only when worktrees aren't available.
 - When a branch will be pushed, choose its local name as the intended remote branch name and push it under that same name. Use a different remote name only with an explicit reason or user instruction.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
-- `dude:pr-to-ready` owns the PR from creation onward. Don't create the PR yourself — `dude:implement-work` ends at a pushed branch, and whether `dude:pr-to-ready` runs next is the caller's decision.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`) — keep it even cross-repo, where GitHub won't auto-close.
 
 ## Tool preferences
