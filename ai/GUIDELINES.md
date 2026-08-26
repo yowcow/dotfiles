@@ -1,7 +1,5 @@
 # AI Assistant Guidelines
 
-When editing this file, read https://github.com/yowcow/dude/blob/master/AUTHORING.md first.
-
 ## Skills & runtime adaptation
 
 Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude:pr-to-ready` denote required workflows, not specific tools.
