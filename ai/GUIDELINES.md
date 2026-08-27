@@ -33,6 +33,7 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 
 ## Subagents & worker safety
 
+- Dispatching workers is standing-approved: treat it as already requested and never wait for a per-task go-ahead. Approval is necessary but not sufficient — the sizing rule below still decides whether to dispatch.
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, when the task's deliverable is a diff, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - **Size the fan-out to the target** — splitting it finer than it warrants only pays hand-off cost, and which shape to use within that bound is the skill's own procedure.
