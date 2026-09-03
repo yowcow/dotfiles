@@ -69,9 +69,13 @@ transcript は追記式であり、測定しているセッション自身の tr
 | 役割別 | review-plan 156 / review-code 130 / simplify-code 72 / pr-to-ready 19 / implement 15 / investigate 6 / explore 5 / unknown 19 |
 | 印なし役割への opus 明示 | 5 件 |
 
+**測定報告のうち subagent 消費量の数字は 8 標本からの外挿であってスクリプトの出力ではなく、再現の対象外である。**
+
 **親 issue の測定報告の表は再現の対象ではない。むしろ再現してはならない** — あの表は assistant レコード単位で合算された過大計上値である（`claude-opus-5` 16,016 ターン、cache_read 3,022,385,810、換算合計 $2,697.66）。
 
 `sessions with assistant turns in window` と `isSidechain` はレコード単位の診断であり、リクエスト単位への訂正の影響を受けない。dispatch と役割別も、全レコードを走査するため不変である。
+
+**`per session` の分母は transcript のファイル数である。** リクエスト単位への訂正は分子にのみ及ぶため、resume / fork が生んだ複製ファイルはそのまま別セッションとして数えられる（この窓では、新規 `requestId` を 1 件も寄与しない純粋な複製ファイルが 3 件ある）。**セッションあたりの値は目安であり、判定に用いてはならない** — 判定は `per request` で行う。
 
 **`files=` は表に含めない。** これは走査したファイル数であり、transcript ディレクトリへの追記で増える（記録時点で 109）。窓の中のレコードは変わらないため、表の値には影響しない。
 
