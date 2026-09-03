@@ -14,13 +14,14 @@ Claude Code のセッションコスト（token 消費と subagent dispatch）�
 
 **もはや逐語コピーではない。** 設置時点では逐語コピーであり、測定報告の数値と一致することが検証機構であったが、その性質は[計上単位の訂正](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)によって意図的に手放した。測定報告の数値との一致は、もはや守るべき性質ではない。
 
-測定報告のコードブロックからの差分は次の 3 点である。
+測定報告のコードブロックからの差分は次の 4 点である。
 
 1. ファイル名を `measure.py` から `measure-claude-code.py` へ改め、docstring の使い方の 1 行を合わせた。
-2. **usage の合算を assistant レコード単位から API リクエスト単位に改めた。** Claude Code は 1 レスポンスを content ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、レコード単位の合算は絶対値を過大に計上する。`requestId` の初出だけを数え、ファイルを跨いだ複製も一度だけ数える。
-3. 出力ラベルを `turns` から `requests` に改め、`per request $`（1 リクエストあたりの換算後 $）の行を加えた。
+2. [yowcow/dotfiles#253](https://github.com/yowcow/dotfiles/issues/253) で `--since` / `--until` の値欠落と「値が別のフラグである」ケースを弾くガードを引数解析に足した。値を書き忘れると `IndexError` の traceback が出るか、次のフラグが値として黙って採られるかのどちらかになっていたためで、経緯はリンク先の issue に記録がある。**ガードは異常な起動形を非ゼロ終了させるだけであり、集計ロジックと出力には影響しない。**
+3. **usage の合算を assistant レコード単位から API リクエスト単位に改めた。** Claude Code は 1 レスポンスを content ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、レコード単位の合算は絶対値を過大に計上する。`requestId` の初出だけを数え、ファイルを跨いだ複製も一度だけ数える。
+4. 出力ラベルを `turns` から `requests` に改め、`per request $`（1 リクエストあたりの換算後 $）の行を加えた。
 
-機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。**ただし 3 の `per request $` の 1 行だけは例外として追加した** — [訂正コメント](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)が判定をこの単位で行うべきと定め、[yowcow/dude#161](https://github.com/yowcow/dude/issues/161) の判定指標がこの値に依存するためである。この行を落としてはならない。
+機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。**ただし 4 の `per request $` の 1 行だけは例外として追加した** — [訂正コメント](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)が判定をこの単位で行うべきと定め、[yowcow/dude#161](https://github.com/yowcow/dude/issues/161) の判定指標がこの値に依存するためである。この行を落としてはならない。
 
 ### 何を測るか
 
@@ -75,7 +76,7 @@ transcript は追記式であり、測定しているセッション自身の tr
 
 `sessions with assistant turns in window` と `isSidechain` はレコード単位の診断であり、リクエスト単位への訂正の影響を受けない。dispatch と役割別も、全レコードを走査するため不変である。
 
-**`per session` の分母は transcript のファイル数である。** リクエスト単位への訂正は分子にのみ及ぶため、resume / fork が生んだ複製ファイルはそのまま別セッションとして数えられる（この窓では、新規 `requestId` を 1 件も寄与しない純粋な複製ファイルが 3 件ある）。**セッションあたりの値は目安であり、判定に用いてはならない** — 判定は `per request` で行う。
+**`per session` の分母は、窓内に assistant レコードを 1 件以上持つ transcript ファイルの数である**（この窓では 85、出力の `sessions with assistant turns in window`）。**走査ファイル数 `files=` とは別の量である。** リクエスト単位への訂正は分子にのみ及ぶため、resume / fork が生んだ複製ファイルはそのまま別セッションとして数えられる（この窓では、新規 `requestId` を 1 件も寄与しない純粋な複製ファイルが 3 件ある）。**セッションあたりの値は目安であり、判定に用いてはならない** — 判定は `per request` で行う。
 
 **`files=` は表に含めない。** これは走査したファイル数であり、transcript ディレクトリへの追記で増える（記録時点で 109）。窓の中のレコードは変わらないため、表の値には影響しない。
 

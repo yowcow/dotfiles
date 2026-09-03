@@ -6,7 +6,8 @@ usage は **API リクエスト単位**で合算する。Claude Code は 1 レ�
 ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、
 レコード単位で足すと 1 リクエストが複数回数えられる。requestId の初出だけを数え、
 セッションの resume / fork がファイルを跨いで先行レコードを複製した場合も一度だけ
-数える。したがって per-unit の指標はすべて「1 リクエストあたり」である。
+数える。したがって `per request` 系の指標は、いずれも重複除去後の値である。
+（`per session` 系は分母が transcript のファイル数なので目安であり、判定には用いない。）
 
 --since / --until で [since, until) の半開区間に絞る。transcript は追記式で、
 測定しているセッション自身も含まれるため、前後比較では必ず両端を指定すること。
@@ -20,6 +21,8 @@ until = since = None
 for flag in ("--until", "--since"):
     if flag in args:
         i = args.index(flag)
+        if i + 1 >= len(args) or args[i+1].startswith("--"):
+            sys.exit(f"error: {flag} に値がありません")
         if flag == "--until": until = args[i+1]
         else: since = args[i+1]
         del args[i:i+2]
