@@ -14,6 +14,8 @@ until = since = None
 for flag in ("--until", "--since"):
     if flag in args:
         i = args.index(flag)
+        if i + 1 >= len(args) or args[i+1].startswith("--"):
+            sys.exit(f"error: {flag} に値がありません")
         if flag == "--until": until = args[i+1]
         else: since = args[i+1]
         del args[i:i+2]
