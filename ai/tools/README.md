@@ -12,7 +12,7 @@ Claude Code のセッションコスト（token 消費と subagent dispatch）�
 
 [yowcow/dude#159 の測定報告](https://github.com/yowcow/dude/issues/159#issuecomment-5518651417) に貼られたコードブロックからの**逐語コピー**である。追跡 issue は [yowcow/dude#162](https://github.com/yowcow/dude/issues/162)。測定報告のコメントは唯一の記録であり、元のスクリプトはセッション破棄とともに消える一時ディレクトリにあったため、この場所を durable な置き場とした。
 
-逐語コピーからの差分は 2 点のみ — ファイル名を `measure.py` から `measure-claude-code.py` へ改めたことと、それに合わせて docstring の使い方の 1 行を書き換えたこと。集計ロジックと出力は測定報告のコードブロックと一致する。
+逐語コピーからの差分は 3 点 — ファイル名を `measure.py` から `measure-claude-code.py` へ改めたこと、それに合わせて docstring の使い方の 1 行を書き換えたこと、そして [yowcow/dotfiles#253](https://github.com/yowcow/dotfiles/issues/253) で `--since` / `--until` の値欠落と「値が別のフラグである」ケースを弾くガードを引数解析に足したことである。3 点目は、値を書き忘れると `IndexError` の traceback が出るか、次のフラグが値として黙って採られるかのどちらかになっていたためで、経緯はリンク先の issue に記録がある。ガードは異常な起動形を非ゼロ終了させるだけなので、集計ロジックと出力は測定報告のコードブロックと一致する。
 
 機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。変更する場合は、測定報告の数値との再現性が失われることを承知のうえで行うこと。
 
