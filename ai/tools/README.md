@@ -10,18 +10,25 @@ Claude Code のセッションコスト（token 消費と subagent dispatch）�
 
 ### 出所
 
-[yowcow/dude#159 の測定報告](https://github.com/yowcow/dude/issues/159#issuecomment-5518651417) に貼られたコードブロックからの**逐語コピー**である。追跡 issue は [yowcow/dude#162](https://github.com/yowcow/dude/issues/162)。測定報告のコメントは唯一の記録であり、元のスクリプトはセッション破棄とともに消える一時ディレクトリにあったため、この場所を durable な置き場とした。
+[yowcow/dude#159 の測定報告](https://github.com/yowcow/dude/issues/159#issuecomment-5518651417) に貼られたコードブロックに由来する。追跡 issue は [yowcow/dude#162](https://github.com/yowcow/dude/issues/162)。測定報告のコメントは唯一の記録であり、元のスクリプトはセッション破棄とともに消える一時ディレクトリにあったため、この場所を durable な置き場とした。
 
-逐語コピーからの差分は 3 点 — ファイル名を `measure.py` から `measure-claude-code.py` へ改めたこと、それに合わせて docstring の使い方の 1 行を書き換えたこと、そして [yowcow/dotfiles#253](https://github.com/yowcow/dotfiles/issues/253) で `--since` / `--until` の値欠落と「値が別のフラグである」ケースを弾くガードを引数解析に足したことである。3 点目は、値を書き忘れると `IndexError` の traceback が出るか、次のフラグが値として黙って採られるかのどちらかになっていたためで、経緯はリンク先の issue に記録がある。ガードは異常な起動形を非ゼロ終了させるだけなので、集計ロジックと出力は測定報告のコードブロックと一致する。
+**もはや逐語コピーではない。** 設置時点では逐語コピーであり、測定報告の数値と一致することが検証機構であったが、その性質は[計上単位の訂正](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)によって意図的に手放した。測定報告の数値との一致は、もはや守るべき性質ではない。
 
-機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。変更する場合は、測定報告の数値との再現性が失われることを承知のうえで行うこと。
+測定報告のコードブロックからの差分は次の 4 点である。
+
+1. ファイル名を `measure.py` から `measure-claude-code.py` へ改め、docstring の使い方の 1 行を合わせた。
+2. [yowcow/dotfiles#253](https://github.com/yowcow/dotfiles/issues/253) で `--since` / `--until` の値欠落と「値が別のフラグである」ケースを弾くガードを引数解析に足した。値を書き忘れると `IndexError` の traceback が出るか、次のフラグが値として黙って採られるかのどちらかになっていたためで、経緯はリンク先の issue に記録がある。**ガードは異常な起動形を非ゼロ終了させるだけであり、集計ロジックと出力には影響しない。**
+3. **usage の合算を assistant レコード単位から API リクエスト単位に改めた。** Claude Code は 1 レスポンスを content ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、レコード単位の合算は絶対値を過大に計上する。`requestId` の初出だけを数え、ファイルを跨いだ複製も一度だけ数える。
+4. **出力に計上単位を明示した。** ラベルを `turns` から `requests` に改め、`per request $`（1 リクエストあたりの換算後 $）の行を加え、`isSidechain` の行にはレコード単位の診断である旨の注記を付けた。
+
+機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。**ただし 4 の `per request $` の 1 行だけは例外として追加した** — [訂正コメント](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)が判定をこの単位で行うべきと定め、[yowcow/dude#161](https://github.com/yowcow/dude/issues/161) の判定指標がこの値に依存するためである。この行を落としてはならない。
 
 ### 何を測るか
 
-Claude Code の transcript（`~/.claude/projects/<作業ディレクトリ由来の名前>/*.jsonl`）を走査し、`type` が `assistant` のレコードから次を集計する。
+Claude Code の transcript（`~/.claude/projects/<作業ディレクトリ由来の名前>/*.jsonl`）を走査し、`type` が `assistant` のレコードから次を集計する。**usage は `requestId` の初出のみを数える**（ファイル横断で重複除去する）一方、**dispatch は全レコードを走査する** — 重複レコードもそれぞれ別の content ブロックを運ぶためである。
 
-- model ごとのターン数と token（`input` / `output` / `cache_read` / `cache_creation`、および cache write の TTL 別内訳）
-- Claude Opus 5 の API 単価によるコスト換算と、1 セッション・1 ターンあたりの派生値
+- model ごとの API リクエスト数と token（`input` / `output` / `cache_read` / `cache_creation`、および cache write の TTL 別内訳）
+- Claude Opus 5 の API 単価によるコスト換算と、1 セッション・1 リクエストあたりの派生値
 - `Agent` / `Task` の tool_use から、subagent dispatch の件数と `model` 指定の分布、および `description` と prompt 冒頭 300 字による役割別の内訳
 
 既定の transcript ディレクトリは `~/.claude/projects/-home-yowcow-repos-dude`。第 1 引数で差し替える。
@@ -42,29 +49,48 @@ transcript は追記式であり、測定しているセッション自身の tr
 
 ### 固定窓での再現
 
-`python3 ai/tools/measure-claude-code.py --until 2026-09-02T00:00:00Z` が測定報告の表を再現することを 2026-09-03 に確認した（観測範囲 2026-08-24T05:45:08Z 〜 2026-09-01T08:45:08Z）。
+`python3 ai/tools/measure-claude-code.py --until 2026-09-02T00:00:00Z` の出力を 2026-09-03 に記録した（観測範囲 2026-08-24T05:45:08Z 〜 2026-09-01T08:45:08Z）。**再現の対象はこの表、すなわち本スクリプト自身の出力である。**
 
 | 項目 | 値 |
 | --- | ---: |
 | sessions with assistant turns in window | 85 |
-| `isSidechain` | 全 16,026 件が `false` |
-| `claude-opus-5` turns | 16,016 |
-| `input_tokens` | 31,964 |
-| `output_tokens` | 16,632,621 |
-| `cache_read_input_tokens` | 3,022,385,810 |
-| `cache_creation_input_tokens` | 77,048,985（`ttl_1h` 77,048,985 / `ttl_5m` 0） |
-| `<synthetic>` turns | 10（6 項目すべて 0） |
-| コスト換算 TOTAL | $2,697.66（input $0.16 / output $415.82 / cache_read $1,511.19 / cache_creation $770.49） |
-| 比率 | 0.0% / 15.4% / 56.0% / 28.6% |
-| per session / turns per session | $31.74 / 188.4 |
-| cache_read/turn / cache_creation/turn / output/turn | 188,710 / 4,811 / 1,039 |
+| `isSidechain` | 全 16,026 レコードが `false` |
+| `claude-opus-5` requests | 6,885 |
+| `input_tokens` | 13,748 |
+| `output_tokens` | 6,039,592 |
+| `cache_read_input_tokens` | 1,361,634,616 |
+| `cache_creation_input_tokens` | 27,284,222（`ttl_1h` 27,284,222 / `ttl_5m` 0） |
+| `<synthetic>` requests | 10（6 項目すべて 0） |
+| コスト換算 TOTAL | $1,104.72（input $0.07 / output $150.99 / cache_read $680.82 / cache_creation $272.84） |
+| 比率 | 0.0% / 13.7% / 61.6% / 24.7% |
+| per session / requests per session | $13.00 / 81.0 |
+| per request | $0.1605 |
+| cache_read/request / cache_creation/request / output/request | 197,768 / 3,963 / 877 |
 | dispatch 合計 | 422（省略 284 / opus 68 / sonnet 65 / haiku 5） |
 | 役割別 | review-plan 156 / review-code 130 / simplify-code 72 / pr-to-ready 19 / implement 15 / investigate 6 / explore 5 / unknown 19 |
 | 印なし役割への opus 明示 | 5 件 |
 
-**再現の対象はスクリプトの出力に限る。** 測定報告のうち subagent 消費量の数字は 8 標本からの外挿であってスクリプトの出力ではなく、再現の対象外である。
+**測定報告のうち subagent 消費量の数字は 8 標本からの外挿であってスクリプトの出力ではなく、再現の対象外である。**
 
-**`files=` は一致しない。** これは走査したファイル数であり、transcript ディレクトリへの追記で増える（確認時点で 106、測定報告時点で 102）。窓の中のレコードは変わらないため、表の値には影響しない。
+**親 issue の測定報告の表は再現の対象ではない。むしろ再現してはならない** — あの表は assistant レコード単位で合算された過大計上値である（`claude-opus-5` 16,016 ターン、cache_read 3,022,385,810、換算合計 $2,697.66）。
+
+`sessions with assistant turns in window` と `isSidechain` はレコード単位の診断であり、リクエスト単位への訂正の影響を受けない。dispatch と役割別も、全レコードを走査するため不変である。
+
+**`per session` の分母は、窓内に assistant レコードを 1 件以上持つ transcript ファイルの数である**（この窓では 85、出力の `sessions with assistant turns in window`）。**走査ファイル数 `files=` とは別の量である。** リクエスト単位への訂正は分子にのみ及ぶため、resume / fork が生んだ複製ファイルはそのまま別セッションとして数えられる（この窓では、新規 `requestId` を 1 件も寄与しない純粋な複製ファイルが 3 件ある）。**セッションあたりの値は目安であり、判定に用いてはならない** — 判定は `per request` で行う。
+
+**`files=` は表に含めない。** これは走査したファイル数であり、transcript ディレクトリへの追記で増える（記録時点で 109）。窓の中のレコードは変わらないため、表の値には影響しない。
+
+### yowcow/dude#159 の訂正表と一致しない理由
+
+[yowcow/dude#159 の訂正コメント](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)の訂正表とも、本スクリプトの出力は一致しない。**訂正表は `(file, requestId)` 対で集計されており、ファイル横断の重複除去を行っていないためである。**
+
+| 集計単位 | 単位数 | cache_read | 換算合計 |
+| --- | ---: | ---: | ---: |
+| assistant レコード単位（測定報告） | 16,016 | 3,022,385,810 | $2,697.66 |
+| `(file, requestId)` 対（#159 の訂正表） | 7,113 | 1,390,985,768 | $1,133.35 |
+| **`requestId`（本スクリプト）** | **6,885** | **1,361,634,616** | **$1,104.72** |
+
+差の 228 件は、セッションの resume / fork が先行レコードを別ファイルに複製したものである。同一の API リクエストであるから、[yowcow/dude#162](https://github.com/yowcow/dude/issues/162) の完了条件はこれを一度だけ数えることを要求しており、本スクリプトはそれに従う。
 
 ### 単価の前提
 

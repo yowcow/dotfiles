@@ -2,6 +2,14 @@
 """dude セッションの token 消費と subagent dispatch を集計する。
 使い方: python3 measure-claude-code.py [transcript-dir] [--since ISO8601] [--until ISO8601]
 
+usage は **API リクエスト単位**で合算する。Claude Code は 1 レスポンスを content
+ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、
+レコード単位で足すと 1 リクエストが複数回数えられる。requestId の初出だけを数え、
+セッションの resume / fork がファイルを跨いで先行レコードを複製した場合も一度だけ
+数える。したがって `per request` 系の指標は、いずれも重複除去後の値である。
+（`per session` 系の分母は窓内に assistant レコードを持つ transcript ファイル数であり、
+走査ファイル数 `files=` とは別の量である。複製ファイルを別セッションと数えるため目安に留まる。）
+
 --since / --until で [since, until) の半開区間に絞る。transcript は追記式で、
 測定しているセッション自身も含まれるため、前後比較では必ず両端を指定すること。
 --until だけでは [集計開始, until) という入れ子区間になり、変更前のデータに
@@ -39,10 +47,13 @@ def classify(desc, prompt):
             return name
     return "unknown"
 
-usage = defaultdict(Counter); turns = Counter()
+usage = defaultdict(Counter); requests = Counter()
 dispatch = Counter(); sidechain = Counter()
 roles = defaultdict(Counter)
 sessions = set()
+# 重複除去は docstring の述べる理由による。集合をファイルループの外で持つのは、
+# resume / fork がファイルを跨いで複製した requestId も一度だけ数えるためである。
+seen_requests = set()
 lo = hi = None
 files = sorted(glob.glob(os.path.join(DIR, "*.jsonl")))
 
@@ -64,14 +75,21 @@ for fp in files:
             sidechain[rec.get("isSidechain")] += 1
             msg = rec.get("message") or {}
             model = msg.get("model", "UNKNOWN"); u = msg.get("usage") or {}
-            turns[model] += 1
-            for k in ("input_tokens", "output_tokens",
-                      "cache_read_input_tokens", "cache_creation_input_tokens"):
-                usage[model][k] += u.get(k) or 0
-            cc = u.get("cache_creation")
-            if isinstance(cc, dict):
-                usage[model]["ttl_5m"] += cc.get("ephemeral_5m_input_tokens") or 0
-                usage[model]["ttl_1h"] += cc.get("ephemeral_1h_input_tokens") or 0
+            rid = rec.get("requestId")
+            # requestId を持たないレコード（`<synthetic>` など）は uuid で一意化する。
+            key = rid if rid is not None else ("uuid", rec.get("uuid"))
+            if key not in seen_requests:
+                seen_requests.add(key)
+                requests[model] += 1
+                for k in ("input_tokens", "output_tokens",
+                          "cache_read_input_tokens", "cache_creation_input_tokens"):
+                    usage[model][k] += u.get(k) or 0
+                cc = u.get("cache_creation")
+                if isinstance(cc, dict):
+                    usage[model]["ttl_5m"] += cc.get("ephemeral_5m_input_tokens") or 0
+                    usage[model]["ttl_1h"] += cc.get("ephemeral_1h_input_tokens") or 0
+            # dispatch は全レコードを走査する。重複レコードもそれぞれ別の content ブロックを
+            # 運ぶため、読み飛ばすと tool_use を取りこぼす。
             for blk in (msg.get("content") or []):
                 if isinstance(blk, dict) and blk.get("type") == "tool_use" \
                         and blk.get("name") in ("Agent", "Task"):
@@ -82,9 +100,9 @@ for fp in files:
 
 print(f"files={len(files)}  since={since}  until={until}  observed={lo} .. {hi}")
 print(f"sessions with assistant turns in window: {len(sessions)}")
-print(f"isSidechain: {dict(sidechain)}")
+print(f"isSidechain（assistant レコード単位）: {dict(sidechain)}")
 for model, c in usage.items():
-    print(f"\n{model}  turns={turns[model]}")
+    print(f"\n{model}  requests={requests[model]}")
     for k in ("input_tokens","output_tokens","cache_read_input_tokens",
               "cache_creation_input_tokens","ttl_5m","ttl_1h"):
         print(f"  {k:32} {c[k]:>15,}")
@@ -102,12 +120,13 @@ for k, r in RATE.items():
 print(f"  {'TOTAL':32} ${total:>10,.2f}")
 if sessions:
     print(f"  per session                      ${total/len(sessions):>10,.2f}"
-          f"   turns/session {turns['claude-opus-5']/len(sessions):>8.1f}")
-if turns["claude-opus-5"]:
-    t = turns["claude-opus-5"]
-    print(f"  cache_read/turn {c['cache_read_input_tokens']/t:>12,.0f}"
-          f"   cache_creation/turn {c['cache_creation_input_tokens']/t:>10,.0f}"
-          f"   output/turn {c['output_tokens']/t:>8,.0f}")
+          f"   requests/session {requests['claude-opus-5']/len(sessions):>8.1f}")
+if requests["claude-opus-5"]:
+    t = requests["claude-opus-5"]
+    print(f"  per request                      ${total/t:>10,.4f}")
+    print(f"  cache_read/request {c['cache_read_input_tokens']/t:>9,.0f}"
+          f"   cache_creation/request {c['cache_creation_input_tokens']/t:>7,.0f}"
+          f"   output/request {c['output_tokens']/t:>5,.0f}")
 
 print(f"\ndispatch total={sum(dispatch.values())}")
 for k, v in dispatch.most_common(): print(f"  {k:12} {v:>4}")
