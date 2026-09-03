@@ -31,6 +31,11 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 - **Slow down** for hard-to-reverse decisions — planning, architecture, code review, simplification strategy, root-cause analysis, and the final critique before calling work done.
 - **Move quickly** on mechanical work — searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs; if your runtime exposes a thinking-budget control, map it to these two tiers.
 
+## Session boundaries
+
+- Context carried across a phase boundary is billed on every turn that follows. When you reach a hand-off whose record lives outside the session — an issue comment, a PR, a written plan — say so, and recommend continuing in a new session rather than carrying the phase's context forward. Only the user can start a session, so recommending it is your whole part.
+- Recommend it only at a boundary, never mid-phase, and only once the external record is actually complete. What the next session receives is what was written down, not what was said in conversation.
+
 ## Subagents & worker safety
 
 - Dispatching workers is standing-approved: treat it as already requested and never wait for a per-task go-ahead. Approval is necessary but not sufficient — the sizing rule below still decides whether to dispatch.
