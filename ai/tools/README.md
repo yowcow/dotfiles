@@ -19,7 +19,7 @@ Claude Code のセッションコスト（token 消費と subagent dispatch）�
 1. ファイル名を `measure.py` から `measure-claude-code.py` へ改め、docstring の使い方の 1 行を合わせた。
 2. [yowcow/dotfiles#253](https://github.com/yowcow/dotfiles/issues/253) で `--since` / `--until` の値欠落と「値が別のフラグである」ケースを弾くガードを引数解析に足した。値を書き忘れると `IndexError` の traceback が出るか、次のフラグが値として黙って採られるかのどちらかになっていたためで、経緯はリンク先の issue に記録がある。**ガードは異常な起動形を非ゼロ終了させるだけであり、集計ロジックと出力には影響しない。**
 3. **usage の合算を assistant レコード単位から API リクエスト単位に改めた。** Claude Code は 1 レスポンスを content ブロックごとに別レコードとして書き、各レコードに同一の usage の複製を持たせるため、レコード単位の合算は絶対値を過大に計上する。`requestId` の初出だけを数え、ファイルを跨いだ複製も一度だけ数える。
-4. 出力ラベルを `turns` から `requests` に改め、`per request $`（1 リクエストあたりの換算後 $）の行を加えた。
+4. **出力に計上単位を明示した。** ラベルを `turns` から `requests` に改め、`per request $`（1 リクエストあたりの換算後 $）の行を加え、`isSidechain` の行にはレコード単位の診断である旨の注記を付けた。
 
 機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。**ただし 4 の `per request $` の 1 行だけは例外として追加した** — [訂正コメント](https://github.com/yowcow/dude/issues/159#issuecomment-5521143212)が判定をこの単位で行うべきと定め、[yowcow/dude#161](https://github.com/yowcow/dude/issues/161) の判定指標がこの値に依存するためである。この行を落としてはならない。
 
