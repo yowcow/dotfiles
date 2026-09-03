@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """dude セッションの token 消費と subagent dispatch を集計する。
-使い方: python3 measure.py [transcript-dir] [--since ISO8601] [--until ISO8601]
+使い方: python3 measure-claude-code.py [transcript-dir] [--since ISO8601] [--until ISO8601]
 
 --since / --until で [since, until) の半開区間に絞る。transcript は追記式で、
 測定しているセッション自身も含まれるため、前後比較では必ず両端を指定すること。

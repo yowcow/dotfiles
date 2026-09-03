@@ -2,13 +2,17 @@
 
 AI アシスタントの運用を測るための道具を置く。`Makefile` の install 対象ではない — `$HOME` へ symlink して使う dotfile ではなく、このリポジトリ内から直接走らせる道具である。
 
-## measure.py
+## measure-claude-code.py
 
 Claude Code のセッションコスト（token 消費と subagent dispatch）を集計する。
+
+**Claude Code 専用である。** 走査対象は Claude Code の transcript（`~/.claude/projects/*/*.jsonl`）で、レコード形（`type` / `message.usage` / `isSidechain`）と dispatch を数える tool 名（`Agent` / `Task`）を決め打ちしている。他のアシスタント（Gemini / Codex / Grok）の記録には当たらない。
 
 ### 出所
 
 [yowcow/dude#159 の測定報告](https://github.com/yowcow/dude/issues/159#issuecomment-5518651417) に貼られたコードブロックからの**逐語コピー**である。追跡 issue は [yowcow/dude#162](https://github.com/yowcow/dude/issues/162)。測定報告のコメントは唯一の記録であり、元のスクリプトはセッション破棄とともに消える一時ディレクトリにあったため、この場所を durable な置き場とした。
+
+逐語コピーからの差分は 2 点のみ — ファイル名を `measure.py` から `measure-claude-code.py` へ改めたことと、それに合わせて docstring の使い方の 1 行を書き換えたこと。集計ロジックと出力は測定報告のコードブロックと一致する。
 
 機能追加（測定項目の追加、可視化）は上記 issue のスコープ外である。変更する場合は、測定報告の数値との再現性が失われることを承知のうえで行うこと。
 
@@ -25,7 +29,7 @@ Claude Code の transcript（`~/.claude/projects/<作業ディレクトリ由来
 ### 起動形
 
 ```
-python3 ai/tools/measure.py [transcript-dir] [--since ISO8601] [--until ISO8601]
+python3 ai/tools/measure-claude-code.py [transcript-dir] [--since ISO8601] [--until ISO8601]
 ```
 
 `--since` / `--until` は半開区間 `[since, until)` に絞る。標準ライブラリのみを使う。
@@ -38,7 +42,7 @@ transcript は追記式であり、測定しているセッション自身の tr
 
 ### 固定窓での再現
 
-`python3 ai/tools/measure.py --until 2026-09-02T00:00:00Z` が測定報告の表を再現することを 2026-09-03 に確認した（観測範囲 2026-08-24T05:45:08Z 〜 2026-09-01T08:45:08Z）。
+`python3 ai/tools/measure-claude-code.py --until 2026-09-02T00:00:00Z` が測定報告の表を再現することを 2026-09-03 に確認した（観測範囲 2026-08-24T05:45:08Z 〜 2026-09-01T08:45:08Z）。
 
 | 項目 | 値 |
 | --- | ---: |
