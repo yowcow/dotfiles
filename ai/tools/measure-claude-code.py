@@ -47,10 +47,8 @@ usage = defaultdict(Counter); requests = Counter()
 dispatch = Counter(); sidechain = Counter()
 roles = defaultdict(Counter)
 sessions = set()
-# Claude Code は 1 レスポンスを content ブロックごとに別レコードとして書き、各レコードに
-# 同一の usage の複製を持たせる。usage は requestId の初出だけを数える。ファイルを跨いで
-# 同一 requestId が現れる場合（セッションの resume / fork が先行レコードを複製したもの）も
-# 一度だけ数えるため、集合はファイル横断で持つ。
+# 重複除去は docstring の述べる理由による。集合をファイルループの外で持つのは、
+# resume / fork がファイルを跨いで複製した requestId も一度だけ数えるためである。
 seen_requests = set()
 lo = hi = None
 files = sorted(glob.glob(os.path.join(DIR, "*.jsonl")))
