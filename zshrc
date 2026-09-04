@@ -91,17 +91,13 @@ export AWS_FEDERATION_TOKEN_TTL=12h
 export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 #export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
 
-#export ANTHROPIC_MODEL=opus
-#export CLAUDE_CODE_SUBAGENT_MODEL=sonnet
-#export CLAUDE_CODE_EFFORT_LEVEL=auto
-
 # claude code: high/low tier exec
 function claude-high() {
-    claude --model opus --effort xhigh "$@"
+    claude --model opus "$@"
 }
 
 function claude-low() {
-    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort xhigh "$@"
+    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet "$@"
 }
 
 function colorlist() {
