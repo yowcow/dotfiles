@@ -73,7 +73,7 @@ transcript は追記式であり、測定しているセッション自身の tr
 | `claude-opus-5` SUBTOTAL | $1,104.72（input $0.07 / output $150.99 / cache_read $680.82 / cache_write_5m $0.00 / cache_write_1h $272.84 / cache_write_unsplit $0.00） |
 | 比率 | 0.0% / 13.7% / 61.6% / 0.0% / 24.7% / 0.0% |
 | 全 model 合算 TOTAL / priced requests | $1,104.72 / 6,885 |
-| per session / requests per session | $13.00 / 81.0 |
+| per session / priced requests per session | $13.00 / 81.0 |
 | per request / per priced request | $0.1605（この窓は priced な model が `claude-opus-5` 1 つなので両者は同値） |
 | cache_read/request / cache_creation/request / output/request | 197,768 / 3,963 / 877 |
 | dispatch 合計 | 422（省略 284 / opus 68 / sonnet 65 / haiku 5） |

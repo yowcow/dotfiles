@@ -195,7 +195,7 @@ grand, priced_requests = report_cost(usage, requests)
 print(f"\n全 model 合算  TOTAL ${grand:>10,.2f}   priced requests={priced_requests}")
 if sessions:
     print(f"  per session                      ${grand/len(sessions):>10,.2f}"
-          f"   requests/session {priced_requests/len(sessions):>8.1f}")
+          f"   priced requests/session {priced_requests/len(sessions):>8.1f}")
 if priced_requests:
     # model ごとのブロックの `per request` とは別の量である。ラベルを分けるのは、
     # model が混ざる窓では両者が乖離し、出力だけを見て取り違えられるためである。
