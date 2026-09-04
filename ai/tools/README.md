@@ -40,7 +40,7 @@ Claude Code の transcript（`~/.claude/projects/<作業ディレクトリ由来
 
 **走査を再帰にするのではなく第 2 の走査として足したのは、top-level 側の母数を動かさないためである。** 再帰にすると `sessions` に agent のファイルが加わって `per session` の定義が変わり、[yowcow/dude#161](https://github.com/yowcow/dude/issues/161) の判定指標（per request $、帯 ±27.9%）は top-level のみの母数で測られているため、分子だけを増やすと比較可能性が崩れる。別立てなら、既存の帯をそのまま当てられる一方で、**「main loop のコスト」と「印付き worker のコスト」を分けて読める** — これは pilot が答えようとしている問いそのものである。
 
-subagent 側は usage と requests だけを集計する。**したがって `dispatch 合計` と subagent のコストは母集団が違う** — 前者は top-level が発行した dispatch の数、後者は `subagents/` に落ちた全 agent の消費であり、subagent がさらに出した dispatch は前者に現れない（固定窓では 422 対 434）。**両者を割って「dispatch あたりのコスト」を出してはならない。**`dispatch` と役割別の内訳、および `isSidechain` の診断は誰が誰を出したかの記録であり、top-level 側でのみ数える。2 つの走査は別々に重複除去し、`requestId` が重なった場合は警告を出す（重なりは二重計上を意味するため）。
+subagent 側は usage と requests だけを集計する。**したがって `dispatch 合計` と subagent のコストは母集団が違う** — 前者は top-level が発行した dispatch の数、後者は `subagents/` に落ちた全 agent の消費であり、subagent がさらに出した dispatch は前者に現れない（固定窓では 422 対 434）。**両者を割って「dispatch あたりのコスト」を出してはならない。**`dispatch` と役割別の内訳、および `isSidechain` の診断は誰が誰を出したかの記録であり、top-level 側でのみ数える。2 つの走査は順に行い、**top-level で数えた `requestId` は subagent 側で数えない**。`model: "inherit"` で出した agent のリクエストは親の transcript と agent 自身の transcript の両方に記録されるため、corpus ごとに独立して数えると同じ API リクエストを 2 回計上する（実測で観測済み）。重なりを top-level 側に残すのは、そちらが yowcow/dude#161 の判定指標の基礎だからである。除いた件数は黙って消さずに出力する。
 
 ### 起動形
 

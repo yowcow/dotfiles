@@ -62,8 +62,12 @@ files = sorted({os.path.realpath(f)
 sub_files = sorted({os.path.realpath(f) for d in DIRS
                     for f in glob.glob(os.path.join(d, "*", "subagents", "*.jsonl"))})
 
-def scan(paths, top_level):
-    """paths を走査し、(usage, requests, seen, active_files) を返す。
+def scan(paths, top_level, already=frozenset()):
+    """paths を走査し、(usage, requests, seen, active_files, shared 件数) を返す。
+
+    already に含まれる key は数えない。`model: "inherit"` で出した agent の
+    リクエストは親の transcript と agent 自身の transcript の両方に記録されるため、
+    corpus ごとに独立して数えると同じ API リクエストを 2 回計上する。
 
     重複除去は module の docstring の述べる理由による。seen をファイルループの外で
     持つのは、resume / fork がファイルを跨いで複製した requestId も一度だけ数える
@@ -74,7 +78,7 @@ def scan(paths, top_level):
     量であり、subagent 側の走査で動かすと同じ行の files= と対象が食い違う。"""
     global lo, hi
     usage = defaultdict(Counter); requests = Counter()
-    seen = set(); active_files = set()
+    seen = set(); active_files = set(); shared = set()
     for fp in paths:
         with open(fp, encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -95,7 +99,9 @@ def scan(paths, top_level):
                 rid = rec.get("requestId")
                 # requestId を持たないレコード（`<synthetic>` など）は uuid で一意化する。
                 key = rid if rid is not None else ("uuid", rec.get("uuid"))
-                if key not in seen:
+                if key in already:
+                    shared.add(key)
+                elif key not in seen:
                     seen.add(key)
                     requests[model] += 1
                     for k in ("input_tokens", "output_tokens",
@@ -116,10 +122,13 @@ def scan(paths, top_level):
                         m = inp.get("model") or "(omitted)"
                         dispatch[m] += 1
                         roles[classify(inp.get("description"), inp.get("prompt"))][m] += 1
-    return usage, requests, seen, active_files
+    return usage, requests, seen, active_files, len(shared)
 
-usage, requests, seen_requests, sessions = scan(files, top_level=True)
-sub_usage, sub_requests, sub_seen, sub_agents = scan(sub_files, top_level=False)
+usage, requests, seen_requests, sessions, _ = scan(files, top_level=True)
+# top-level を先に数え、そこで数えた key は subagent 側から除く。top-level の値は
+# yowcow/dude#161 の判定指標の基礎なので、重なりはそちらに残して subagent 側を削る。
+sub_usage, sub_requests, sub_seen, sub_agents, shared = scan(
+    sub_files, top_level=False, already=seen_requests)
 
 print(f"files={len(files)}  since={since}  until={until}  observed={lo} .. {hi}")
 print(f"sessions with assistant turns in window: {len(sessions)}")
@@ -204,10 +213,9 @@ if sub_files:
     if grand + sub_grand:
         print(f"  subagent が占める割合            {sub_grand/(grand+sub_grand)*100:>10,.1f}%"
               f"   （main loop と合わせた総額 ${grand+sub_grand:,.2f}）")
-    # 2 つの走査は別々に重複除去する。重なりが 0 でなければ、どちらかを二重に数えている。
-    overlap = len(seen_requests & sub_seen)
-    if overlap:
-        print(f"  警告: top-level と requestId が重なる: {overlap} 件")
+    # 除いた件数は黙って消さずに示す。`model: "inherit"` の agent がここに現れる。
+    if shared:
+        print(f"  うち {shared} 件は top-level で既に数えたため subagent 側では計上していない")
 elif sum(dispatch.values()):
     # dispatch があるのに agent の transcript が 1 件も無い窓は、走査が空振りした形と
     # 区別が付かない。DIRS に存在ガードを置いたのと同じ理由で、黙って 0 を返さない。
