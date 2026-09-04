@@ -52,57 +52,74 @@ def classify(desc, prompt):
             return name
     return "unknown"
 
-usage = defaultdict(Counter); requests = Counter()
 dispatch = Counter(); sidechain = Counter()
 roles = defaultdict(Counter)
-sessions = set()
-# 重複除去は docstring の述べる理由による。集合をファイルループの外で持つのは、
-# resume / fork がファイルを跨いで複製した requestId も一度だけ数えるためである。
-seen_requests = set()
 lo = hi = None
 files = sorted({os.path.realpath(f)
                 for d in DIRS for f in glob.glob(os.path.join(d, "*.jsonl"))})
+# subagent のターンは親の transcript に来ない。glob を再帰にせず別立てで走査するのは、
+# top-level 側の files / sessions / per request の母数を動かさないためである。
+sub_files = sorted({os.path.realpath(f) for d in DIRS
+                    for f in glob.glob(os.path.join(d, "*", "subagents", "*.jsonl"))})
 
-for fp in files:
-    with open(fp, encoding="utf-8", errors="replace") as f:
-        for line in f:
-            line = line.strip()
-            if not line: continue
-            try: rec = json.loads(line)
-            except ValueError: continue
-            ts = rec.get("timestamp")
-            if until and ts and ts >= until: continue
-            if since and ts and ts < since: continue
-            if ts:
-                lo = ts if lo is None or ts < lo else lo
-                hi = ts if hi is None or ts > hi else hi
-            if rec.get("type") != "assistant": continue
-            sessions.add(fp)
-            sidechain[rec.get("isSidechain")] += 1
-            msg = rec.get("message") or {}
-            model = msg.get("model", "UNKNOWN"); u = msg.get("usage") or {}
-            rid = rec.get("requestId")
-            # requestId を持たないレコード（`<synthetic>` など）は uuid で一意化する。
-            key = rid if rid is not None else ("uuid", rec.get("uuid"))
-            if key not in seen_requests:
-                seen_requests.add(key)
-                requests[model] += 1
-                for k in ("input_tokens", "output_tokens",
-                          "cache_read_input_tokens", "cache_creation_input_tokens"):
-                    usage[model][k] += u.get(k) or 0
-                cc = u.get("cache_creation")
-                if isinstance(cc, dict):
-                    usage[model]["ttl_5m"] += cc.get("ephemeral_5m_input_tokens") or 0
-                    usage[model]["ttl_1h"] += cc.get("ephemeral_1h_input_tokens") or 0
-            # dispatch は全レコードを走査する。重複レコードもそれぞれ別の content ブロックを
-            # 運ぶため、読み飛ばすと tool_use を取りこぼす。
-            for blk in (msg.get("content") or []):
-                if isinstance(blk, dict) and blk.get("type") == "tool_use" \
-                        and blk.get("name") in ("Agent", "Task"):
-                    inp = blk.get("input") or {}
-                    m = inp.get("model") or "(omitted)"
-                    dispatch[m] += 1
-                    roles[classify(inp.get("description"), inp.get("prompt"))][m] += 1
+def scan(paths, top_level):
+    """paths を走査し、(usage, requests, seen, active_files) を返す。
+
+    重複除去は module の docstring の述べる理由による。seen をファイルループの外で
+    持つのは、resume / fork がファイルを跨いで複製した requestId も一度だけ数える
+    ためである。
+
+    top_level は top-level の corpus のときだけ真にする。dispatch と役割別の内訳、
+    isSidechain の診断、および観測範囲 lo / hi は、いずれも top-level について述べる
+    量であり、subagent 側の走査で動かすと同じ行の files= と対象が食い違う。"""
+    global lo, hi
+    usage = defaultdict(Counter); requests = Counter()
+    seen = set(); active_files = set()
+    for fp in paths:
+        with open(fp, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line: continue
+                try: rec = json.loads(line)
+                except ValueError: continue
+                ts = rec.get("timestamp")
+                if until and ts and ts >= until: continue
+                if since and ts and ts < since: continue
+                if ts and top_level:
+                    lo = ts if lo is None or ts < lo else lo
+                    hi = ts if hi is None or ts > hi else hi
+                if rec.get("type") != "assistant": continue
+                active_files.add(fp)
+                msg = rec.get("message") or {}
+                model = msg.get("model", "UNKNOWN"); u = msg.get("usage") or {}
+                rid = rec.get("requestId")
+                # requestId を持たないレコード（`<synthetic>` など）は uuid で一意化する。
+                key = rid if rid is not None else ("uuid", rec.get("uuid"))
+                if key not in seen:
+                    seen.add(key)
+                    requests[model] += 1
+                    for k in ("input_tokens", "output_tokens",
+                              "cache_read_input_tokens", "cache_creation_input_tokens"):
+                        usage[model][k] += u.get(k) or 0
+                    cc = u.get("cache_creation")
+                    if isinstance(cc, dict):
+                        usage[model]["ttl_5m"] += cc.get("ephemeral_5m_input_tokens") or 0
+                        usage[model]["ttl_1h"] += cc.get("ephemeral_1h_input_tokens") or 0
+                if not top_level: continue
+                sidechain[rec.get("isSidechain")] += 1
+                # dispatch は全レコードを走査する。重複レコードもそれぞれ別の content ブロックを
+                # 運ぶため、読み飛ばすと tool_use を取りこぼす。
+                for blk in (msg.get("content") or []):
+                    if isinstance(blk, dict) and blk.get("type") == "tool_use" \
+                            and blk.get("name") in ("Agent", "Task"):
+                        inp = blk.get("input") or {}
+                        m = inp.get("model") or "(omitted)"
+                        dispatch[m] += 1
+                        roles[classify(inp.get("description"), inp.get("prompt"))][m] += 1
+    return usage, requests, seen, active_files
+
+usage, requests, seen_requests, sessions = scan(files, top_level=True)
+sub_usage, sub_requests, sub_seen, sub_agents = scan(sub_files, top_level=False)
 
 print(f"files={len(files)}  since={since}  until={until}  observed={lo} .. {hi}")
 print(f"sessions with assistant turns in window: {len(sessions)}")
@@ -140,33 +157,32 @@ def cost_of(c, rate):
             "cache_write_1h":          c["ttl_1h"] / 1e6 * w1h,
             "cache_write_unsplit":     unsplit / 1e6 * w1h}
 
-priced = {m: cost_of(c, r) for m, c in usage.items() if (r := rate_for(m))}
-unpriced = [m for m in usage if m not in priced]
-# 金額の出どころを 1 つにする。model ごとの小計は以降ここからだけ引く。
-subtotal = {m: sum(d.values()) for m, d in priced.items()}
-grand = sum(subtotal.values())
-priced_requests = sum(requests[m] for m in priced)
+def report_cost(usage, requests):
+    """model ごとのコスト換算を出し、(合算, priced requests) を返す。"""
+    priced = {m: cost_of(c, r) for m, c in usage.items() if (r := rate_for(m))}
+    # 金額の出どころを 1 つにする。model ごとの小計は以降ここからだけ引く。
+    subtotal = {m: sum(d.values()) for m, d in priced.items()}
+    for model in sorted(priced, key=lambda m: -subtotal[m]):
+        d = priced[model]; sub = subtotal[model]; c = usage[model]; t = requests[model]
+        print(f"\n{model} のコスト換算  requests={t}")
+        for k, amt in d.items():
+            pct = amt / sub * 100 if sub else 0
+            print(f"  {k:32} ${amt:>10,.2f}  {pct:>5.1f}%")
+        print(f"  {'SUBTOTAL':32} ${sub:>10,.2f}")
+        print(f"  {'per request':32} ${sub/t:>10,.4f}")
+        print(f"  cache_read/request {c['cache_read_input_tokens']/t:>9,.0f}"
+              f"   cache_creation/request {c['cache_creation_input_tokens']/t:>7,.0f}"
+              f"   output/request {c['output_tokens']/t:>5,.0f}")
+    # 単価表に無い model は $0 として黙って混ぜず、token だけを別立てで示す。
+    for model in sorted(m for m in usage if m not in priced):
+        c = usage[model]
+        print(f"\n{model}  requests={requests[model]}  単価未登録のため未計上"
+              f"（input {c['input_tokens']:,} / output {c['output_tokens']:,}"
+              f" / cache_read {c['cache_read_input_tokens']:,}"
+              f" / cache_creation {c['cache_creation_input_tokens']:,}）")
+    return sum(subtotal.values()), sum(requests[m] for m in priced)
 
-for model in sorted(priced, key=lambda m: -subtotal[m]):
-    d = priced[model]; sub = subtotal[model]; c = usage[model]; t = requests[model]
-    print(f"\n{model} のコスト換算  requests={t}")
-    for k, amt in d.items():
-        pct = amt / sub * 100 if sub else 0
-        print(f"  {k:32} ${amt:>10,.2f}  {pct:>5.1f}%")
-    print(f"  {'SUBTOTAL':32} ${sub:>10,.2f}")
-    print(f"  {'per request':32} ${sub/t:>10,.4f}")
-    print(f"  cache_read/request {c['cache_read_input_tokens']/t:>9,.0f}"
-          f"   cache_creation/request {c['cache_creation_input_tokens']/t:>7,.0f}"
-          f"   output/request {c['output_tokens']/t:>5,.0f}")
-
-# 単価表に無い model は $0 として黙って混ぜず、token だけを別立てで示す。
-for model in sorted(unpriced):
-    c = usage[model]
-    print(f"\n{model}  requests={requests[model]}  単価未登録のため未計上"
-          f"（input {c['input_tokens']:,} / output {c['output_tokens']:,}"
-          f" / cache_read {c['cache_read_input_tokens']:,}"
-          f" / cache_creation {c['cache_creation_input_tokens']:,}）")
-
+grand, priced_requests = report_cost(usage, requests)
 print(f"\n全 model 合算  TOTAL ${grand:>10,.2f}   priced requests={priced_requests}")
 if sessions:
     print(f"  per session                      ${grand/len(sessions):>10,.2f}"
@@ -175,6 +191,28 @@ if priced_requests:
     # model ごとのブロックの `per request` とは別の量である。ラベルを分けるのは、
     # model が混ざる窓では両者が乖離し、出力だけを見て取り違えられるためである。
     print(f"  per priced request               ${grand/priced_requests:>10,.4f}")
+
+# subagent は別立てで出す。上の合算には含めない — top-level 側の母数を動かさないためで、
+# 動かすと per session の定義と、yowcow/dude#161 の判定指標の母数が両方変わる。
+print(f"\n=== subagent（上の合算には含まない）  files={len(sub_files)}"
+      f"  窓内に assistant を持つ agent={len(sub_agents)} ===")
+if sub_files:
+    sub_grand, sub_priced_requests = report_cost(sub_usage, sub_requests)
+    print(f"\nsubagent 合算  TOTAL ${sub_grand:>10,.2f}   priced requests={sub_priced_requests}")
+    if sub_priced_requests:
+        print(f"  per priced request               ${sub_grand/sub_priced_requests:>10,.4f}")
+    if grand + sub_grand:
+        print(f"  subagent が占める割合            {sub_grand/(grand+sub_grand)*100:>10,.1f}%"
+              f"   （main loop と合わせた総額 ${grand+sub_grand:,.2f}）")
+    # 2 つの走査は別々に重複除去する。重なりが 0 でなければ、どちらかを二重に数えている。
+    overlap = len(seen_requests & sub_seen)
+    if overlap:
+        print(f"  警告: top-level と requestId が重なる: {overlap} 件")
+elif sum(dispatch.values()):
+    # dispatch があるのに agent の transcript が 1 件も無い窓は、走査が空振りした形と
+    # 区別が付かない。DIRS に存在ガードを置いたのと同じ理由で、黙って 0 を返さない。
+    print("  警告: dispatch のある窓で subagent の transcript が 1 件も見つからない。"
+          "走査するレイアウト（<project-dir>/<session-uuid>/subagents/*.jsonl）を確かめること。")
 
 print(f"\ndispatch total={sum(dispatch.values())}")
 for k, v in dispatch.most_common(): print(f"  {k:12} {v:>4}")
