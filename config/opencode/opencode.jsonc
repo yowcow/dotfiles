@@ -15,8 +15,9 @@
     },
   },
   "plugin": [
-    "superpowers@git+https://github.com/obra/superpowers.git",
-    "@dietrichgebert/ponytail",
+    "dude@git+https://github.com/yowcow/dude.git@latest",
+    "superpowers@git+https://github.com/obra/superpowers.git@latest",
+    "@dietrichgebert/ponytail@latest",
   ],
   "mcp": {
     "fluct-mysql": {
