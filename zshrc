@@ -245,29 +245,19 @@ EOF
   fi
   echo "Base: $base_branch (current branch, local only)"
 
-  # branch -> worktree path (linked only; skip locked / detached / main)
+  # branch -> worktree path (linked only; skip detached / main)
   local -A wt_for_branch
-  local wt_path="" branch="" locked=0
+  local wt_path=""
   while IFS= read -r line; do
     case "$line" in
       worktree\ *)
         wt_path="${line#worktree }"
-        branch=""
-        locked=0
         ;;
       branch\ refs/heads/*)
-        branch="${line#branch refs/heads/}"
-        ;;
-      locked*)
-        locked=1
-        ;;
-      "")
-        if [[ -n "$wt_path" && -n "$branch" && "$locked" -eq 0 && "$wt_path" != "$main_wt" ]]; then
-          wt_for_branch[$branch]="$wt_path"
+        local wt_branch="${line#branch refs/heads/}"
+        if [[ -n "$wt_path" && "$wt_path" != "$main_wt" ]]; then
+          wt_for_branch[$wt_branch]="$wt_path"
         fi
-        wt_path=""
-        branch=""
-        locked=0
         ;;
     esac
   done < <(git worktree list --porcelain)
