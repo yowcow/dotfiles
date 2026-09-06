@@ -24,6 +24,7 @@ update/lang/nodejs: NPMPKGS := \
 	neovim \
 	npm \
 	npm-check-updates \
+	opencode-ai \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
