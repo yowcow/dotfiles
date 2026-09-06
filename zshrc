@@ -93,11 +93,11 @@ export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
 # claude code: high/low tier exec
 function claude-high() {
-    claude --model opus --effort xhigh "$@"
+    claude --model opus --effort medium "$@"
 }
 
 function claude-low() {
-    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort high "$@"
+    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort medium "$@"
 }
 
 function colorlist() {
