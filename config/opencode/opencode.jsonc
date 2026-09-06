@@ -15,9 +15,9 @@
     },
   },
   "plugin": [
-    "dude@git+https://github.com/yowcow/dude.git@latest",
-    "superpowers@git+https://github.com/obra/superpowers.git@latest",
-    "@dietrichgebert/ponytail@latest",
+    "dude@git+https://github.com/yowcow/dude.git",
+    "superpowers@git+https://github.com/obra/superpowers.git",
+    "@dietrichgebert/ponytail",
   ],
   "mcp": {
     "fluct-mysql": {
@@ -32,6 +32,24 @@
         "~/.config/dbhub/dbhub.toml",
       ],
       "enabled": true,
+    },
+    "serena": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "{cwd}",
+      ],
+      "environment": {
+        "PYTHONUNBUFFERED": "1",
+      },
     },
   },
 }
