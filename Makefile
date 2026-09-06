@@ -12,6 +12,7 @@ SOURCES := \
 	config/libskk \
 	config/kanshi/config \
 	config/nvim \
+	config/opencode/opencode.jsonc \
 	config/sql-formatter/config.json \
 	config/starship.toml \
 	config/sway/config \
@@ -59,15 +60,18 @@ AI_CLAUDE_TARGET   := $(HOME)/.claude/CLAUDE.md
 AI_GEMINI_TARGET   := $(HOME)/.gemini/GEMINI.md
 AI_CODEX_TARGET    := $(HOME)/.codex/AGENTS.md
 AI_GROK_TARGET     := $(HOME)/.grok/AGENTS.md
-AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET)
+AI_OPENCODE_TARGET := $(HOME)/.config/opencode/AGENTS.md
+AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET) $(AI_OPENCODE_TARGET)
 AI_CLAUDE_OVERLAY ?= ai/agents/claude/CLAUDE.append.md
 AI_GEMINI_OVERLAY ?= ai/agents/gemini/GEMINI.append.md
 AI_CODEX_OVERLAY  ?= ai/agents/codex/AGENTS.append.md
 AI_GROK_OVERLAY   ?= ai/agents/grok/AGENTS.append.md
+AI_OPENCODE_OVERLAY ?= ai/agents/opencode/AGENTS.append.md
 AI_CLAUDE_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_CLAUDE_OVERLAY))
 AI_GEMINI_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_GEMINI_OVERLAY))
 AI_CODEX_DEPS      := $(AI_GUIDELINES) $(wildcard $(AI_CODEX_OVERLAY))
 AI_GROK_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_GROK_OVERLAY))
+AI_OPENCODE_DEPS   := $(AI_GUIDELINES) $(wildcard $(AI_OPENCODE_OVERLAY))
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
@@ -168,6 +172,15 @@ $(AI_GROK_TARGET): FORCE $(AI_GROK_DEPS)
 	if [ -f "$(AI_GROK_OVERLAY)" ]; then \
 		rm -f $@; \
 		cat $(AI_GUIDELINES_ABS) $(abspath $(AI_GROK_OVERLAY)) > $@; \
+	else \
+		ln -sfn $(AI_GUIDELINES_ABS) $@; \
+	fi
+
+$(AI_OPENCODE_TARGET): FORCE $(AI_OPENCODE_DEPS)
+	mkdir -p $(@D)
+	if [ -f "$(AI_OPENCODE_OVERLAY)" ]; then \
+		rm -f $@; \
+		cat $(AI_GUIDELINES_ABS) $(abspath $(AI_OPENCODE_OVERLAY)) > $@; \
 	else \
 		ln -sfn $(AI_GUIDELINES_ABS) $@; \
 	fi
