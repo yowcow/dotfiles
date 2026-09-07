@@ -70,7 +70,10 @@ if [ -d $GNUBIN ]; then
     PATH=$GNUBIN:$PATH;
 fi
 
-[ -f "$HOME/.ai-agents.zsh" ] && source "$HOME/.ai-agents.zsh"
+for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh .local.zsh; do
+    [ -f "$HOME/$src" ] && source "$HOME/$src"
+done
+
 autoload -Uz compinit && compinit
 autoload -U +X bashcompinit && bashcompinit
 [ -f /usr/bin/terraform ] && complete -o nospace -C /usr/bin/terraform terraform
@@ -342,7 +345,3 @@ function ssh-agent-stop() {
 }
 
 ssh-agent-start
-
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .local.zsh; do
-    [ -f $HOME/$src ] && source $HOME/$src;
-done
