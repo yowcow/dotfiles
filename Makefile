@@ -31,7 +31,7 @@ SOURCES := \
 	gnupg/gpg.conf \
 	goenv \
 	goenv.zsh \
-	grok.zsh \
+	ai-agents.zsh \
 	local/bin/aws-vault \
 	local/bin/btvol \
 	local/bin/buf.pl \
