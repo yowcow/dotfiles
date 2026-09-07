@@ -87,19 +87,6 @@ export AWS_SESSION_TOKEN_TTL=12h
 export AWS_ASSUME_ROLE_TTL=12h
 export AWS_FEDERATION_TOKEN_TTL=12h
 
-#export CLAUDE_CODE_DISABLE_MOUSE=1
-export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
-#export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
-
-# claude code: high/low tier exec
-function claude-high() {
-    claude --model opus --effort medium "$@"
-}
-
-function claude-low() {
-    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort medium "$@"
-}
-
 function colorlist() {
     for color in {000..015}; do
         print -nP "%F{$color}$color %f"
@@ -355,6 +342,6 @@ function ssh-agent-stop() {
 
 ssh-agent-start
 
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .grok.zsh .local.zsh; do
+for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh .local.zsh; do
     [ -f $HOME/$src ] && source $HOME/$src;
 done
