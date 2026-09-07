@@ -33,7 +33,7 @@ update/lang/nodejs: NPMPKGS := \
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
-		npm install -g $(NPMPKGS); \
+		npm install -g --allow-scripts=opencode-ai $(NPMPKGS); \
 		npm cache clean --force; \
 	fi
 
