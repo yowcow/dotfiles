@@ -4,7 +4,7 @@ export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
 # claude code: high/low tier exec
 function claude-high() {
-    claude --model opus --effort medium "$@"
+    claude --model opus --effort high "$@"
 }
 
 function claude-low() {
