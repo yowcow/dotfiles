@@ -120,7 +120,6 @@ all:
 	$(MAKE) install
 
 install: $(TARGETS)
-	rm -f $(HOME)/.grok.zsh
 	$(MAKE) install/versioned
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 

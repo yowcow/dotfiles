@@ -11,6 +11,10 @@ function claude-low() {
     CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort medium "$@"
 }
 
-export PATH="$HOME/.grok/bin:$PATH"
-fpath=(~/.grok/completions/zsh $fpath)
-autoload -Uz compinit && compinit -C
+if [ -d "$HOME/.grok/bin" ] && [[ ":$PATH:" != *":$HOME/.grok/bin:"* ]]; then
+    export PATH="$HOME/.grok/bin:$PATH"
+fi
+
+if [ -d "$HOME/.grok/completions/zsh" ] && [[ " ${fpath[*]} " != *" $HOME/.grok/completions/zsh "* ]]; then
+    fpath=("$HOME/.grok/completions/zsh" $fpath)
+fi
