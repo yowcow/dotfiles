@@ -30,10 +30,11 @@ update/lang/nodejs: NPMPKGS := \
 	sql-formatter-cli \
 	typescript \
 	yarn
+update/lang/nodejs: NPM_ALLOW_SCRIPTS := opencode-ai,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
-		npm install -g --allow-scripts=opencode-ai $(NPMPKGS); \
+		npm install -g --allow-scripts=$(NPM_ALLOW_SCRIPTS) $(NPMPKGS); \
 		npm cache clean --force; \
 	fi
 
