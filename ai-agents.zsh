@@ -8,7 +8,7 @@ function claude-high() {
 }
 
 function claude-low() {
-    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort medium "$@"
+    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort high "$@"
 }
 
 if [ -d "$HOME/.grok/bin" ] && [[ ":$PATH:" != *":$HOME/.grok/bin:"* ]]; then
