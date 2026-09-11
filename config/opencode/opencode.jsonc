@@ -7,7 +7,6 @@
       "*": "allow",
       "rm *": "deny",
       "sudo *": "deny",
-      "git push *": "ask",
     },
     "read": {
       "*": "allow",
