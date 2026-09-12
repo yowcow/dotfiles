@@ -10,9 +10,6 @@ return {
       -- add any opts here
       -- for example
       provider = "claude",
-      web_search_engine = {
-        provider = "google",
-      },
       windows = {
         width = 45,
       },
