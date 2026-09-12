@@ -70,7 +70,7 @@ if [ -d $GNUBIN ]; then
     PATH=$GNUBIN:$PATH;
 fi
 
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh .local.zsh; do
+for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
     [ -f "$HOME/$src" ] && source "$HOME/$src"
 done
 
@@ -345,3 +345,5 @@ function ssh-agent-stop() {
 }
 
 ssh-agent-start
+
+[ -f "$HOME/.local.zsh" ] && source "$HOME/.local.zsh"
