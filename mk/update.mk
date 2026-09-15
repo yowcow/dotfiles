@@ -14,6 +14,7 @@ update/lang/golang: FORCE
 		echo "Updating Go tools..."; \
 		for p in $(GOTOOLS); do go install $$p; done; \
 		go clean -cache; \
+		go clean -modcache; \
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
