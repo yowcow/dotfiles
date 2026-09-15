@@ -85,6 +85,7 @@ update/lang/rust: FORCE
 		echo "Updating Cargo packages..."; \
 		cargo install $(CARGO_PKGS); \
 		cargo install-update -a; \
+		rm -rf $${CARGO_HOME:-$$HOME/.cargo}/registry/cache/*; \
 	fi
 
 update/docker: DOCKER_IMAGES := \
