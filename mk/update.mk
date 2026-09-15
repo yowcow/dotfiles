@@ -61,6 +61,10 @@ update/lang/python3: FORCE
 		for pkg in $(UVTOOLS); do \
 			uv tool install -p $(SERENA_PYTHON) $$pkg; \
 		done; \
+		uv cache clean; \
+	fi
+	@if command -v pip >/dev/null; then \
+		pip cache purge; \
 	fi
 
 update/lang/rust: RUSTUP_COMPONENTS := \
