@@ -38,6 +38,9 @@ update/lang/nodejs: FORCE
 		npm install -g --allow-scripts=$(NPM_ALLOW_SCRIPTS) $(NPMPKGS); \
 		npm cache clean --force; \
 	fi
+	@if command -v yarn >/dev/null; then \
+		yarn cache clean; \
+	fi
 
 update/lang/python3: PIPXPKGS := \
 	ansible \
