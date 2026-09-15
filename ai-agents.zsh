@@ -1,6 +1,5 @@
 #export CLAUDE_CODE_DISABLE_MOUSE=1
-export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
-#export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
+#export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
 # claude code: high/low tier exec
 function claude-high() {
