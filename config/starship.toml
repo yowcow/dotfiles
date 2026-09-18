@@ -189,10 +189,3 @@ format = '\[[$symbol($version)]($style)\]'
 
 [solidity]
 format = '\[[$symbol($version)]($style)\]'
-
-[custom.gpg]
-description = 'GPG agent lock status'
-command = "gpg-connect-agent 'keyinfo --list' /bye 2>/dev/null | grep -q ' 1 P ' && echo '🔓' || echo '🔒'"
-when = true
-format = '\[[$output]($style)\]'
-style = 'bold yellow'
