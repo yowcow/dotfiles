@@ -108,14 +108,16 @@ update/docker: FORCE
 		docker volume prune -f; \
 	fi
 
-# NOTE: a total curl failure (e.g. network outage) leaves sh with empty
-# stdin, which exits 0 -- so `|| echo` below won't even fire in that case.
-# This is a known gap; only failures from within the installer itself
-# (e.g. "no new release") are guaranteed to be caught.
+# Fail-closed: curl must fully succeed before sh runs. A total curl
+# failure leaves nothing for sh to execute (no piped curl-to-shell form), so a
+# network outage can never report success. `|| echo` covers installer
+# failures only (e.g. "no new release").
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
-	@curl -fsSL https://chatgpt.com/codex/install.sh \
-		| CODEX_NON_INTERACTIVE=1 sh \
+	@tmp=$$(mktemp) && \
+		trap 'rm -f "$$tmp"' EXIT INT TERM && \
+		curl -fsSL https://chatgpt.com/codex/install.sh -o "$$tmp" && \
+		CODEX_NON_INTERACTIVE=1 sh "$$tmp" \
 		|| echo "Codex CLI update skipped (no new release?)."
 
 update/grok: FORCE
@@ -124,8 +126,10 @@ update/grok: FORCE
 		grok update \
 			|| echo "Grok CLI update skipped (no new release?)."; \
 	else \
-		curl -fsSL https://x.ai/cli/install.sh \
-			| bash \
+		tmp=$$(mktemp) && \
+		trap 'rm -f "$$tmp"' EXIT INT TERM && \
+		curl -fsSL https://x.ai/cli/install.sh -o "$$tmp" && \
+		bash "$$tmp" \
 			|| echo "Grok CLI install skipped."; \
 	fi
 
