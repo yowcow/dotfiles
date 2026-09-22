@@ -4,3 +4,11 @@ tags
 **/.claude/settings.local.json
 .superpowers/
 .worktrees/
+.env
+*.env
+*.env.*
+*.pem
+*.key
+*credentials*
+*secret*
+*token*

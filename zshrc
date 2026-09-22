@@ -169,10 +169,14 @@ function ssh-proxy() {
         echo '$SSH_REMOTE_USER is required';
         return;
     fi
+    # Policy (#279): ephemeral cloud targets rotate host keys, so prompts are
+    # unworkable; accept-new keeps changed-key detection within this file's
+    # lifetime instead of disabling checks entirely (StrictHostKeyChecking=no).
+    # Reset with: rm ~/.ssh/known_hosts_ephemeral
     SSH_PROXY_OPTIONS=(
         -o ProxyCommand="ssh -W %h:%p $SSH_PROXY_HOST"
-        -o StrictHostKeyChecking=no
-        -o UserKnownHostsFile=/dev/null
+        -o StrictHostKeyChecking=accept-new
+        -o UserKnownHostsFile=~/.ssh/known_hosts_ephemeral
         -o TCPKeepAlive=yes
     );
     ssh-copy-id "${SSH_PROXY_OPTIONS[@]}" $SSH_REMOTE_USER@$1 2>/dev/null;
