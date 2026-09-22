@@ -109,14 +109,13 @@ update/docker: FORCE
 	fi
 
 # Fail-closed: curl must fully succeed before sh runs. A total curl
-# failure leaves nothing for sh to execute (no piped curl-to-shell form), so a
-# network outage can never report success. `|| echo` covers installer
+# failure exits 1 (never masked as "skipped"); `|| echo` covers installer
 # failures only (e.g. "no new release").
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
 	@tmp=$$(mktemp) && \
 		trap 'rm -f "$$tmp"' EXIT INT TERM && \
-		curl -fsSL https://chatgpt.com/codex/install.sh -o "$$tmp" && \
+		curl -fsSL https://chatgpt.com/codex/install.sh -o "$$tmp" || { echo "Codex CLI download failed." >&2; exit 1; }; \
 		CODEX_NON_INTERACTIVE=1 sh "$$tmp" \
 		|| echo "Codex CLI update skipped (no new release?)."
 
@@ -128,7 +127,7 @@ update/grok: FORCE
 	else \
 		tmp=$$(mktemp) && \
 		trap 'rm -f "$$tmp"' EXIT INT TERM && \
-		curl -fsSL https://x.ai/cli/install.sh -o "$$tmp" && \
+		curl -fsSL https://x.ai/cli/install.sh -o "$$tmp" || { echo "Grok CLI download failed." >&2; exit 1; }; \
 		bash "$$tmp" \
 			|| echo "Grok CLI install skipped."; \
 	fi

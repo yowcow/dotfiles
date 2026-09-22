@@ -172,6 +172,7 @@ function ssh-proxy() {
     # Policy (#279): ephemeral cloud targets rotate host keys, so prompts are
     # unworkable; accept-new keeps changed-key detection within this file's
     # lifetime instead of disabling checks entirely (StrictHostKeyChecking=no).
+    # Reset with: rm ~/.ssh/known_hosts_ephemeral
     SSH_PROXY_OPTIONS=(
         -o ProxyCommand="ssh -W %h:%p $SSH_PROXY_HOST"
         -o StrictHostKeyChecking=accept-new
