@@ -66,7 +66,8 @@ make update/versioned
 
 ### Cleaning
 
-*   **`make clean`**: This command removes the files created by `make install` from your home directory, including symbolic links and any generated AI instruction files, effectively deactivating the dotfiles.
+*   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. Downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, zellij, aws-vault) are left in place.
+*   **`make clean/versioned`**: Removes the downloaded binaries listed in `VERSIONED_TARGETS`.
 *   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned external dependencies.
 
 ## Structure

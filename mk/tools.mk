@@ -2,6 +2,7 @@ VERSIONED_TARGETS := \
 		$(HOME)/.docker/cli-plugins/docker-buildx \
 		$(HOME)/.docker/cli-plugins/docker-mcp \
 		$(HOME)/.local/bin/aws-vault \
+		$(HOME)/.local/bin/buf.pl \
 		$(HOME)/.local/bin/rebar3 \
 		$(HOME)/.local/bin/kerl \
 		$(HOME)/.local/bin/tmux \
