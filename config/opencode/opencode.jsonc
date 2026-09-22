@@ -2,16 +2,23 @@
   "$schema": "https://opencode.ai/config.json",
   "lsp": true,
   "permission": {
-    "*": "allow",
+    "*": "deny",
     "bash": {
-      "*": "allow",
+      "*": "ask",
       "rm *": "deny",
+      "rm -rf *": "deny",
       "sudo *": "deny",
     },
     "read": {
       "*": "allow",
+      ".env": "deny",
       "*.env": "deny",
       "*.env.*": "deny",
+      "*.pem": "deny",
+      "*.key": "deny",
+      "*credentials*": "deny",
+      "*secret*": "deny",
+      "*token*": "deny",
     },
   },
   "plugin": [
