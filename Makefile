@@ -22,8 +22,6 @@ SOURCES := \
 	config/wezterm/wezterm.lua \
 	config/wofi/style.css \
 	config/zellij/config.kdl \
-	docker/cli-plugins/docker-buildx \
-	docker/cli-plugins/docker-mcp \
 	fzf \
 	gitconfig \
 	gitignore_global \
@@ -32,15 +30,9 @@ SOURCES := \
 	goenv \
 	goenv.zsh \
 	ai-agents.zsh \
-	local/bin/aws-vault \
 	local/bin/btvol \
-	local/bin/buf.pl \
-	local/bin/kerl \
-	local/bin/rebar3 \
-	local/bin/tmux \
 	local/bin/update-env \
 	local/bin/vacuum \
-	local/bin/zellij \
 	luarocks.zsh \
 	nvm \
 	nvm.zsh \
@@ -74,6 +66,8 @@ AI_GROK_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_GROK_OVERLAY))
 AI_OPENCODE_DEPS   := $(AI_GUIDELINES) $(wildcard $(AI_OPENCODE_OVERLAY))
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
+# TARGETS is symlinks and generated files only. Downloaded binaries live in
+# VERSIONED_TARGETS (mk/tools.mk) and are never removed by `clean`.
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 
 ALACRITTY_THEME := _modules/github.com/alacritty/alacritty-theme
