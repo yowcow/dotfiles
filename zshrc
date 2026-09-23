@@ -195,7 +195,7 @@ function git-url() {
     fi
     local raw url
     raw=$(git remote get-url "$1") || return $?
-    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//')
+    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//')
     case "$url" in
         https://*) echo "${url}/commit/${2}" ;;
         *) echo "https://${url}/commit/${2}" ;;
@@ -333,9 +333,12 @@ function ssh-agent-start() {
             [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
             # find the path to sock and and restore the env
-            # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard), so plain readlink suffices
+            # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard); absolutize
+            # a relative target so SSH_AUTH_SOCK never ends up relative
             [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=$(readlink /tmp/ssh-auth.sock);
+                _sock=$(readlink /tmp/ssh-auth.sock) && \
+                case "$_sock" in /*) ;; *) _sock="/tmp/$_sock";; esac && \
+                export SSH_AUTH_SOCK="$_sock"; unset _sock;
         fi
         for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
             # add a key if its fingerprint is not in the agent

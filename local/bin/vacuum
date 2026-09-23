@@ -1,16 +1,14 @@
 #!/bin/sh
 
-opts=$(getopt -o vh --long verbose,help -n 'parse-options' -- "$@") || exit 1
-eval set -- "$opts"
-
 HELP=false
 VERBOSE=false
 
-while true; do
+while [ $# -gt 0 ]; do
     case "$1" in
         -v | --verbose ) VERBOSE=true; shift ;;
         -h | --help ) HELP=true; shift ;;
         -- ) shift; break ;;
+        --* | -* ) echo "vacuum: unknown option: $1" >&2; exit 1 ;;
         * ) break ;;
     esac
 done
@@ -36,5 +34,9 @@ fi
 if [ "$VERBOSE" = true ]; then
     exec "$@"
 else
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "vacuum: $1: command not found" >&2
+        exit 127
+    fi
     exec "$@" 2>/dev/null
 fi

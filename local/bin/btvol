@@ -1,9 +1,11 @@
 #!/bin/sh
 
+command -v dbus-send >/dev/null 2>&1 || { echo "btvol: dbus-send not found" >&2; exit 127; }
+
 OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects \
-    | rg '/org/bluez/hci0' \
-    | rg '/sep' \
-    | rg '/fd' \
+    | grep '/org/bluez/hci0' \
+    | grep '/sep' \
+    | grep '/fd' \
     | head -1 \
     | awk '{ print $3 }' \
     | sed 's/"//g')
@@ -15,7 +17,7 @@ fi
 
 echo "object path: ${OBJPATH}";
 
-case "$1" in
+case "${1:-}" in
     set)
         if [ -z "${2:-}" ]; then
             echo "Usage: btvol set <volume>" >&2
@@ -24,7 +26,7 @@ case "$1" in
         dbus-send \
             --system \
             --print-reply \
-            --dest=org.bluez "$OBJPATH" org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" variant:uint16:$2
+            --dest=org.bluez "$OBJPATH" org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" "variant:uint16:$2"
         ;;
     *)
         dbus-send \
