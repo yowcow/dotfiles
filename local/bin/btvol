@@ -10,6 +10,11 @@ OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DB
 
 echo "object path: ${OBJPATH}";
 
+if [ -z "$OBJPATH" ]; then
+    echo "btvol: no Bluetooth audio transport found" >&2
+    exit 1
+fi
+
 case "$1" in
     set)
         dbus-send \
