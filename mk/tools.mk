@@ -5,8 +5,7 @@ VERSIONED_TARGETS := \
 		$(HOME)/.local/bin/buf.pl \
 		$(HOME)/.local/bin/rebar3 \
 		$(HOME)/.local/bin/kerl \
-		$(HOME)/.local/bin/tmux \
-		$(HOME)/.local/bin/zellij
+		$(HOME)/.local/bin/tmux
 
 install/versioned: $(VERSIONED_TARGETS)
 
@@ -102,24 +101,6 @@ $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
 	curl -fL "$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)" -o $@
-
-##
-## https://github.com/zellij-org/zellij/releases
-##
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij.tar.gz
-
-$(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij.tar.gz
-	tar -xzf $< -C $(@D)
-	touch $@
-
-ifeq ($(shell uname -s),Darwin)
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-apple-darwin,.tar.gz)
-else
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-unknown-linux-musl,.tar.gz)
-endif
-$(DOTFILES_TMPDIR)/zellij.tar.gz:
-	mkdir -p $(@D)
-	curl -fL "$(URL)" -o $@
 
 update/versioned: FORCE
 	$(MAKE) clean/versioned
