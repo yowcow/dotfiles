@@ -7,9 +7,9 @@ export GPG_TTY=$(tty)
 alias vi="nvim"
 alias vim="nvim"
 alias less="less -R"
-alias realpath="readlink"
+command -v realpath >/dev/null || alias realpath="readlink"
 alias bt="bluetoothctl"
-alias cal="ncal -C"
+command -v ncal >/dev/null && alias cal="ncal -C"
 alias help="run-help"
 
 case "$(uname -s)" in
