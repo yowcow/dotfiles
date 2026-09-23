@@ -1,6 +1,6 @@
 #!/bin/sh
 
-opts=$(getopt -o vh --long verbose,help -n 'parse-options' -- "$@")
+opts=$(getopt -o vh --long verbose,help -n 'parse-options' -- "$@") || exit 1
 eval set -- "$opts"
 
 HELP=false
@@ -25,6 +25,12 @@ if [ "$HELP" = true ]; then
     echo "Commands:"
     echo "  <command>       A command to run while dumping stderr to /dev/null"
     exit 0
+fi
+
+if [ $# -eq 0 ]; then
+    echo "vacuum: no command specified" >&2
+    echo "Usage: $0 -- <command>" >&2
+    exit 1
 fi
 
 if [ "$VERBOSE" = true ]; then

@@ -96,18 +96,13 @@ github-latest = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases/l
 # Resolve a release asset's real download URL straight from the GitHub API, instead of
 # hand-building URLs that break when a project's tag/asset naming drifts.
 #   $(1)=owner/repo  $(2)=asset-name prefix  $(3)=asset-name suffix
-github-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases/latest" | jq -r '[.assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url')
+github-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases/latest" | jq -r '[.assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url // empty')
 
 # Same, but for repos that publish only pre-releases (no /releases/latest), e.g. docker/mcp-gateway.
-github-prerelease-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | jq -r '[.[0].assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url')
+github-prerelease-asset-url = $(shell curl -fsSL "https://api.github.com/repos/$(1)/releases" | jq -r '[.[0].assets[] | select((.name|startswith("$(2)")) and (.name|endswith("$(3)")))][0].browser_download_url // empty')
 
 ifndef TMUX_VERSION
 TMUX_VERSION := $(call github-latest,tmux/tmux)
-endif
-# Fail-closed: never build tmux- (empty version) paths silently.
-# Offline or API failure stops here; override with e.g. make TMUX_VERSION=3.4 install/versioned.
-ifeq ($(strip $(TMUX_VERSION)),)
-$(error TMUX_VERSION is empty (GitHub API lookup failed))
 endif
 
 include mk/tools.mk mk/modules.mk mk/update.mk

@@ -7,7 +7,6 @@ export GPG_TTY=$(tty)
 alias vi="nvim"
 alias vim="nvim"
 alias less="less -R"
-command -v realpath >/dev/null || alias realpath="readlink"
 alias bt="bluetoothctl"
 command -v ncal >/dev/null && alias cal="ncal -C"
 alias help="run-help"
@@ -190,14 +189,17 @@ function cert-check() {
 }
 
 function git-url() {
-    git remote get-url "$1" \
-        | sed -e 's/\.git$//' -e 's/^git@\([^:]*\):/https:\/\/\1\//' \
-        | while read -r url; do
-            case "$url" in
-                https://*) echo "${url}/commit/${2}" ;;
-                *) echo "https://${url}/commit/${2}" ;;
-            esac
-        done
+    if [[ -z "$1" || -z "$2" ]]; then
+        echo "usage: git-url <remote> <commit>" >&2
+        return 1
+    fi
+    local raw url
+    raw=$(git remote get-url "$1") || return $?
+    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//')
+    case "$url" in
+        https://*) echo "${url}/commit/${2}" ;;
+        *) echo "https://${url}/commit/${2}" ;;
+    esac
 }
 
 # Remove local branches already merged into the current HEAD branch, and any
@@ -331,8 +333,9 @@ function ssh-agent-start() {
             [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
             # find the path to sock and and restore the env
+            # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard), so plain readlink suffices
             [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
+                export SSH_AUTH_SOCK=$(readlink /tmp/ssh-auth.sock);
         fi
         for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
             # add a key if its fingerprint is not in the agent
