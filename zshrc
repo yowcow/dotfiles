@@ -190,9 +190,14 @@ function cert-check() {
 }
 
 function git-url() {
-    git remote get-url $1 \
-        | sed 's/^.*@//; s/:/\//; s/\.git$//' \
-        | while read -r url; do echo "https://${url}/commit/${2}"; done
+    git remote get-url "$1" \
+        | sed -e 's/\.git$//' -e 's/^git@\([^:]*\):/https:\/\/\1\//' \
+        | while read -r url; do
+            case "$url" in
+                https://*) echo "${url}/commit/${2}" ;;
+                *) echo "https://${url}/commit/${2}" ;;
+            esac
+        done
 }
 
 # Remove local branches already merged into the current HEAD branch, and any
