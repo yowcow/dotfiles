@@ -92,7 +92,7 @@ $(HOME)/.local/bin/rebar3:
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
 $(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
-	@test -n "$(strip $(TMUX_VERSION))" || { echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=3.4 <target>" >&2; exit 1; }
+	@test -n "$(strip $(TMUX_VERSION))" || { echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1; }
 	cd $< \
 		&& autoreconf -f -i \
 		&& ./configure \
@@ -107,14 +107,14 @@ $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 	touch $@
 
 $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
-	@url="$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)"; test -n "$$url" || { echo "TMUX_VERSION is empty or GitHub API lookup failed; retry online or run make TMUX_VERSION=3.4 <target>" >&2; exit 1; }; \
+	@url="$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)"; test -n "$$url" || { echo "TMUX_VERSION is empty or GitHub API lookup failed; retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1; }; \
 	mkdir -p $(@D); \
 	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 
 # Empty-version fallback: '%' never matches the empty stem, so without this
 # `make TMUX_VERSION= ...tmux` dies with a bare "No rule" instead of the reason.
 $(DOTFILES_TMPDIR)/tmux-.tar.gz:
-	@echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=3.4 <target>" >&2; exit 1
+	@echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1
 
 update/versioned: FORCE
 	$(MAKE) clean/versioned

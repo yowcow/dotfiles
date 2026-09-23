@@ -2,7 +2,7 @@
 
 command -v dbus-send >/dev/null 2>&1 || { echo "btvol: dbus-send not found" >&2; exit 127; }
 
-OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects \
+OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects 2>/dev/null \
     | grep '/org/bluez/hci0' \
     | grep '/sep' \
     | grep '/fd' \
@@ -15,7 +15,7 @@ if [ -z "$OBJPATH" ]; then
     exit 1
 fi
 
-echo "object path: ${OBJPATH}";
+echo "object path: ${OBJPATH}" >&2;
 
 case "${1:-}" in
     set)
@@ -25,6 +25,7 @@ case "${1:-}" in
         fi
         case "$2" in ''|*[!0-9]*) echo "Usage: btvol set <volume>" >&2; exit 2;; esac
         if [ "$2" -gt 127 ]; then echo "btvol: volume must be 0-127" >&2; exit 2; fi
+        if [ -n "${3:-}" ]; then echo "Usage: btvol set <volume>" >&2; exit 2; fi
         dbus-send \
             --system \
             --print-reply \
