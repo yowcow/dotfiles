@@ -195,7 +195,7 @@ function git-url() {
     fi
     local raw url
     raw=$(git remote get-url "$1") || return $?
-    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//')
+    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//' -e 's|^http://|https://|' -e 's|^\(https://[^/:]*\):[0-9][0-9]*/|\1/|')
     case "$url" in
         https://*) echo "${url}/commit/${2}" ;;
         *) echo "https://${url}/commit/${2}" ;;
@@ -323,6 +323,7 @@ function lemonade-server-start() {
 }
 
 function ssh-agent-start() {
+    local _sock
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
             # update/create symlink so that I can find the path easily later on
@@ -337,6 +338,7 @@ function ssh-agent-start() {
             # a relative target so SSH_AUTH_SOCK never ends up relative
             [ -L /tmp/ssh-auth.sock ] && \
                 _sock=$(readlink /tmp/ssh-auth.sock) && \
+                [ -n "$_sock" ] && \
                 case "$_sock" in /*) ;; *) _sock="/tmp/$_sock";; esac && \
                 export SSH_AUTH_SOCK="$_sock"; unset _sock;
         fi

@@ -5,6 +5,7 @@ VERBOSE=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
+        -vh | -hv ) VERBOSE=true; HELP=true; shift ;;
         -v | --verbose ) VERBOSE=true; shift ;;
         -h | --help ) HELP=true; shift ;;
         -- ) shift; break ;;
@@ -31,12 +32,13 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
+if ! command -v "$1" >/dev/null 2>&1; then
+    echo "vacuum: $1: command not found" >&2
+    exit 127
+fi
+
 if [ "$VERBOSE" = true ]; then
     exec "$@"
 else
-    if ! command -v "$1" >/dev/null 2>&1; then
-        echo "vacuum: $1: command not found" >&2
-        exit 127
-    fi
     exec "$@" 2>/dev/null
 fi

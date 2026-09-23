@@ -23,6 +23,8 @@ case "${1:-}" in
             echo "Usage: btvol set <volume>" >&2
             exit 2
         fi
+        case "$2" in ''|*[!0-9]*) echo "Usage: btvol set <volume>" >&2; exit 2;; esac
+        if [ "$2" -gt 127 ]; then echo "btvol: volume must be 0-127" >&2; exit 2; fi
         dbus-send \
             --system \
             --print-reply \

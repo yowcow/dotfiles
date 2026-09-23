@@ -14,7 +14,7 @@ clean/versioned: FORCE
 
 $(HOME)/.local/bin/buf.pl:
 	mkdir -p $(@D)
-	curl -fL https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
+	curl -fL https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ || { rm -f $@; exit 1; } \
 		&& chmod +x $@
 
 ##
@@ -45,8 +45,8 @@ else
 $(HOME)/.docker/cli-plugins/docker-buildx: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-buildx:
-	mkdir -p $(@D)
 	@url="$(call github-asset-url,docker/buildx,buildx-,.$(OS)-$(ARCH))"; test -n "$$url" || { echo "docker-buildx: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
 	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
@@ -62,15 +62,18 @@ else
 $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
-	mkdir -p $(@D)
 	@url="$(call github-prerelease-asset-url,docker/mcp-gateway,docker-mcp-$(OS)-$(ARCH),.tar.gz)"; test -n "$$url" || { echo "docker-mcp: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
-	curl -fL "$$url" | tar -xz -C $(@D)
+	mkdir -p $(@D) $(DOTFILES_TMPDIR); \
+	tmp="$(DOTFILES_TMPDIR)/docker-mcp-$(OS)-$(ARCH).tar.gz"; \
+	curl -fL "$$url" -o "$$tmp" || { rm -f "$$tmp"; exit 1; }; \
+	tar -xzf "$$tmp" -C $(@D) || { rm -f "$$tmp"; exit 1; }; \
+	rm -f "$$tmp"
 
 ##
 ## https://github.com/kerl/kerl/releases
 ##
 $(HOME)/.local/bin/kerl:
-	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
+	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
 ##
