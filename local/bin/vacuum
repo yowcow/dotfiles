@@ -20,7 +20,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$HELP" = true ]; then
-    echo "Usage: $0 -- <command>"
+    echo "Usage: $0 [-v|--verbose] [-h|--help] [--] <command>"
     echo
     echo "Options:"
     echo "  -v, --verbose   Show stderr instead of discarding it"
@@ -33,7 +33,7 @@ fi
 
 if [ $# -eq 0 ]; then
     echo "vacuum: no command specified" >&2
-    echo "Usage: $0 -- <command>" >&2
+    echo "Usage: $0 [-v|--verbose] [-h|--help] [--] <command>" >&2
     exit 2
 fi
 

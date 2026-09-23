@@ -195,7 +195,7 @@ function git-url() {
     fi
     local raw url
     raw=$(git remote get-url -- "$1") || return $?
-    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//' -e 's|^http://|https://|' -e 's|^\(https://[^/:]*\):[0-9][0-9]*/|\1/|')
+    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//' -e 's|^http://|https://|' -e 's|^\(https://\)[^/]*@|\1|' -e 's|^\(https://[^/:]*\):[0-9][0-9]*/|\1/|')
     case "$url" in
         https://*) echo "${url}/commit/${2}" ;;
         *) echo "git-url: unsupported remote URL: $raw" >&2; return 1 ;;
