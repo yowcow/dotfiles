@@ -17,7 +17,7 @@ Before you begin, ensure you have the following installed:
 *   `make`: Essential for running the installation and management commands.
 *   `git`: Required for cloning the repository and its external dependencies under `_modules/`.
 *   **SSH access to GitHub**: `_modules/` dependencies (e.g. `fzf`, `nvm`, `pyenv`, `goenv`) are cloned via `git@github.com:...`, so your SSH key must already be registered with GitHub.
-*   `curl` and `jq`: Required for virtually **any** `make` invocation, not just `update/versioned` — the Makefile resolves `TMUX_VERSION` via the GitHub API (`curl` piped into `jq`) at parse time, before any target runs, unless you override it with `TMUX_VERSION=<version>`. They're also used to resolve and download release assets for other versioned tools (e.g. zellij, aws-vault).
+*   `curl` and `jq`: Required for virtually **any** `make` invocation, not just `update/versioned` — the Makefile resolves `TMUX_VERSION` via the GitHub API (`curl` piped into `jq`) at parse time, before any target runs, unless you override it with `TMUX_VERSION=<version>`. They're also used to resolve and download release assets for other versioned tools (e.g. aws-vault).
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
 *   tmux build dependencies (tmux is built from source via `autoreconf` + `./configure --enable-utf8proc`): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `autoconf automake pkg-config libevent utf8proc`.
 
@@ -58,7 +58,7 @@ To run the update:
 make update
 ```
 
-Versioned tools (e.g. tmux, zellij, aws-vault) are **not** refreshed by `make update` — because refreshing them rebuilds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
+Versioned tools (e.g. tmux, aws-vault) are **not** refreshed by `make update` — because refreshing them rebuilds tmux from source, which is slow enough that it's left as an explicit, opt-in step:
 
 ```bash
 make update/versioned
@@ -66,7 +66,7 @@ make update/versioned
 
 ### Cleaning
 
-*   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. Downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, zellij, aws-vault) are left in place.
+*   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. Downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, aws-vault) are left in place.
 *   **`make clean/versioned`**: Removes the downloaded binaries listed in `VERSIONED_TARGETS`.
 *   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned external dependencies.
 
