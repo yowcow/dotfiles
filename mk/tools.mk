@@ -30,6 +30,7 @@ $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
 	@url="$(call github-asset-url,ByteNess/aws-vault,aws-vault-$(OS)-$(ARCH),)"; test -n "$$url" || { echo "aws-vault: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
 	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
@@ -66,13 +67,14 @@ $(HOME)/.docker/cli-plugins/docker-mcp:
 	mkdir -p $(@D) $(DOTFILES_TMPDIR); \
 	tmp="$(DOTFILES_TMPDIR)/docker-mcp-$(OS)-$(ARCH).tar.gz"; \
 	curl -fL "$$url" -o "$$tmp" || { rm -f "$$tmp"; exit 1; }; \
-	tar -xzf "$$tmp" -C $(@D) || { rm -f "$$tmp"; exit 1; }; \
+	tar -xzf "$$tmp" -C $(@D) || { rm -f "$$tmp" $@; exit 1; }; \
 	rm -f "$$tmp"
 
 ##
 ## https://github.com/kerl/kerl/releases
 ##
 $(HOME)/.local/bin/kerl:
+	mkdir -p $(@D)
 	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
@@ -81,6 +83,7 @@ $(HOME)/.local/bin/kerl:
 ##
 $(HOME)/.local/bin/rebar3:
 	@url="$(call github-asset-url,erlang/rebar3,rebar3,)"; test -n "$$url" || { echo "rebar3: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
 	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 

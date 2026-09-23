@@ -8,7 +8,7 @@ alias vi="nvim"
 alias vim="nvim"
 alias less="less -R"
 alias bt="bluetoothctl"
-command -v ncal >/dev/null && alias cal="ncal -C"
+command -v ncal >/dev/null 2>&1 && alias cal="ncal -C"
 alias help="run-help"
 
 case "$(uname -s)" in
