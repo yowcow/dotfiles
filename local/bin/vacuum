@@ -14,6 +14,7 @@ while [ $# -gt 0 ]; do
         --verbose ) VERBOSE=true; shift ;;
         --help ) HELP=true; shift ;;
         -- ) shift; break ;;
+        - ) break ;;
         --* | -* ) echo "vacuum: unknown option: $1" >&2; exit 2 ;;
         * ) break ;;
     esac
