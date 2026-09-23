@@ -30,12 +30,16 @@ case "${1:-}" in
             --print-reply \
             --dest=org.bluez "$OBJPATH" org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" "variant:uint16:$2"
         ;;
-    *)
+    "" | get)
         dbus-send \
             --system \
             --print-reply \
             --dest=org.bluez "$OBJPATH" \
             org.freedesktop.DBus.Properties.Get string:"org.bluez.MediaTransport1" string:"Volume"
+        ;;
+    *)
+        echo "Usage: btvol [get|set <volume>]" >&2
+        exit 2
         ;;
 esac
 
