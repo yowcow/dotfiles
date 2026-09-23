@@ -1,28 +1,57 @@
 #!/bin/sh
 
-OBJPATH=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects \
-    | rg '/org/bluez/hci0' \
-    | rg '/sep' \
-    | rg '/fd' \
+command -v dbus-send >/dev/null 2>&1 || { echo "btvol: dbus-send not found" >&2; exit 127; }
+
+DBUS_OUT=$(dbus-send --system --print-reply --dest=org.bluez / org.freedesktop.DBus.ObjectManager.GetManagedObjects 2>&1)
+DBUS_STATUS=$?
+if [ $DBUS_STATUS -ne 0 ]; then
+    printf '%s\n' "$DBUS_OUT" >&2
+    exit 1
+fi
+OBJPATH=$(printf '%s\n' "$DBUS_OUT" \
+    | grep '/org/bluez/hci0' \
+    | grep '/sep' \
+    | grep '/fd' \
     | head -1 \
     | awk '{ print $3 }' \
     | sed 's/"//g')
 
-echo "object path: ${OBJPATH}";
+if [ -z "$OBJPATH" ]; then
+    echo "btvol: no Bluetooth audio transport found" >&2
+    exit 1
+fi
 
-case "$1" in
+echo "object path: ${OBJPATH}" >&2;
+
+case "${1:-}" in
     set)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: btvol set <volume>" >&2
+            exit 2
+        fi
+        case "$2" in ''|*[!0-9]*) echo "Usage: btvol set <volume>" >&2; exit 2;; esac
+        n=$2
+        while case $n in 00*) true;; *) false;; esac; do n=${n#0}; done
+        [ -z "$n" ] && n=0
+        case $n in ????*) echo "btvol: volume must be 0-127" >&2; exit 2;; esac
+        if [ "$n" -gt 127 ]; then echo "btvol: volume must be 0-127" >&2; exit 2; fi
+        if [ -n "${3:-}" ]; then echo "Usage: btvol set <volume>" >&2; exit 2; fi
         dbus-send \
             --system \
             --print-reply \
-            --dest=org.bluez $OBJPATH org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" variant:uint16:$2
+            --dest=org.bluez "$OBJPATH" org.freedesktop.DBus.Properties.Set string:"org.bluez.MediaTransport1" string:"Volume" "variant:uint16:$n"
+        ;;
+    "" | get)
+        if [ -n "${2:-}" ]; then echo "Usage: btvol [get|set <volume>]" >&2; exit 2; fi
+        dbus-send \
+            --system \
+            --print-reply \
+            --dest=org.bluez "$OBJPATH" \
+            org.freedesktop.DBus.Properties.Get string:"org.bluez.MediaTransport1" string:"Volume"
         ;;
     *)
-        dbus-send \
-            --system \
-            --print-reply \
-            --dest=org.bluez $OBJPATH \
-            org.freedesktop.DBus.Properties.Get string:"org.bluez.MediaTransport1" string:"Volume"
+        echo "Usage: btvol [get|set <volume>]" >&2
+        exit 2
         ;;
 esac
 

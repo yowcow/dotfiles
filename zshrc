@@ -7,9 +7,8 @@ export GPG_TTY=$(tty)
 alias vi="nvim"
 alias vim="nvim"
 alias less="less -R"
-alias realpath="readlink"
 alias bt="bluetoothctl"
-alias cal="ncal -C"
+command -v ncal >/dev/null 2>&1 && alias cal="ncal -C"
 alias help="run-help"
 
 case "$(uname -s)" in
@@ -190,9 +189,17 @@ function cert-check() {
 }
 
 function git-url() {
-    git remote get-url $1 \
-        | sed 's/^.*@//; s/:/\//; s/\.git$//' \
-        | while read -r url; do echo "https://${url}/commit/${2}"; done
+    if [[ $# -ne 2 || -z "$1" || -z "$2" ]]; then
+        echo "usage: git-url <remote> <commit>" >&2
+        return 1
+    fi
+    local raw url
+    raw=$(git remote get-url -- "$1") || return $?
+    url=$(printf '%s\n' "$raw" | sed -e 's/\.git$//' -e 's|^ssh://[^@]*@|https://|' -e 's|^ssh://|https://|' -e 's/^git@\([^:]*\):/https:\/\/\1\//' -e 's|^http://|https://|' -e 's|^\(https://\)[^/]*@|\1|' -e 's|^\(https://[^/:]*\):[0-9][0-9]*/|\1/|')
+    case "$url" in
+        https://*) echo "${url}/commit/${2}" ;;
+        *) echo "git-url: unsupported remote URL: $raw" >&2; return 1 ;;
+    esac
 }
 
 # Remove local branches already merged into the current HEAD branch, and any
@@ -316,6 +323,7 @@ function lemonade-server-start() {
 }
 
 function ssh-agent-start() {
+    local _sock
     if [ ! -z "$(which ssh-agent)" ]; then
         if [ -z "$(pgrep -U $(whoami) ssh-agent)" ]; then
             # update/create symlink so that I can find the path easily later on
@@ -326,8 +334,16 @@ function ssh-agent-start() {
             [ -z $SSH_AGENT_PID ] && \
                 export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
             # find the path to sock and and restore the env
-            [ -L /tmp/ssh-auth.sock ] && \
-                export SSH_AUTH_SOCK=$(realpath /tmp/ssh-auth.sock);
+            # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard); absolutize
+            # a relative target so SSH_AUTH_SOCK never ends up relative.
+            # A dead link clears the var rather than leaving a stale export.
+            if [ -L /tmp/ssh-auth.sock ]; then
+                _sock=$(readlink /tmp/ssh-auth.sock) && \
+                [ -n "$_sock" ] && \
+                case "$_sock" in /*) ;; *) _sock="/tmp/$_sock";; esac && \
+                [ -S "$_sock" ] && \
+                export SSH_AUTH_SOCK="$_sock" || unset SSH_AUTH_SOCK;
+            fi; unset _sock;
         fi
         for key in $HOME/.ssh/id_rsa $HOME/.ssh/id_ed25519; do \
             # add a key if its fingerprint is not in the agent

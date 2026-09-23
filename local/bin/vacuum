@@ -1,22 +1,30 @@
 #!/bin/sh
 
-opts=$(getopt -o vh --long verbose,help -n 'parse-options' -- "$@")
-eval set -- "$opts"
-
 HELP=false
+VERBOSE=false
 
-while true; do
+while [ $# -gt 0 ]; do
     case "$1" in
-        -h | --help ) HELP=true; shift ;;
+        -[vh]* )
+            stacked=${1#-}
+            case "$stacked" in *[!vh]*) echo "vacuum: unknown option: $1" >&2; exit 2;; esac
+            case "$stacked" in *v*) VERBOSE=true;; esac
+            case "$stacked" in *h*) HELP=true;; esac
+            shift ;;
+        --verbose ) VERBOSE=true; shift ;;
+        --help ) HELP=true; shift ;;
         -- ) shift; break ;;
+        - ) break ;;
+        --* | -* ) echo "vacuum: unknown option: $1" >&2; exit 2 ;;
         * ) break ;;
     esac
 done
 
 if [ "$HELP" = true ]; then
-    echo "Usage: $0 -- <command>"
+    echo "Usage: $0 [-v|--verbose] [-h|--help] [--] <command>"
     echo
     echo "Options:"
+    echo "  -v, --verbose   Show stderr instead of discarding it"
     echo "  -h, --help      Show this help message and exit"
     echo
     echo "Commands:"
@@ -24,4 +32,19 @@ if [ "$HELP" = true ]; then
     exit 0
 fi
 
-exec "$@" 2>/dev/null
+if [ $# -eq 0 ]; then
+    echo "vacuum: no command specified" >&2
+    echo "Usage: $0 [-v|--verbose] [-h|--help] [--] <command>" >&2
+    exit 2
+fi
+
+if ! command -v "$1" >/dev/null 2>&1; then
+    echo "vacuum: $1: command not found" >&2
+    exit 127
+fi
+
+if [ "$VERBOSE" = true ]; then
+    exec "$@"
+else
+    exec "$@" 2>/dev/null
+fi

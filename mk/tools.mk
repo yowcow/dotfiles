@@ -14,7 +14,7 @@ clean/versioned: FORCE
 
 $(HOME)/.local/bin/buf.pl:
 	mkdir -p $(@D)
-	curl -fL https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ \
+	curl -fL https://raw.githubusercontent.com/yowcow/buf/main/bin/buf.pl -o $@ || { rm -f $@; exit 1; } \
 		&& chmod +x $@
 
 ##
@@ -29,7 +29,9 @@ else
 $(HOME)/.local/bin/aws-vault: ARCH = $(shell uname -p)
 endif
 $(HOME)/.local/bin/aws-vault:
-	curl -fL "$(call github-asset-url,ByteNess/aws-vault,aws-vault-$(OS)-$(ARCH),)" -o $@
+	@url="$(call github-asset-url,ByteNess/aws-vault,aws-vault-$(OS)-$(ARCH),)"; test -n "$$url" || { echo "aws-vault: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
+	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
 ##
@@ -44,8 +46,9 @@ else
 $(HOME)/.docker/cli-plugins/docker-buildx: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-buildx:
-	mkdir -p $(@D)
-	curl -fL "$(call github-asset-url,docker/buildx,buildx-,.$(OS)-$(ARCH))" -o $@
+	@url="$(call github-asset-url,docker/buildx,buildx-,.$(OS)-$(ARCH))"; test -n "$$url" || { echo "docker-buildx: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
+	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
 ##
@@ -60,21 +63,28 @@ else
 $(HOME)/.docker/cli-plugins/docker-mcp: ARCH = $(shell uname -p)
 endif
 $(HOME)/.docker/cli-plugins/docker-mcp:
-	mkdir -p $(@D)
-	curl -fL "$(call github-prerelease-asset-url,docker/mcp-gateway,docker-mcp-$(OS)-$(ARCH),.tar.gz)" | tar -xz -C $(@D)
+	@url="$(call github-prerelease-asset-url,docker/mcp-gateway,docker-mcp-$(OS)-$(ARCH),.tar.gz)"; test -n "$$url" || { echo "docker-mcp: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D) $(DOTFILES_TMPDIR); \
+	tmp="$(DOTFILES_TMPDIR)/docker-mcp-$(OS)-$(ARCH).tar.gz"; \
+	curl -fL "$$url" -o "$$tmp" || { rm -f "$$tmp"; exit 1; }; \
+	tar -xzf "$$tmp" -C $(@D) || { rm -f "$$tmp" $@; exit 1; }; \
+	rm -f "$$tmp"
 
 ##
 ## https://github.com/kerl/kerl/releases
 ##
 $(HOME)/.local/bin/kerl:
-	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@
+	mkdir -p $(@D)
+	curl -fL https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
 ##
 ## https://github.com/erlang/rebar3/releases
 ##
 $(HOME)/.local/bin/rebar3:
-	curl -fL "$(call github-asset-url,erlang/rebar3,rebar3,)" -o $@
+	@url="$(call github-asset-url,erlang/rebar3,rebar3,)"; test -n "$$url" || { echo "rebar3: GitHub API lookup failed (empty asset URL); retry online" >&2; exit 1; }; \
+	mkdir -p $(@D); \
+	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
 	chmod a+x $@
 
 ##
@@ -85,6 +95,7 @@ $(HOME)/.local/bin/rebar3:
 # ubuntu: libevent-dev libutf8proc-dev bison
 # macOS: libevent pkg-config
 $(HOME)/.local/bin/tmux: $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
+	@test -n "$(strip $(TMUX_VERSION))" || { echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1; }
 	cd $< \
 		&& autoreconf -f -i \
 		&& ./configure \
@@ -99,8 +110,14 @@ $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION): $(DOTFILES_TMPDIR)/tmux-$(TMUX_VERSION)
 	touch $@
 
 $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
-	mkdir -p $(@D)
-	curl -fL "$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)" -o $@
+	@url="$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)"; test -n "$$url" || { echo "TMUX_VERSION is empty or GitHub API lookup failed; retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1; }; \
+	mkdir -p $(@D); \
+	curl -fL "$$url" -o $@ || { rm -f $@; exit 1; }
+
+# Empty-version fallback: '%' never matches the empty stem, so without this
+# `make TMUX_VERSION= ...tmux` dies with a bare "No rule" instead of the reason.
+$(DOTFILES_TMPDIR)/tmux-.tar.gz:
+	@echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=<version> <target>" >&2; exit 1
 
 update/versioned: FORCE
 	$(MAKE) clean/versioned
