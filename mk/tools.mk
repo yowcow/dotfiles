@@ -5,8 +5,7 @@ VERSIONED_TARGETS := \
 		$(HOME)/.local/bin/buf.pl \
 		$(HOME)/.local/bin/rebar3 \
 		$(HOME)/.local/bin/kerl \
-		$(HOME)/.local/bin/tmux \
-		$(HOME)/.local/bin/zellij
+		$(HOME)/.local/bin/tmux
 
 install/versioned: $(VERSIONED_TARGETS)
 
@@ -105,28 +104,10 @@ $(DOTFILES_TMPDIR)/tmux-%.tar.gz:
 	mkdir -p $(@D)
 	curl -fL "$(call github-asset-url,tmux/tmux,tmux-$*,.tar.gz)" -o $@
 
-# Empty-version fallback: '%' never matches the empty stem, so without this
+<# Empty-version fallback: '%' never matches the empty stem, so without this
 # `make TMUX_VERSION= ...tmux` dies with a bare "No rule" instead of the reason.
 $(DOTFILES_TMPDIR)/tmux-.tar.gz:
 	@echo "TMUX_VERSION is empty (GitHub API lookup failed); retry online or run make TMUX_VERSION=3.4 <target>" >&2; exit 1
-
-##
-## https://github.com/zellij-org/zellij/releases
-##
-.INTERMEDIATE: $(DOTFILES_TMPDIR)/zellij.tar.gz
-
-$(HOME)/.local/bin/zellij: $(DOTFILES_TMPDIR)/zellij.tar.gz
-	tar -xzf $< -C $(@D)
-	touch $@
-
-ifeq ($(shell uname -s),Darwin)
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-apple-darwin,.tar.gz)
-else
-$(DOTFILES_TMPDIR)/zellij.tar.gz: URL = $(call github-asset-url,zellij-org/zellij,zellij-$(MACHINE)-unknown-linux-musl,.tar.gz)
-endif
-$(DOTFILES_TMPDIR)/zellij.tar.gz:
-	mkdir -p $(@D)
-	curl -fL "$(URL)" -o $@
 
 update/versioned: FORCE
 	$(MAKE) clean/versioned
