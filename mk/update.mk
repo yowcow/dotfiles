@@ -26,6 +26,7 @@ update/lang/nodejs: NPMPKGS := \
 	npm \
 	npm-check-updates \
 	opencode-ai \
+	opencode-muse-auth \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
