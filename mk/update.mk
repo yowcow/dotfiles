@@ -132,4 +132,16 @@ update/grok: FORCE
 			|| echo "Grok CLI install skipped."; \
 	fi
 
-.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok
+# Muse Code (Meta): https://dev.meta.ai/docs/muse-code
+# Official installer is idempotent — fresh install when `muse` is missing,
+# in-place update when present. Fail-closed like update/codex: curl must
+# fully succeed before bash runs.
+update/muse: FORCE
+	@echo "Updating Muse Code..."
+	@tmp=$$(mktemp) && \
+		trap 'rm -f "$$tmp"' EXIT INT TERM && \
+		curl -fsSL https://dev.meta.ai/install.sh -o "$$tmp" || { echo "Muse Code download failed." >&2; exit 1; }; \
+		bash "$$tmp" \
+		|| echo "Muse Code update skipped (no new release?)."
+
+.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse

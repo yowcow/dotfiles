@@ -51,17 +51,20 @@ AI_GEMINI_TARGET   := $(HOME)/.gemini/GEMINI.md
 AI_CODEX_TARGET    := $(HOME)/.codex/AGENTS.md
 AI_GROK_TARGET     := $(HOME)/.grok/AGENTS.md
 AI_OPENCODE_TARGET := $(HOME)/.config/opencode/AGENTS.md
-AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET) $(AI_OPENCODE_TARGET)
+AI_MUSE_TARGET     := $(HOME)/.muse/AGENTS.md
+AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET) $(AI_OPENCODE_TARGET) $(AI_MUSE_TARGET)
 AI_CLAUDE_OVERLAY ?= ai/agents/claude/CLAUDE.append.md
 AI_GEMINI_OVERLAY ?= ai/agents/gemini/GEMINI.append.md
 AI_CODEX_OVERLAY  ?= ai/agents/codex/AGENTS.append.md
 AI_GROK_OVERLAY   ?= ai/agents/grok/AGENTS.append.md
 AI_OPENCODE_OVERLAY ?= ai/agents/opencode/AGENTS.append.md
+AI_MUSE_OVERLAY ?= ai/agents/muse/AGENTS.append.md
 AI_CLAUDE_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_CLAUDE_OVERLAY))
 AI_GEMINI_DEPS     := $(AI_GUIDELINES) $(wildcard $(AI_GEMINI_OVERLAY))
 AI_CODEX_DEPS      := $(AI_GUIDELINES) $(wildcard $(AI_CODEX_OVERLAY))
 AI_GROK_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_GROK_OVERLAY))
 AI_OPENCODE_DEPS   := $(AI_GUIDELINES) $(wildcard $(AI_OPENCODE_OVERLAY))
+AI_MUSE_DEPS       := $(AI_GUIDELINES) $(wildcard $(AI_MUSE_OVERLAY))
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
 # TARGETS is symlinks and generated files only. Downloaded binaries live in
@@ -121,6 +124,7 @@ update:
 	$(MAKE) update/docker
 	$(MAKE) update/codex
 	$(MAKE) update/grok
+	$(MAKE) update/muse
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 clean:
@@ -173,6 +177,15 @@ $(AI_OPENCODE_TARGET): FORCE $(AI_OPENCODE_DEPS)
 	if [ -f "$(AI_OPENCODE_OVERLAY)" ]; then \
 		rm -f $@; \
 		cat $(AI_GUIDELINES_ABS) $(abspath $(AI_OPENCODE_OVERLAY)) > $@; \
+	else \
+		ln -sfn $(AI_GUIDELINES_ABS) $@; \
+	fi
+
+$(AI_MUSE_TARGET): FORCE $(AI_MUSE_DEPS)
+	mkdir -p $(@D)
+	if [ -f "$(AI_MUSE_OVERLAY)" ]; then \
+		rm -f $@; \
+		cat $(AI_GUIDELINES_ABS) $(abspath $(AI_MUSE_OVERLAY)) > $@; \
 	else \
 		ln -sfn $(AI_GUIDELINES_ABS) $@; \
 	fi
