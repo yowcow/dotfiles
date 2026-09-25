@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "provider": "meta",
+  "model": "muse-spark-1.3-contributor",
+  "reasoning_effort": "high",
+  "run": {
+    "subagent_delegation_mode": "auto"
+  },
+  "tui": {
+    "hud": {
+      "model": true,
+      "effort": true,
+      "path": true,
+      "permissions": true,
+      "context": false,
+      "branch": true,
+      "tokens": true,
+      "cost": true,
+      "quota": true
+    },
+    "theme": "monokai",
+    "foreign_context_notice_shown": true
+  },
+  "mcpServers": {
+    "fluct-mysql": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bytebase/dbhub",
+        "--transport",
+        "stdio",
+        "--config",
+        "~/.config/dbhub/dbhub.toml"
+      ]
+    },
+    "serena": {
+      "transport": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "agent",
+        "--project-from-cwd"
+      ]
+    }
+  },
+  "runtime_capabilities": {
+    "legacy_hook_trust_amnesty_applied": {
+      "enabled": false,
+      "trusted_definition_hash": "tbh:amnesty-applied:v1"
+    },
+    "plugin:dude:hook:session-start": {
+      "enabled": true,
+      "trusted_definition_hash": "sha256:3216151850f6b5c5ebcd821220a121339d1a75b4bd20d72300140db1fa19847a"
+    },
+    "plugin:superpowers:hook:session-start": {
+      "enabled": true,
+      "trusted_definition_hash": "sha256:3216151850f6b5c5ebcd821220a121339d1a75b4bd20d72300140db1fa19847a"
+    }
+  },
+  "permissions": { "default_profile": ":unrestricted", "schema_version": 1 },
+  "legacy_hook_trust_amnesty_applied": true
+}
+

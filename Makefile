@@ -11,6 +11,7 @@ SOURCES := \
 	config/lemonade.toml \
 	config/libskk \
 	config/kanshi/config \
+	config/muse/settings.json \
 	config/nvim \
 	config/opencode/opencode.jsonc \
 	config/sql-formatter/config.json \
