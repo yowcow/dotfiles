@@ -1,6 +1,7 @@
 tags
 
 **/.claude/settings.local.json
+.serena/
 .superpowers/
 .worktrees/
 .env
