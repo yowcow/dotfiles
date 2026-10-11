@@ -24,7 +24,6 @@
     "dude@git+https://github.com/yowcow/dude.git",
     "superpowers@git+https://github.com/obra/superpowers.git",
     "@dietrichgebert/ponytail",
-    "opencode-muse-auth",
   ],
   "mcp": {
     "fluct-mysql": {
