@@ -21,17 +21,17 @@ update/lang/golang: FORCE
 update/lang/nodejs: NPMPKGS := \
 	@google/gemini-cli \
 	@modelcontextprotocol/inspector \
+	@opencode/cli \
 	aws-cdk \
 	neovim \
 	npm \
 	npm-check-updates \
-	opencode-ai \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
 	typescript \
 	yarn
-update/lang/nodejs: NPM_ALLOW_SCRIPTS := opencode-ai,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
+update/lang/nodejs: NPM_ALLOW_SCRIPTS := @opencode/cli,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
