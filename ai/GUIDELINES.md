@@ -30,7 +30,7 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 ## Reasoning effort
 
 - **Slow down** for hard-to-reverse decisions — planning, architecture, code review, simplification strategy, root-cause analysis, and the final critique before calling work done.
-- **Move quickly** on mechanical work — searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs; if your runtime exposes a thinking-budget control, map it to these two tiers.
+- **Move quickly** on mechanical work — searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs; if your runtime exposes a thinking-budget control, map **Slow down** to its `high` and **Move quickly** to its `medium` (or the nearest equivalents); never go above `high` unless the user asks.
 
 ## Session boundaries
 

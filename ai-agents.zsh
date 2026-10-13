@@ -3,11 +3,11 @@
 
 # claude code: high/low tier exec
 function claude-high() {
-    CLAUDE_CODE_EFFORT_LEVEL=high claude --model opus "$@"
+    claude --model opus --effort high "$@"
 }
 
 function claude-low() {
-    CLAUDE_CODE_EFFORT_LEVEL=medium CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet "$@"
+    CLAUDE_CODE_SUBAGENT_MODEL=opus claude --model sonnet --effort medium "$@"
 }
 
 if [ -d "$HOME/.grok/bin" ] && [[ ":$PATH:" != *":$HOME/.grok/bin:"* ]]; then
