@@ -6,7 +6,7 @@ function claude-high() {
 }
 
 function claude-mid() {
-    claude --model sonnet --effort high "$@"
+    claude --model opus --effort medium "$@"
 }
 
 function claude-low() {
