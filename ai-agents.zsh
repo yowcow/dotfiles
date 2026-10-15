@@ -1,13 +1,12 @@
 #export CLAUDE_CODE_DISABLE_MOUSE=1
 #export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
-# claude code: high/low tier exec
-function claude-high() {
+function dude-high() {
     claude --model opus --effort high "$@"
 }
 
-function claude-low() {
-    claude --model sonnet --effort medium "$@"
+function dude-low() {
+    claude --model sonnet --effort high "$@"
 }
 
 if [ -d "$HOME/.grok/bin" ] && [[ ":$PATH:" != *":$HOME/.grok/bin:"* ]]; then
