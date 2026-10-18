@@ -112,40 +112,34 @@ update/docker: FORCE
 		docker volume prune -f; \
 	fi
 
-# Fail-closed: curl must fully succeed before sh runs. A total curl
-# failure exits 1 (never masked as "skipped"); `|| echo` covers installer
-# failures only (e.g. "no new release").
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
-	@tmp=$$(mktemp) && \
-		trap 'rm -f "$$tmp"' EXIT INT TERM && \
-		curl -fsSL https://chatgpt.com/codex/install.sh -o "$$tmp" || { echo "Codex CLI download failed." >&2; exit 1; }; \
-		CODEX_NON_INTERACTIVE=1 sh "$$tmp" \
-		|| echo "Codex CLI update skipped (no new release?)."
+	@if command -v codex >/dev/null; then \
+		codex update \
+			|| echo "Codex CLI update skipped (no new release?)."; \
+	fi
 
 update/grok: FORCE
 	@echo "Updating Grok CLI..."
 	@if command -v grok >/dev/null; then \
 		grok update \
 			|| echo "Grok CLI update skipped (no new release?)."; \
-	else \
-		tmp=$$(mktemp) && \
-		trap 'rm -f "$$tmp"' EXIT INT TERM && \
-		curl -fsSL https://x.ai/cli/install.sh -o "$$tmp" || { echo "Grok CLI download failed." >&2; exit 1; }; \
-		bash "$$tmp" \
-			|| echo "Grok CLI install skipped."; \
 	fi
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
-# Official installer is idempotent — fresh install when `muse` is missing,
-# in-place update when present. Fail-closed like update/codex: curl must
-# fully succeed before bash runs.
+# Official launcher sync (`MUSE_SYNC_UPDATE`); `--version` avoids the TUI.
 update/muse: FORCE
 	@echo "Updating Muse Code..."
-	@tmp=$$(mktemp) && \
-		trap 'rm -f "$$tmp"' EXIT INT TERM && \
-		curl -fsSL https://dev.meta.ai/install.sh -o "$$tmp" || { echo "Muse Code download failed." >&2; exit 1; }; \
-		bash "$$tmp" \
-		|| echo "Muse Code update skipped (no new release?)."
+	@if command -v muse >/dev/null; then \
+		MUSE_SYNC_UPDATE=1 muse --version \
+			|| echo "Muse Code update skipped (no new release?)."; \
+	fi
 
-.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse
+update/claude: FORCE
+	@echo "Updating Claude CLI..."
+	@if command -v claude >/dev/null; then \
+		claude update \
+			|| echo "Claude CLI update skipped (no new release?)."; \
+	fi
+
+.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude

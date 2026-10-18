@@ -126,6 +126,7 @@ update:
 	$(MAKE) update/codex
 	$(MAKE) update/grok
 	$(MAKE) update/muse
+	$(MAKE) update/claude
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 clean:
