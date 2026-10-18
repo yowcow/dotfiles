@@ -32,10 +32,8 @@
   "mcpServers": {
     "fluct-mysql": {
       "transport": "stdio",
-      "command": "npx",
+      "command": "dbhub",
       "args": [
-        "-y",
-        "@bytebase/dbhub",
         "--transport",
         "stdio",
         "--config",
@@ -44,11 +42,8 @@
     },
     "serena": {
       "transport": "stdio",
-      "command": "uvx",
+      "command": "serena",
       "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
         "start-mcp-server",
         "--context",
         "agent",
