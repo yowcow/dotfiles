@@ -32,10 +32,12 @@ update/lang/nodejs: NPMPKGS := \
 	typescript \
 	yarn
 update/lang/nodejs: NPM_ALLOW_SCRIPTS := @opencode/cli,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
+update/lang/nodejs: DBHUB_VERSION := 1.5.0 # pinned MCP, keep out of unpinned NPMPKGS
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
 		npm install -g --allow-scripts=$(NPM_ALLOW_SCRIPTS) $(NPMPKGS); \
+		npm install -g @bytebase/dbhub@$(DBHUB_VERSION); \
 		npm cache clean --force; \
 	fi
 	@if command -v yarn >/dev/null; then \
@@ -50,8 +52,9 @@ update/lang/python3: PIPXPKGS := \
 	shandy-sqlfmt \
 	uv
 update/lang/python3: SERENA_PYTHON ?= 3.13
+update/lang/python3: SERENA_VERSION := 1.7.0
 update/lang/python3: UVTOOLS := \
-	serena-agent
+	serena-agent==$(SERENA_VERSION)
 update/lang/python3: FORCE
 	@if command -v pipx >/dev/null; then \
 		echo "Updating Python tools..."; \
