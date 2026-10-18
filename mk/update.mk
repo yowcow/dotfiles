@@ -32,7 +32,8 @@ update/lang/nodejs: NPMPKGS := \
 	typescript \
 	yarn
 update/lang/nodejs: NPM_ALLOW_SCRIPTS := @opencode/cli,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
-update/lang/nodejs: DBHUB_VERSION := 1.5.0 # pinned MCP, keep out of unpinned NPMPKGS
+# pinned MCP, keep out of unpinned NPMPKGS
+update/lang/nodejs: DBHUB_VERSION := 1.5.0
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
