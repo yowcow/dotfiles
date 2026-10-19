@@ -18,31 +18,42 @@ update/lang/golang: FORCE
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
-update/lang/nodejs: NPMPKGS := \
+# npm -g is used only to bootstrap npm + pnpm; everything else goes to pnpm global.
+update/lang/nodejs: NPM_PKGS := npm pnpm
+# tools managed by pnpm global (npm, yarn removed from the old bulk list)
+update/lang/nodejs: PNPM_PKGS := \
 	@google/gemini-cli \
 	@modelcontextprotocol/inspector \
 	@opencode/cli \
 	aws-cdk \
 	neovim \
-	npm \
 	npm-check-updates \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
-	typescript \
-	yarn
-update/lang/nodejs: NPM_ALLOW_SCRIPTS := @opencode/cli,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
-# pinned MCP, keep out of unpinned NPMPKGS
+	typescript
+# packages whose build scripts must be allowed (carried over from NPM_ALLOW_SCRIPTS, minus yarn)
+update/lang/nodejs: PNPM_ALLOW_BUILD := @opencode/cli @modelcontextprotocol/inspector @github/keytar node-pty
+# pinned MCP, keep out of unpinned PNPM_PKGS
 update/lang/nodejs: DBHUB_VERSION := 1.5.0
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
-		npm install -g --allow-scripts=$(NPM_ALLOW_SCRIPTS) $(NPMPKGS); \
-		npm install -g @bytebase/dbhub@$(DBHUB_VERSION); \
+		# 1. migration wipe: drop old npm globals from every nvm prefix, keep only the npm package \
+		for prefix in $$HOME/.nvm/versions/node/*/; do \
+			[ -d "$$prefix" ] || continue; \
+			pkgs=$$(PATH="$$prefix/bin:$$PATH" npm list -g --depth=0 --parseable=true 2>/dev/null | sed 's|.*/||' | grep -v '^npm$$' | grep -v '^$$'); \
+			if [ -n "$$pkgs" ]; then \
+				PATH="$$prefix/bin:$$PATH" npm uninstall -g $$pkgs || true; \
+			fi; \
+		done; \
+		# 2. active prefix: bootstrap npm + pnpm via npm -g (one-shot, not persisted) \
+		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
+		# 3. tools + pinned dbhub via pnpm global \
+		PNPM_HOME="$$HOME/.local/share/pnpm" pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
+		# 4. cache cleanup \
 		npm cache clean --force; \
-	fi
-	@if command -v yarn >/dev/null; then \
-		yarn cache clean; \
+		pnpm store prune; \
 	fi
 
 update/lang/python3: PIPXPKGS := \
