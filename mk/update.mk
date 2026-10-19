@@ -42,7 +42,7 @@ update/lang/nodejs: FORCE
 		set -e; \
 		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
 		export PATH="$$PNPM_HOME/bin:$$PATH"; \
-		# 1. active prefix: bootstrap npm + pnpm via npm -g (one-shot, not persisted) \
+		# 1. active prefix: bootstrap npm + pnpm via npm -g (flags are per-invocation, not written to npmrc) \
 		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
 		# 2. tools + pinned dbhub via pnpm global \
 		pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
