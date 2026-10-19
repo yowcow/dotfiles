@@ -9,6 +9,19 @@ VERSIONED_TARGETS := \
 
 install/versioned: $(VERSIONED_TARGETS)
 
+##
+## ollama: reinstall-type. The official install.sh also performs the update.
+## https://docs.ollama.com/linux
+##
+OLLAMA_INSTALL_URL ?= https://ollama.com/install.sh
+
+install/ollama:
+	@mkdir -p $(DOTFILES_TMPDIR); \
+	script=$(DOTFILES_TMPDIR)/ollama-install.sh; \
+	curl -fsSL "$(OLLAMA_INSTALL_URL)" -o "$$script" \
+		|| { rm -f "$$script"; echo "ollama: failed to download $(OLLAMA_INSTALL_URL)" >&2; exit 1; }; \
+	sh "$$script"; status=$$?; rm -f "$$script"; exit $$status
+
 clean/versioned: FORCE
 	rm -f $(VERSIONED_TARGETS)
 
@@ -123,4 +136,4 @@ update/versioned: FORCE
 	$(MAKE) clean/versioned
 	$(MAKE) install/versioned
 
-.PHONY: install/versioned clean/versioned update/versioned
+.PHONY: install/versioned clean/versioned update/versioned install/ollama

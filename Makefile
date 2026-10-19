@@ -115,12 +115,12 @@ include mk/tools.mk mk/modules.mk mk/update.mk
 all:
 	$(MAKE) install
 
-install: $(TARGETS) install/fzf
+install: $(TARGETS) install/fzf install/ollama
 	$(MAKE) install/versioned
 
 # GIT_MODULES の pull を前提に置くのは、従来どおり installer より先に pull を
 # 済ませるため（直列のトップレベル make は前提を列挙順に作る）。
-update: $(addprefix update/,$(GIT_MODULES)) install/fzf
+update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker
 	$(MAKE) update/codex
