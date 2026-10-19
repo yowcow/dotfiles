@@ -115,19 +115,18 @@ include mk/tools.mk mk/modules.mk mk/update.mk
 all:
 	$(MAKE) install
 
-install: $(TARGETS)
+install: $(TARGETS) install/fzf
 	$(MAKE) install/versioned
-	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
-update:
-	$(MAKE) $(addprefix update/,$(GIT_MODULES))
+# GIT_MODULES の pull を前提に置くのは、従来どおり installer より先に pull を
+# 済ませるため（直列のトップレベル make は前提を列挙順に作る）。
+update: $(addprefix update/,$(GIT_MODULES)) install/fzf
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker
 	$(MAKE) update/codex
 	$(MAKE) update/grok
 	$(MAKE) update/muse
 	$(MAKE) update/claude
-	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 clean:
 	rm -f $(TARGETS)
@@ -203,6 +202,12 @@ $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
 
+# Reinstall-type tools keep their only recipe here; update lists install/X as a
+# prerequisite so a combined `make install update` runs each installer once.
+# Order-only: the installer rewrites ~/.zshrc, so the symlinks must exist first.
+install/fzf: | $(HOME)/.fzf $(HOME)/.zshrc
+	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
+
 $(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
 
@@ -227,4 +232,4 @@ $(HOME)/.%: %
 
 FORCE:
 
-.PHONY: all install update clean realclean
+.PHONY: all install update clean realclean install/fzf
