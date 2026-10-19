@@ -42,15 +42,18 @@ update/lang/nodejs: FORCE
 		# 1. migration wipe: drop old npm globals from every nvm prefix, keep only the npm package \
 		for prefix in $$HOME/.nvm/versions/node/*/; do \
 			[ -d "$$prefix" ] || continue; \
-			pkgs=$$(PATH="$$prefix/bin:$$PATH" npm list -g --depth=0 --parseable=true 2>/dev/null | sed 's|.*/||' | grep -v '^npm$$' | grep -v '^$$'); \
+			pkgs=$$(PATH="$$prefix/bin:$$PATH" npm list -g --depth=0 --parseable=true 2>/dev/null | sed -n 's|.*/node_modules/||p' | grep -v '^npm$$'); \
 			if [ -n "$$pkgs" ]; then \
 				PATH="$$prefix/bin:$$PATH" npm uninstall -g $$pkgs || true; \
 			fi; \
 		done; \
+		set -e; \
+		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
+		export PATH="$$PNPM_HOME/bin:$$PATH"; \
 		# 2. active prefix: bootstrap npm + pnpm via npm -g (one-shot, not persisted) \
 		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
 		# 3. tools + pinned dbhub via pnpm global \
-		PNPM_HOME="$$HOME/.local/share/pnpm" pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
+		pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
 		# 4. cache cleanup \
 		npm cache clean --force; \
 		pnpm store prune; \
