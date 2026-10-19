@@ -42,6 +42,8 @@ update/lang/nodejs: FORCE
 		set -e; \
 		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
 		export PATH="$$PNPM_HOME/bin:$$PATH"; \
+		# corepack's pnpm shim in the prefix bin makes npm -g pnpm fail with EEXIST \
+		if command -v corepack >/dev/null; then corepack disable pnpm; fi; \
 		# 1. active prefix: bootstrap npm + pnpm via npm -g (flags are per-invocation, not written to npmrc) \
 		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
 		# 2. tools + pinned dbhub via pnpm global \
