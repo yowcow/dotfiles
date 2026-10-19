@@ -57,7 +57,7 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Gemini CLI and OpenCode CLI are managed by pnpm global via `make update/lang/nodejs` (`npm` + `pnpm` bootstrapped with `npm -g`, remaining tools via pnpm global).
 *   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
 
-Reinstall-type tools keep their only recipe in `install/X`. `make update` lists `install/fzf` and `install/ollama` as prerequisites, so `make install update` runs each installer exactly once.
+Reinstall-type tools keep their only recipe in `install/X`. `make update` lists `install/fzf` and `install/ollama` as prerequisites, so `make install update` runs each installer exactly once. That also means `make update` alone links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed). As with `make install`, an existing regular file at `~/.zshrc` is replaced by the symlink without a backup.
 
 To run the update:
 
