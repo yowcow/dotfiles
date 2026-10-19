@@ -18,31 +18,39 @@ update/lang/golang: FORCE
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
-update/lang/nodejs: NPMPKGS := \
+# npm -g is used only to bootstrap npm + pnpm; everything else goes to pnpm global.
+update/lang/nodejs: NPM_PKGS := npm pnpm
+# tools managed by pnpm global (npm, yarn removed from the old bulk list)
+update/lang/nodejs: PNPM_PKGS := \
 	@google/gemini-cli \
 	@modelcontextprotocol/inspector \
 	@opencode/cli \
 	aws-cdk \
 	neovim \
-	npm \
 	npm-check-updates \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
-	typescript \
-	yarn
-update/lang/nodejs: NPM_ALLOW_SCRIPTS := @opencode/cli,@modelcontextprotocol/inspector,yarn,@github/keytar,node-pty
-# pinned MCP, keep out of unpinned NPMPKGS
+	typescript
+# packages whose build scripts must be allowed (carried over from NPM_ALLOW_SCRIPTS, minus yarn)
+update/lang/nodejs: PNPM_ALLOW_BUILD := @opencode/cli @modelcontextprotocol/inspector @github/keytar node-pty
+# pinned MCP, keep out of unpinned PNPM_PKGS
 update/lang/nodejs: DBHUB_VERSION := 1.5.0
 update/lang/nodejs: FORCE
 	@if command -v npm >/dev/null; then \
 		echo "Updating Node.js packages..."; \
-		npm install -g --allow-scripts=$(NPM_ALLOW_SCRIPTS) $(NPMPKGS); \
-		npm install -g @bytebase/dbhub@$(DBHUB_VERSION); \
+		set -e; \
+		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
+		export PATH="$$PNPM_HOME/bin:$$PATH"; \
+		# corepack's pnpm shim in the prefix bin makes npm -g pnpm fail with EEXIST \
+		if command -v corepack >/dev/null; then corepack disable pnpm; fi; \
+		# 1. active prefix: bootstrap npm + pnpm via npm -g (flags are per-invocation, not written to npmrc) \
+		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
+		# 2. tools + pinned dbhub via pnpm global \
+		pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
+		# 3. cache cleanup \
 		npm cache clean --force; \
-	fi
-	@if command -v yarn >/dev/null; then \
-		yarn cache clean; \
+		pnpm store prune; \
 	fi
 
 update/lang/python3: PIPXPKGS := \
