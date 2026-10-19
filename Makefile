@@ -118,8 +118,9 @@ all:
 install: $(TARGETS) install/fzf install/ollama
 	$(MAKE) install/versioned
 
-# GIT_MODULES pulls are listed first so, as before, they finish before the
-# installers: a serial top-level make builds prerequisites in listing order.
+# GIT_MODULES pulls are listed first so a serial `make update` pulls before it
+# installs. `make install update` runs the installers in its install phase, so
+# there they precede the pulls.
 update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker

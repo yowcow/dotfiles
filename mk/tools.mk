@@ -18,6 +18,7 @@ OLLAMA_INSTALL_URL ?= https://ollama.com/install.sh
 install/ollama:
 	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
 	curl -fsSL "$(OLLAMA_INSTALL_URL)" -o "$$tmpdir/install.sh" \
+		&& test -s "$$tmpdir/install.sh" \
 		|| { echo "ollama: failed to download $(OLLAMA_INSTALL_URL)" >&2; exit 1; }; \
 	sh "$$tmpdir/install.sh"
 
