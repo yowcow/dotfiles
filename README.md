@@ -35,7 +35,7 @@ Before you begin, ensure you have the following installed:
 
 3.  **Install the dotfiles:**
 
-    `make install` links `SOURCES` plus the AI targets into `$HOME`, then downloads `VERSIONED_TARGETS` (`install/versioned`), then reruns `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`. The fzf installer writes shell snippets outside `TARGETS`, so `make clean` leaves them behind.
+    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`). `install/fzf` runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after `~/.fzf` and `~/.zshrc` are linked, so the installer always runs after the symlinks even under `make -j4`. `install/ollama` downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`. The fzf installer writes shell snippets outside `TARGETS`, so `make clean` leaves them behind.
 
     ```bash
     make install
@@ -55,7 +55,9 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Updates Muse Code via official launcher sync (`MUSE_SYNC_UPDATE=1 muse --version`) when `muse` is on PATH, otherwise skip.
 *   Updates the Claude CLI via `claude update` when `claude` is on PATH, otherwise skip.
 *   Gemini CLI and OpenCode CLI are managed by pnpm global via `make update/lang/nodejs` (`npm` + `pnpm` bootstrapped with `npm -g`, remaining tools via pnpm global).
-*   Reruns `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` (same flags as install).
+*   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
+
+Reinstall-type tools keep their only recipe in `install/X`. `make update` lists `install/fzf` and `install/ollama` as prerequisites, so `make install update` runs each installer exactly once.
 
 To run the update:
 
