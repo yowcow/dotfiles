@@ -54,6 +54,7 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Updates the Grok CLI via `grok update` when `grok` is on PATH, otherwise skip.
 *   Updates Muse Code via official launcher sync (`MUSE_SYNC_UPDATE=1 muse --version`) when `muse` is on PATH, otherwise skip.
 *   Updates the Claude CLI via `claude update` when `claude` is on PATH, otherwise skip.
+*   Gemini CLI and OpenCode CLI stay on the existing Node.js global npm update.
 *   Reruns `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` (same flags as install).
 
 To run the update:

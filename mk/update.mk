@@ -117,6 +117,8 @@ update/codex: FORCE
 	@if command -v codex >/dev/null; then \
 		codex update \
 			|| echo "Codex CLI update skipped (no new release?)."; \
+	else \
+		echo "Codex CLI not installed, skipping."; \
 	fi
 
 update/grok: FORCE
@@ -124,6 +126,8 @@ update/grok: FORCE
 	@if command -v grok >/dev/null; then \
 		grok update \
 			|| echo "Grok CLI update skipped (no new release?)."; \
+	else \
+		echo "Grok CLI not installed, skipping."; \
 	fi
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
@@ -133,6 +137,8 @@ update/muse: FORCE
 	@if command -v muse >/dev/null; then \
 		MUSE_SYNC_UPDATE=1 muse --version \
 			|| echo "Muse Code update skipped (no new release?)."; \
+	else \
+		echo "Muse Code not installed, skipping."; \
 	fi
 
 update/claude: FORCE
@@ -140,6 +146,8 @@ update/claude: FORCE
 	@if command -v claude >/dev/null; then \
 		claude update \
 			|| echo "Claude CLI update skipped (no new release?)."; \
+	else \
+		echo "Claude CLI not installed, skipping."; \
 	fi
 
 .PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
