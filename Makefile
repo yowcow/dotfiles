@@ -119,14 +119,16 @@ install: $(TARGETS) install/fzf install/ollama
 	$(MAKE) install/versioned
 
 # GIT_MODULES pulls are listed first so a serial `make update` pulls before it
-# installs. With two goals (`make install update`) goal order wins when serial:
+# installs. lang tools and docker are reinstall-type: update/lang/* and
+# update/docker list install/X as a prerequisite, then clean caches / prune.
+# With two goals (`make install update`) goal order wins when serial:
 # `install/fzf` and `install/ollama` run before the pulls. Under `-j` that does
 # not hold — the goals' prerequisite graphs run concurrently, so pulls may
 # interleave with the installers; the only guarantee is that each `install/X`
 # runs once per invocation.
-update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama
-	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
-	$(MAKE) update/docker
+update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama \
+		update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust \
+		update/docker
 	$(MAKE) update/codex
 	$(MAKE) update/grok
 	$(MAKE) update/muse
