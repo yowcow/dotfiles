@@ -49,6 +49,7 @@ Before you begin, ensure you have the following installed:
 The `Makefile` includes a powerful `update` command designed to keep your environment current:
 
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
+*   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
 *   Updates language-specific tools and package managers for Go, Node.js, Python, and Rust, ensuring you have the latest versions of your development tools.
 *   Pulls Docker images, then prunes (`docker system prune -f`, `docker volume prune -f`).
 *   Updates the Codex CLI via `codex update` when `codex` is on PATH, otherwise skip.
@@ -56,7 +57,6 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Updates Muse Code via official launcher sync (`MUSE_SYNC_UPDATE=1 muse --version`) when `muse` is on PATH, otherwise skip.
 *   Updates the Claude CLI via `claude update` when `claude` is on PATH, otherwise skip.
 *   Gemini CLI and OpenCode CLI are managed by pnpm global via `make update/lang/nodejs` (`npm` + `pnpm` bootstrapped with `npm -g`, remaining tools via pnpm global).
-*   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
 
 Reinstall-type tools keep their only recipe in `install/X`. `make update` lists `install/fzf` and `install/ollama` as prerequisites, so `make install update` runs each installer exactly once. That also means `make update` alone links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed), and `~/.gitconfig` as a prerequisite of each `_modules` pull. As with `make install`, `~/.zshrc` may be replaced by the symlink without a backup; if your existing file is newer than the tracked `zshrc` it is left in place, and the fzf installer appends its snippet to it. Because both installers are prerequisites, `make update` also needs `sudo` when the ollama installer does, and a failure in either installer or in a `_modules` clone/pull (no `sudo`, offline, a failed clone) aborts the run before the language, Docker, and agent updates. A failed `install/ollama` is not a no-op: the script removes the existing `lib/ollama` before downloading the new bundle, so a failure after that point leaves ollama unusable until you re-run `make install` or `make update`.
 
