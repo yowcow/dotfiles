@@ -115,19 +115,22 @@ include mk/tools.mk mk/modules.mk mk/update.mk
 all:
 	$(MAKE) install
 
-install: $(TARGETS)
+install: $(TARGETS) install/fzf install/ollama
 	$(MAKE) install/versioned
-	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
-update:
-	$(MAKE) $(addprefix update/,$(GIT_MODULES))
+# GIT_MODULES pulls are listed first so a serial `make update` pulls before it
+# installs. With two goals (`make install update`) goal order wins when serial:
+# `install/fzf` and `install/ollama` run before the pulls. Under `-j` that does
+# not hold — the goals' prerequisite graphs run concurrently, so pulls may
+# interleave with the installers; the only guarantee is that each `install/X`
+# runs once per invocation.
+update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker
 	$(MAKE) update/codex
 	$(MAKE) update/grok
 	$(MAKE) update/muse
 	$(MAKE) update/claude
-	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
 clean:
 	rm -f $(TARGETS)
@@ -203,6 +206,12 @@ $(HOME)/.config/wofi/style.css: $(WOFI_ARC)
 $(HOME)/.fzf: $(FZF)
 	ln -sfn `pwd`/$< $@
 
+# Reinstall-type tools keep their only recipe here; update lists install/X as a
+# prerequisite so a combined `make install update` runs each installer once.
+# Order-only: the installer appends to ~/.zshrc, so the symlinks must exist first.
+install/fzf: | $(HOME)/.fzf $(HOME)/.zshrc
+	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
+
 $(HOME)/.goenv: $(GOENV)
 	ln -sfn `pwd`/$< $@
 
@@ -227,4 +236,4 @@ $(HOME)/.%: %
 
 FORCE:
 
-.PHONY: all install update clean realclean
+.PHONY: all install update clean realclean install/fzf
