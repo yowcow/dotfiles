@@ -125,7 +125,10 @@ install: $(TARGETS) install/fzf install/ollama
 # `install/fzf` and `install/ollama` run before the pulls. Under `-j` that does
 # not hold — the goals' prerequisite graphs run concurrently, so pulls may
 # interleave with the installers; the only guarantee is that each `install/X`
-# runs once per invocation.
+# runs once per invocation. `update/lang/*` and `update/docker` are
+# prerequisites too, so `-j` also lets them run while a `_modules/*` pull is in
+# progress; they are sequenced after the pulls only in a serial run. Don't use
+# `-j` if your toolchains come from those trees.
 update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama \
 		$(addprefix update/lang/,golang nodejs python3 rust) \
 		update/docker
