@@ -143,6 +143,24 @@ update/docker: install/docker
 		docker volume prune -f; \
 	fi
 
+##
+## codex / grok / muse / claude: self-update type. install/X runs the official
+## installer; update/X keeps the tool's own update command and is all `make
+## update` calls. Override a script URL with make <NAME>_INSTALL_URL=<url>.
+##
+CODEX_INSTALL_URL  ?= https://chatgpt.com/codex/install.sh
+GROK_INSTALL_URL   ?= https://x.ai/cli/install.sh
+MUSE_INSTALL_URL   ?= https://dev.meta.ai/install.sh
+CLAUDE_INSTALL_URL ?= https://claude.ai/install.sh
+
+install/codex:
+	@echo "Installing Codex CLI..."
+	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
+	curl -fsSL "$(CODEX_INSTALL_URL)" -o "$$tmpdir/install.sh" \
+		&& test -s "$$tmpdir/install.sh" \
+		|| { echo "codex: failed to fetch a non-empty install script from $(CODEX_INSTALL_URL)" >&2; exit 1; }; \
+	sh "$$tmpdir/install.sh"
+
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
 	@if command -v codex >/dev/null; then \
@@ -152,6 +170,14 @@ update/codex: FORCE
 		echo "Codex CLI not installed, skipping."; \
 	fi
 
+install/grok:
+	@echo "Installing Grok CLI..."
+	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
+	curl -fsSL "$(GROK_INSTALL_URL)" -o "$$tmpdir/install.sh" \
+		&& test -s "$$tmpdir/install.sh" \
+		|| { echo "grok: failed to fetch a non-empty install script from $(GROK_INSTALL_URL)" >&2; exit 1; }; \
+	bash "$$tmpdir/install.sh"
+
 update/grok: FORCE
 	@echo "Updating Grok CLI..."
 	@if command -v grok >/dev/null; then \
@@ -160,6 +186,14 @@ update/grok: FORCE
 	else \
 		echo "Grok CLI not installed, skipping."; \
 	fi
+
+install/muse:
+	@echo "Installing Muse Code..."
+	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
+	curl -fsSL "$(MUSE_INSTALL_URL)" -o "$$tmpdir/install.sh" \
+		&& test -s "$$tmpdir/install.sh" \
+		|| { echo "muse: failed to fetch a non-empty install script from $(MUSE_INSTALL_URL)" >&2; exit 1; }; \
+	sh "$$tmpdir/install.sh"
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
 # Official launcher sync (`MUSE_SYNC_UPDATE`); `--version` avoids the TUI.
@@ -172,6 +206,14 @@ update/muse: FORCE
 		echo "Muse Code not installed, skipping."; \
 	fi
 
+install/claude:
+	@echo "Installing Claude CLI..."
+	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
+	curl -fsSL "$(CLAUDE_INSTALL_URL)" -o "$$tmpdir/install.sh" \
+		&& test -s "$$tmpdir/install.sh" \
+		|| { echo "claude: failed to fetch a non-empty install script from $(CLAUDE_INSTALL_URL)" >&2; exit 1; }; \
+	bash "$$tmpdir/install.sh"
+
 update/claude: FORCE
 	@echo "Updating Claude CLI..."
 	@if command -v claude >/dev/null; then \
@@ -181,4 +223,4 @@ update/claude: FORCE
 		echo "Claude CLI not installed, skipping."; \
 	fi
 
-.PHONY: install/lang/golang install/lang/nodejs install/lang/python3 install/lang/rust install/docker update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
+.PHONY: install/lang/golang install/lang/nodejs install/lang/python3 install/lang/rust install/docker install/codex install/grok install/muse install/claude update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
