@@ -205,7 +205,7 @@ $(HOME)/.fzf: $(FZF)
 
 # Reinstall-type tools keep their only recipe here; update lists install/X as a
 # prerequisite so a combined `make install update` runs each installer once.
-# Order-only: the installer rewrites ~/.zshrc, so the symlinks must exist first.
+# Order-only: the installer appends to ~/.zshrc, so the symlinks must exist first.
 install/fzf: | $(HOME)/.fzf $(HOME)/.zshrc
 	$(HOME)/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc
 
