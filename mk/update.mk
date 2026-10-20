@@ -59,7 +59,7 @@ update/lang/nodejs: install/lang/nodejs
 		set -e; \
 		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
 		export PATH="$$PNPM_HOME/bin:$$PATH"; \
-		# 3. cache cleanup \
+		# cache cleanup \
 		npm cache clean --force; \
 		pnpm store prune; \
 	fi
