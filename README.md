@@ -46,7 +46,7 @@ Before you begin, ensure you have the following installed:
 
 ### Updating
 
-The `Makefile` includes a powerful `update` command designed to keep your environment current:
+The `Makefile` includes a powerful `update` command designed to keep your environment current (in a serial run, in this order):
 
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
 *   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
