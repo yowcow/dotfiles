@@ -1,4 +1,4 @@
-update/lang/golang: GOTOOLS := \
+install/lang/golang: GOTOOLS := \
 	github.com/bufbuild/buf/cmd/buf@latest \
 	github.com/google/yamlfmt/cmd/yamlfmt@latest \
 	github.com/lemonade-command/lemonade@latest \
@@ -9,19 +9,23 @@ update/lang/golang: GOTOOLS := \
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest \
 	google.golang.org/protobuf/cmd/protoc-gen-go@latest \
 	honnef.co/go/tools/cmd/staticcheck@latest
-update/lang/golang: FORCE
+install/lang/golang:
 	@if command -v go >/dev/null; then \
-		echo "Updating Go tools..."; \
+		echo "Installing Go tools..."; \
 		for p in $(GOTOOLS); do go install $$p; done; \
-		go clean -cache; \
-		go clean -modcache; \
 		if command -v goenv >/dev/null; then goenv rehash; fi; \
 	fi
 
+update/lang/golang: install/lang/golang
+	@if command -v go >/dev/null; then \
+		go clean -cache; \
+		go clean -modcache; \
+	fi
+
 # npm -g is used only to bootstrap npm + pnpm; everything else goes to pnpm global.
-update/lang/nodejs: NPM_PKGS := npm pnpm
+install/lang/nodejs: NPM_PKGS := npm pnpm
 # tools managed by pnpm global (npm, yarn removed from the old bulk list)
-update/lang/nodejs: PNPM_PKGS := \
+install/lang/nodejs: PNPM_PKGS := \
 	@google/gemini-cli \
 	@modelcontextprotocol/inspector \
 	@opencode/cli \
@@ -33,12 +37,12 @@ update/lang/nodejs: PNPM_PKGS := \
 	sql-formatter-cli \
 	typescript
 # packages whose build scripts must be allowed (carried over from NPM_ALLOW_SCRIPTS, minus yarn)
-update/lang/nodejs: PNPM_ALLOW_BUILD := @opencode/cli @modelcontextprotocol/inspector @github/keytar node-pty
+install/lang/nodejs: PNPM_ALLOW_BUILD := @opencode/cli @modelcontextprotocol/inspector @github/keytar node-pty
 # pinned MCP, keep out of unpinned PNPM_PKGS
-update/lang/nodejs: DBHUB_VERSION := 1.5.0
-update/lang/nodejs: FORCE
+install/lang/nodejs: DBHUB_VERSION := 1.5.0
+install/lang/nodejs:
 	@if command -v npm >/dev/null; then \
-		echo "Updating Node.js packages..."; \
+		echo "Installing Node.js packages..."; \
 		set -e; \
 		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
 		export PATH="$$PNPM_HOME/bin:$$PATH"; \
@@ -48,73 +52,92 @@ update/lang/nodejs: FORCE
 		npm install -g --allow-remote=all --allow-scripts=pnpm $(NPM_PKGS); \
 		# 2. tools + pinned dbhub via pnpm global \
 		pnpm add -g $(foreach p,$(PNPM_ALLOW_BUILD),--allow-build=$(p)) $(PNPM_PKGS) @bytebase/dbhub@$(DBHUB_VERSION); \
-		# 3. cache cleanup \
+	fi
+
+update/lang/nodejs: install/lang/nodejs
+	@if command -v npm >/dev/null; then \
+		set -e; \
+		export PNPM_HOME="$$HOME/.local/share/pnpm"; \
+		export PATH="$$PNPM_HOME/bin:$$PATH"; \
+		# cache cleanup \
 		npm cache clean --force; \
 		pnpm store prune; \
 	fi
 
-update/lang/python3: PIPXPKGS := \
+install/lang/python3: PIPXPKGS := \
 	ansible \
 	ninja \
 	pre-commit \
 	qmk \
 	shandy-sqlfmt \
 	uv
-update/lang/python3: SERENA_PYTHON ?= 3.13
-update/lang/python3: SERENA_VERSION := 1.7.0
-update/lang/python3: UVTOOLS := \
+install/lang/python3: SERENA_PYTHON ?= 3.13
+install/lang/python3: SERENA_VERSION := 1.7.0
+install/lang/python3: UVTOOLS := \
 	serena-agent==$(SERENA_VERSION)
-update/lang/python3: FORCE
+install/lang/python3:
 	@if command -v pipx >/dev/null; then \
-		echo "Updating Python tools..."; \
+		echo "Installing Python tools..."; \
 		for pkg in $(PIPXPKGS); do \
 			pipx upgrade --include-injected $$pkg || pipx install --include-deps $$pkg; \
 		done; \
 	fi
 	@if command -v uv >/dev/null; then \
-		echo "Updating uv tools..."; \
+		echo "Installing uv tools..."; \
 		for pkg in $(UVTOOLS); do \
 			uv tool install -p $(SERENA_PYTHON) $$pkg; \
 		done; \
+	fi
+
+update/lang/python3: install/lang/python3
+	@if command -v uv >/dev/null; then \
 		uv cache clean; \
 	fi
 	@if command -v pip >/dev/null; then \
 		pip cache purge; \
 	fi
 
-update/lang/rust: RUSTUP_COMPONENTS := \
+install/lang/rust: RUSTUP_COMPONENTS := \
 	rust-analyzer \
 	rust-src \
 	rustfmt
-update/lang/rust: CARGO_PKGS := \
+install/lang/rust: CARGO_PKGS := \
 	cargo-update \
 	efmt \
 	stylua
-update/lang/rust: FORCE
+install/lang/rust:
 	@if command -v rustup >/dev/null; then \
-		echo "Updating Rust toolchain..."; \
+		echo "Installing Rust toolchain..."; \
 		rustup update; \
 		rustup component add $(RUSTUP_COMPONENTS); \
 	fi
 	@if command -v cargo >/dev/null; then \
-		echo "Updating Cargo packages..."; \
+		echo "Installing Cargo packages..."; \
 		cargo install $(CARGO_PKGS); \
 		cargo install-update -a; \
+	fi
+
+update/lang/rust: install/lang/rust
+	@if command -v cargo >/dev/null; then \
 		rm -rf "$${CARGO_HOME:-$$HOME/.cargo}"/registry/cache/*; \
 	fi
 
-update/docker: DOCKER_IMAGES := \
+install/docker: DOCKER_IMAGES := \
 	mcp/aws-documentation \
 	mcp/fetch \
 	mcp/github \
 	mcp/time \
 	mcp/wikipedia-mcp
-update/docker: FORCE
+install/docker:
 	@if command -v docker >/dev/null; then \
 		echo "Pulling Docker images..."; \
 		for image in $(DOCKER_IMAGES); do \
 			docker pull $$image; \
 		done; \
+	fi
+
+update/docker: install/docker
+	@if command -v docker >/dev/null; then \
 		echo "Cleaning up Docker..."; \
 		docker system prune -f; \
 		docker volume prune -f; \
@@ -158,4 +181,4 @@ update/claude: FORCE
 		echo "Claude CLI not installed, skipping."; \
 	fi
 
-.PHONY: update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
+.PHONY: install/lang/golang install/lang/nodejs install/lang/python3 install/lang/rust install/docker update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
