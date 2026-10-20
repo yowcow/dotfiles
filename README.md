@@ -20,7 +20,7 @@ Before you begin, ensure you have the following installed:
 *   `curl` and `jq`: Required for virtually **any** `make` invocation, not just `update/versioned` — the Makefile resolves `TMUX_VERSION` via the GitHub API (`curl` piped into `jq`) at parse time, before any target runs, unless you override it with `TMUX_VERSION=<version>`. They're also used to resolve and download release assets for other versioned tools (e.g. aws-vault).
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
 *   tmux build dependencies (tmux is built from source via `autoreconf` + `./configure --enable-utf8proc`): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `autoconf automake pkg-config libevent utf8proc`.
-*   `zstd`: Required by the ollama installer to unpack the current release bundle (`.tar.zst`). Without it, `make install` / `make update` fail after the installer has already removed the existing ollama libraries.
+*   `zstd`: Required by the ollama installer to unpack the current release bundle (`.tar.zst`). `install/ollama` checks for it on Linux first, so a missing `zstd` fails before the official installer removes the existing ollama libraries; failures after that point still leave ollama unusable until you re-run `make install` or `make update`.
 
 ## Installation
 

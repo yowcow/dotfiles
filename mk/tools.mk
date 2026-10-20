@@ -18,6 +18,7 @@ OLLAMA_INSTALL_URL ?= https://ollama.com/install.sh
 
 install/ollama:
 	@echo "Installing ollama..."
+	@if [ "$$(uname -s)" = Linux ] && ! command -v zstd >/dev/null; then echo "ollama: zstd is required to unpack the release bundle (see README prerequisites)" >&2; exit 1; fi
 	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
 	curl -fsSL "$(OLLAMA_INSTALL_URL)" -o "$$tmpdir/install.sh" \
 		&& test -s "$$tmpdir/install.sh" \
