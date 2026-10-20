@@ -3,3 +3,4 @@
 /.worktrees/
 /.superpowers/
 /zshrc.bak.*
+/zshrc.tmp.*
