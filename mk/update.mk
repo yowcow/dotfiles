@@ -154,8 +154,9 @@ MUSE_INSTALL_URL   ?= https://dev.meta.ai/install.sh
 CLAUDE_INSTALL_URL ?= https://claude.ai/install.sh
 
 # $(call agent-install,<name>,<url>,<shell>): fetch the official installer into a
-# temporary directory and run it there; a failed or empty download aborts.
-agent-install = tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; curl -fsSL "$(2)" -o "$$tmpdir/install.sh" && test -s "$$tmpdir/install.sh" || { echo "$(1): failed to fetch a non-empty install script from $(2)" >&2; exit 1; }; $(3) "$$tmpdir/install.sh"
+# temporary directory, then run it with <shell> from the caller's cwd (the repo
+# root); a failed or empty download aborts.
+agent-install = tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; curl -fsSL "$(2)" -o "$$tmpdir/install.sh" && test -s "$$tmpdir/install.sh" || { echo "$(1): failed to fetch a non-empty install script from $(2) (curl failed or returned an empty file)" >&2; exit 1; }; $(3) "$$tmpdir/install.sh"
 
 install/codex:
 	@echo "Installing Codex CLI..."
