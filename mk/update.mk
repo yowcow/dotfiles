@@ -145,8 +145,8 @@ update/docker: install/docker
 
 ##
 ## codex / grok / muse / claude: self-update type. install/X runs the official
-## installer; update/X keeps the tool's own update command and is all `make
-## update` calls. Override a script URL with make <NAME>_INSTALL_URL=<url>.
+## installer; update/X keeps the tool's own update command, and `make update`
+## calls only update/X. Override a script URL with make <NAME>_INSTALL_URL=<url>.
 ##
 CODEX_INSTALL_URL  ?= https://chatgpt.com/codex/install.sh
 GROK_INSTALL_URL   ?= https://x.ai/cli/install.sh
@@ -193,7 +193,7 @@ install/muse:
 	curl -fsSL "$(MUSE_INSTALL_URL)" -o "$$tmpdir/install.sh" \
 		&& test -s "$$tmpdir/install.sh" \
 		|| { echo "muse: failed to fetch a non-empty install script from $(MUSE_INSTALL_URL)" >&2; exit 1; }; \
-	sh "$$tmpdir/install.sh"
+	bash "$$tmpdir/install.sh"
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
 # Official launcher sync (`MUSE_SYNC_UPDATE`); `--version` avoids the TUI.
