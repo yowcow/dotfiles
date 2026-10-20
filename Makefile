@@ -127,7 +127,7 @@ install: $(TARGETS) install/fzf install/ollama
 # interleave with the installers; the only guarantee is that each `install/X`
 # runs once per invocation.
 update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama \
-		update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust \
+		$(addprefix update/lang/,golang nodejs python3 rust) \
 		update/docker
 	$(MAKE) update/codex
 	$(MAKE) update/grok
