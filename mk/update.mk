@@ -153,13 +153,13 @@ GROK_INSTALL_URL   ?= https://x.ai/cli/install.sh
 MUSE_INSTALL_URL   ?= https://dev.meta.ai/install.sh
 CLAUDE_INSTALL_URL ?= https://claude.ai/install.sh
 
+# $(call agent-install,<name>,<url>,<shell>): fetch the official installer into a
+# temporary directory and run it there; a failed or empty download aborts.
+agent-install = tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; curl -fsSL "$(2)" -o "$$tmpdir/install.sh" && test -s "$$tmpdir/install.sh" || { echo "$(1): failed to fetch a non-empty install script from $(2)" >&2; exit 1; }; $(3) "$$tmpdir/install.sh"
+
 install/codex:
 	@echo "Installing Codex CLI..."
-	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
-	curl -fsSL "$(CODEX_INSTALL_URL)" -o "$$tmpdir/install.sh" \
-		&& test -s "$$tmpdir/install.sh" \
-		|| { echo "codex: failed to fetch a non-empty install script from $(CODEX_INSTALL_URL)" >&2; exit 1; }; \
-	sh "$$tmpdir/install.sh"
+	@$(call agent-install,codex,$(CODEX_INSTALL_URL),sh)
 
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
@@ -172,11 +172,7 @@ update/codex: FORCE
 
 install/grok:
 	@echo "Installing Grok CLI..."
-	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
-	curl -fsSL "$(GROK_INSTALL_URL)" -o "$$tmpdir/install.sh" \
-		&& test -s "$$tmpdir/install.sh" \
-		|| { echo "grok: failed to fetch a non-empty install script from $(GROK_INSTALL_URL)" >&2; exit 1; }; \
-	bash "$$tmpdir/install.sh"
+	@$(call agent-install,grok,$(GROK_INSTALL_URL),bash)
 
 update/grok: FORCE
 	@echo "Updating Grok CLI..."
@@ -189,11 +185,7 @@ update/grok: FORCE
 
 install/muse:
 	@echo "Installing Muse Code..."
-	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
-	curl -fsSL "$(MUSE_INSTALL_URL)" -o "$$tmpdir/install.sh" \
-		&& test -s "$$tmpdir/install.sh" \
-		|| { echo "muse: failed to fetch a non-empty install script from $(MUSE_INSTALL_URL)" >&2; exit 1; }; \
-	bash "$$tmpdir/install.sh"
+	@$(call agent-install,muse,$(MUSE_INSTALL_URL),bash)
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
 # Official launcher sync (`MUSE_SYNC_UPDATE`); `--version` avoids the TUI.
@@ -208,11 +200,7 @@ update/muse: FORCE
 
 install/claude:
 	@echo "Installing Claude CLI..."
-	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
-	curl -fsSL "$(CLAUDE_INSTALL_URL)" -o "$$tmpdir/install.sh" \
-		&& test -s "$$tmpdir/install.sh" \
-		|| { echo "claude: failed to fetch a non-empty install script from $(CLAUDE_INSTALL_URL)" >&2; exit 1; }; \
-	bash "$$tmpdir/install.sh"
+	@$(call agent-install,claude,$(CLAUDE_INSTALL_URL),bash)
 
 update/claude: FORCE
 	@echo "Updating Claude CLI..."
