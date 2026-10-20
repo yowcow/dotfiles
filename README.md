@@ -36,11 +36,36 @@ Before you begin, ensure you have the following installed:
 
 3.  **Install the dotfiles:**
 
-    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`); a failure in either installer aborts the run before that download. `install/fzf` runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after make has ensured `~/.fzf` and `~/.zshrc` exist — linked, except that an existing `~/.zshrc` newer than the tracked `zshrc` is left in place — so the installer always runs after them even under `make -j4`. `install/ollama` downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`. It may also prompt interactively, so prefer a serial `make install`: `make all` runs `install` with `-j4`, where it runs alongside the other installers and the prompts can interleave. The fzf installer writes shell snippets outside `TARGETS`, so `make clean` leaves them behind. `install/lang/*` and `install/docker` are opt-in entry points: `make install` does not run them; `make update` does, before each corresponding `update/X` cleanup. To install them at setup time instead, name them explicitly, e.g. `make install/lang/golang install/lang/nodejs` (also `install/lang/python3`, `install/lang/rust`, `install/docker`).
+    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`); a failure in either installer aborts the run before that download.
+
+    *   **`install/fzf`** runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after make has ensured `~/.fzf` and `~/.zshrc` exist — linked, except that an existing `~/.zshrc` newer than the tracked `zshrc` is left in place — so the installer always runs after them even under `make -j4`.
+    *   **`install/ollama`** downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`, and it may prompt interactively.
+    *   **`install/lang/*` and `install/docker`** are opt-in entry points: `make install` does not run them; `make update` does, before each corresponding `update/X` cleanup. To install them at setup time instead, name them explicitly, e.g. `make install/lang/golang install/lang/nodejs` (also `install/lang/python3`, `install/lang/rust`, `install/docker`).
+    *   **`install/codex`, `install/grok`, `install/muse`, and `install/claude`** are also opt-in, and unlike `install/lang/*` and `install/docker`, `make update` does not run them either, so they must be run explicitly, e.g. `make install/codex`. Each one downloads that agent's official install script and runs it.
 
     ```bash
     make install
     ```
+
+    The agents are opt-in, so install them separately:
+
+    ```bash
+    make install/codex install/grok install/muse install/claude
+    ```
+
+    The agent installers also touch files outside their own directory. The rc paths below assume `$SHELL` is zsh; upstream picks `~/.bashrc` / `~/.bash_profile` for bash and `~/.profile` for anything else, and with `$SHELL` unset Grok writes no rc at all.
+
+    *   **Grok** edits the shell rc and links its binaries onto `PATH`.
+        *   It rewrites the `# >>> grok installer >>>` block in the shell rc, resolving symlinks so it edits the tracked `zshrc`, and leaves a `zshrc.bak.<timestamp>` beside it the first time (a re-run that finds the block already present rewrites it without a backup).
+        *   It symlinks `grok` and `agent` into a writable directory already on `PATH` (here `~/.local/bin`) — only when `~/.grok/bin` is not already on `PATH`, e.g. on the first install; a re-run from a shell that has sourced `ai-agents.zsh` skips it.
+        *   That block duplicates what `ai-agents.zsh` already does (adds `~/.grok/bin` to `PATH` and `~/.grok/completions/zsh` to `fpath`), and `zshrc` already runs `compinit`, so it can be deleted from the tracked `zshrc` after the install — a re-run of `install/grok` appends it again.
+    *   **Codex** appends a PATH block with a conflict exception.
+        *   It appends a PATH block only when `~/.local/bin` is not already on `PATH`.
+        *   When it detects a brew/npm/bun `codex` already on `PATH` it writes its `# >>> Codex installer >>>` block regardless, into `~/.zshrc` on Linux (the tracked `zshrc`, via the symlink, with no backup) and into `~/.zprofile` on macOS (which `make clean` does not remove).
+        *   It may also prompt interactively (e.g. "Start Codex now?") or offer to uninstall a conflicting npm install.
+    *   **Muse** appends a PATH block only when `~/.local/bin` is not already on `PATH`; the append follows the `~/.zshrc` symlink into the tracked `zshrc`, with no backup and no block markers, so only its `# added by muse installer` comment identifies it.
+
+    Prefer a serial `make install`: `make all` runs `install` with `-j4`, where it runs alongside the other installers and the prompts can interleave. Under `make -j4` the Grok installer also rewrites the same shell rc (read, rewrite, `mv`) that Codex and Muse append to, so one of the two writes can be lost.
 
 ## Usage
 
@@ -58,7 +83,14 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 *   Updates the Claude CLI via `claude update` when `claude` is on PATH, otherwise skip.
 *   Gemini CLI and OpenCode CLI are managed by pnpm global via `make install/lang/nodejs` (`npm` + `pnpm` bootstrapped with `npm -g`, remaining tools via pnpm global).
 
-Reinstall-type tools keep their install recipe in `install/X`. `make update` lists `install/fzf` and `install/ollama` as prerequisites, and the language and Docker updates follow the same pattern with a cleanup step: `update/lang/*` lists `install/lang/*` as a prerequisite then cleans caches, and `update/docker` lists `install/docker` then prunes. `make install update` still runs each `install/X` exactly once. That also means `make update` alone links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed), and `~/.gitconfig` as a prerequisite of each `_modules` pull. As with `make install`, `~/.zshrc` may be replaced by the symlink without a backup; if your existing file is newer than the tracked `zshrc` it is left in place, and the fzf installer appends its snippet to it. Because both installers are prerequisites, `make update` also needs `sudo` when the ollama installer does, and a failure in either installer (`sudo` unavailable) or in a `_modules` clone/pull (offline, a failed clone) aborts a serial run before the language, Docker, and agent updates (under `make -j` those installers may already be running, so the abort is not a rollback). A failed `install/ollama` is not a no-op: the script removes the existing `lib/ollama` before downloading the new bundle, so a failure after that point leaves ollama unusable until you re-run `make install` or `make update`.
+Reinstall-type tools keep their install recipe in `install/X`.
+
+*   **`make update` runs the install recipes first.** It lists `install/fzf` and `install/ollama` as prerequisites, and the language and Docker updates follow the same pattern with a cleanup step: `update/lang/*` lists `install/lang/*` as a prerequisite then cleans caches, and `update/docker` lists `install/docker` then prunes. `make install update` still runs each `install/X` exactly once.
+*   **`make update` alone links more than it updates.** It links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed), and `~/.gitconfig` as a prerequisite of each `_modules` pull. As with `make install`, `~/.zshrc` may be replaced by the symlink without a backup; if your existing file is newer than the tracked `zshrc` it is left in place, and the fzf installer appends its snippet to it. Because both installers are prerequisites, `make update` also needs `sudo` when the ollama installer does.
+*   **Failures abort before the later updates.** A failure in either installer (`sudo` unavailable) or in a `_modules` clone/pull (offline, a failed clone) aborts a serial run before the language, Docker, and agent updates (under `make -j` those installers may already be running, so the abort is not a rollback).
+*   **A failed `install/ollama` is not a no-op.** The script removes the existing `lib/ollama` before downloading the new bundle, so a failure after that point leaves ollama unusable until you re-run `make install` or `make update`.
+*   **The four agents keep both recipes.** `install/X` runs the official installer (`sh` for Codex, `bash` for Grok, Muse, and Claude) and `update/X` runs the tool's own update command; `make update` calls only `update/X`, so an agent that is not installed is skipped rather than installed. Like `install/ollama`, each agent installer is downloaded to a temporary directory first, so a failed or empty download aborts instead of running an empty script.
+*   **When `update/X` reports no new release, re-run `make install/X`.**
 
 To run the update:
 
@@ -74,14 +106,23 @@ make update/versioned
 
 ### Cleaning
 
-*   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. Downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, aws-vault) are left in place. Files generated by `~/.fzf/install` (shell snippets outside `TARGETS`) are also left in place. ollama is likewise left in place: `install/ollama` installs it system-wide (outside `$HOME`, with a service unit), and `make clean` does not uninstall or stop it.
+*   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. It leaves in place:
+    *   downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, aws-vault);
+    *   files generated by `~/.fzf/install` (shell snippets outside `TARGETS`);
+    *   ollama: `install/ollama` installs it system-wide (outside `$HOME`, with a service unit), and `make clean` does not uninstall or stop it;
+    *   the CLIs installed by `install/codex`, `install/grok`, `install/muse`, and `install/claude`, together with the state they keep under `$HOME`.
 *   **`make clean/versioned`**: Removes the downloaded binaries listed in `VERSIONED_TARGETS`.
 *   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned external dependencies.
 
 ## Structure
 
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), OpenCode (`opencode/opencode.jsonc`), and more.
-*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`) and custom agent definitions. Skills are not here: they come from [`yowcow/dude`](https://github.com/yowcow/dude) through each agent's own plugin mechanism, with the install steps in that repository's README. On install, the shared guideline is applied to Claude, Gemini, Codex, Grok, and OpenCode (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`, `~/.config/opencode/AGENTS.md`). Targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed. When both are plain symlinks to the same source, Grok typically loads only the native `~/.grok/AGENTS.md`; if an overlay makes the files differ and you see both in `grok inspect`, set `[compat.claude] agents = false` in `~/.grok/config.toml` (Claude Code itself is unaffected). `ai/tools/` holds tooling for measuring how the assistants are used (e.g. `measure-claude-code.py`, which aggregates Claude Code session cost); it is not an install target, since it runs from this repository rather than being symlinked into `$HOME`.
+*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`) and custom agent definitions.
+    *   Skills are not here: they come from [`yowcow/dude`](https://github.com/yowcow/dude) through each agent's own plugin mechanism, with the install steps in that repository's README.
+    *   On install, the shared guideline is applied to Claude, Gemini, Codex, Grok, and OpenCode (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`, `~/.config/opencode/AGENTS.md`).
+    *   Targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed.
+    *   When both are plain symlinks to the same source, Grok typically loads only the native `~/.grok/AGENTS.md`; if an overlay makes the files differ and you see both in `grok inspect`, set `[compat.claude] agents = false` in `~/.grok/config.toml` (Claude Code itself is unaffected).
+    *   `ai/tools/` holds tooling for measuring how the assistants are used (e.g. `measure-claude-code.py`, which aggregates Claude Code session cost); it is not an install target, since it runs from this repository rather than being symlinked into `$HOME`.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains third-party tools and plugins cloned via SSH by the Makefile (not Git submodules — there is no `.gitmodules`), such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
 *   `Makefile`: The central script that orchestrates the entire dotfile management process, handling installation, updates, and cleanup operations.

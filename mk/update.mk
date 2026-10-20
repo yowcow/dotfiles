@@ -143,6 +143,26 @@ update/docker: install/docker
 		docker volume prune -f; \
 	fi
 
+##
+## codex / grok / muse / claude: self-update type. install/X runs the official
+## installer; update/X keeps the tool's own update command, and `make update`
+## calls only update/X. Override a URL with
+## make install/codex CODEX_INSTALL_URL=<url>.
+##
+CODEX_INSTALL_URL  ?= https://chatgpt.com/codex/install.sh
+GROK_INSTALL_URL   ?= https://x.ai/cli/install.sh
+MUSE_INSTALL_URL   ?= https://dev.meta.ai/install.sh
+CLAUDE_INSTALL_URL ?= https://claude.ai/install.sh
+
+# $(call agent-install,<name>,<url>,<shell>): fetch the official installer into a
+# temporary directory, then run it with <shell> from the caller's cwd (the repo
+# root); a failed or empty download aborts.
+agent-install = tmpdir=$$(mktemp -d) || { echo "$(1): cannot create a temporary directory" >&2; exit 1; }; trap 'rm -rf "$$tmpdir"' EXIT; curl -fsSL "$(2)" -o "$$tmpdir/install.sh" && test -s "$$tmpdir/install.sh" || { echo "$(1): failed to fetch a non-empty install script from $(2) (curl failed or returned an empty file)" >&2; exit 1; }; $(3) "$$tmpdir/install.sh"
+
+install/codex:
+	@echo "Installing Codex CLI..."
+	@$(call agent-install,codex,$(CODEX_INSTALL_URL),sh)
+
 update/codex: FORCE
 	@echo "Updating Codex CLI..."
 	@if command -v codex >/dev/null; then \
@@ -152,6 +172,10 @@ update/codex: FORCE
 		echo "Codex CLI not installed, skipping."; \
 	fi
 
+install/grok:
+	@echo "Installing Grok CLI..."
+	@$(call agent-install,grok,$(GROK_INSTALL_URL),bash)
+
 update/grok: FORCE
 	@echo "Updating Grok CLI..."
 	@if command -v grok >/dev/null; then \
@@ -160,6 +184,10 @@ update/grok: FORCE
 	else \
 		echo "Grok CLI not installed, skipping."; \
 	fi
+
+install/muse:
+	@echo "Installing Muse Code..."
+	@$(call agent-install,muse,$(MUSE_INSTALL_URL),bash)
 
 # Muse Code (Meta): https://dev.meta.ai/docs/muse-code
 # Official launcher sync (`MUSE_SYNC_UPDATE`); `--version` avoids the TUI.
@@ -172,6 +200,10 @@ update/muse: FORCE
 		echo "Muse Code not installed, skipping."; \
 	fi
 
+install/claude:
+	@echo "Installing Claude CLI..."
+	@$(call agent-install,claude,$(CLAUDE_INSTALL_URL),bash)
+
 update/claude: FORCE
 	@echo "Updating Claude CLI..."
 	@if command -v claude >/dev/null; then \
@@ -181,4 +213,4 @@ update/claude: FORCE
 		echo "Claude CLI not installed, skipping."; \
 	fi
 
-.PHONY: install/lang/golang install/lang/nodejs install/lang/python3 install/lang/rust install/docker update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude
+.PHONY: install/lang/golang install/lang/nodejs install/lang/python3 install/lang/rust install/docker install/codex install/grok install/muse install/claude update/lang/golang update/lang/nodejs update/lang/python3 update/lang/rust update/docker update/codex update/grok update/muse update/claude

@@ -2,3 +2,5 @@
 /_modules/
 /.worktrees/
 /.superpowers/
+/zshrc.bak.*
+/zshrc.tmp.*
