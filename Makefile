@@ -119,8 +119,8 @@ install: $(TARGETS) install/fzf install/ollama
 	$(MAKE) install/versioned
 
 # GIT_MODULES pulls are listed first so a serial `make update` pulls before it
-# installs. `make install update` runs the installers in its install phase, so
-# there they precede the pulls.
+# installs. Under `-j` the goals' prerequisites run concurrently, so there the
+# only guarantee is that each `install/X` runs once per invocation.
 update: $(addprefix update/,$(GIT_MODULES)) install/fzf install/ollama
 	$(MAKE) $(addprefix update/lang/,golang nodejs python3 rust)
 	$(MAKE) update/docker

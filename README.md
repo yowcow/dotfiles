@@ -35,7 +35,7 @@ Before you begin, ensure you have the following installed:
 
 3.  **Install the dotfiles:**
 
-    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`). `install/fzf` runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after `~/.fzf` and `~/.zshrc` are linked, so the installer always runs after the symlinks even under `make -j4`. `install/ollama` downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`. It may also prompt interactively, so prefer a serial `make install`: under `make -j4` it runs alongside the other installers and the prompts can interleave. The fzf installer writes shell snippets outside `TARGETS`, so `make clean` leaves them behind.
+    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`). `install/fzf` runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after `~/.fzf` and `~/.zshrc` are linked, so the installer always runs after the symlinks even under `make -j4`. `install/ollama` downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`. It may also prompt interactively, so prefer a serial `make install`: plain `make`/`make all` runs `install` with `-j4`, where it runs alongside the other installers and the prompts can interleave. The fzf installer writes shell snippets outside `TARGETS`, so `make clean` leaves them behind.
 
     ```bash
     make install
