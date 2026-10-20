@@ -146,7 +146,8 @@ update/docker: install/docker
 ##
 ## codex / grok / muse / claude: self-update type. install/X runs the official
 ## installer; update/X keeps the tool's own update command, and `make update`
-## calls only update/X. Override a script URL with make <NAME>_INSTALL_URL=<url>.
+## calls only update/X. Override a URL with
+## make install/codex CODEX_INSTALL_URL=<url>.
 ##
 CODEX_INSTALL_URL  ?= https://chatgpt.com/codex/install.sh
 GROK_INSTALL_URL   ?= https://x.ai/cli/install.sh
