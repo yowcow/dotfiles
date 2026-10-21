@@ -43,10 +43,19 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, when the task's deliverable is a diff, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - **Size the fan-out to the target** — splitting it finer than it warrants only pays hand-off cost, and which shape to use within that bound is the skill's own procedure.
-- Dispatching also decides the tier the worker runs in: you can re-judge what a worker returns, never what it never returned, so a worker whose miss would come back as "nothing found" takes the **Slow down** tier under **Reasoning effort**, and everything else takes the default. Where your runtime gives you no way to set a worker's tier, this settles nothing and the run proceeds as it is.
-- **OpenCode**: dude's `high` / `highest` tier does not choose a model here. Dispatch every worker on the default model with no `model` argument, including the ones dude marks for either tier.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
 - The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
+
+### Worker model and tier
+
+Decide the tier first; the runtime then decides whether that tier turns into a model. dude's `high` / `highest` are its own labels for that model decision — `high` is the **Slow down** tier above.
+
+- **Tier**: you can re-judge what a worker returns, never what it never returned. A worker whose miss would come back as "nothing found" takes the **Slow down** tier under **Reasoning effort**; everything else takes the default. If the runtime offers no way to set a worker's tier, the tier settles nothing and the run proceeds as it is.
+
+**Per runtime:**
+
+- **Claude Code**: never dispatch a worker on Fable. dude's `high` / `highest` workers run on Opus at most — pass `model: "opus"` for them; every other worker gets no `model` argument and keeps the default.
+- **Other runtimes**: a worker inherits the default model — how these runtimes specify a subagent model is unknown, so don't pick one, even for a `high` / `highest` worker.
 
 ## Git & PR workflow
 
