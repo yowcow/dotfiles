@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "theme": {
+    "name": "synthwave84"
+  },
+  "diffs": {
+    "wrap": "word"
+  },
+  "session": {
+    "sidebar": "auto",
+    "scrollbar": false,
+    "thinking": "hide"
+  },
+  "keybinds": {
+    "session.tab.next": "<leader>]",
+    "session.tab.previous": "<leader>["
+  },
+  "animations": true
+}

@@ -13,6 +13,7 @@ SOURCES := \
 	config/kanshi/config \
 	config/muse/settings.json \
 	config/nvim \
+	config/opencode/cli.json \
 	config/opencode/opencode.jsonc \
 	config/sql-formatter/config.json \
 	config/starship.toml \
