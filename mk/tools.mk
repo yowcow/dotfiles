@@ -9,22 +9,6 @@ VERSIONED_TARGETS := \
 
 install/versioned: $(VERSIONED_TARGETS)
 
-##
-## ollama: reinstall-type. The official install.sh also performs the update.
-## https://docs.ollama.com/linux
-## Override the script URL with make OLLAMA_INSTALL_URL=<url>.
-##
-OLLAMA_INSTALL_URL ?= https://ollama.com/install.sh
-
-install/ollama:
-	@if [ "$$(uname -s)" = Linux ] && ! command -v zstd >/dev/null; then echo "ollama: zstd is required to unpack the release bundle (see README prerequisites)" >&2; exit 1; fi
-	@echo "Installing ollama..."
-	@tmpdir=$$(mktemp -d); trap 'rm -rf "$$tmpdir"' EXIT; \
-	curl -fsSL "$(OLLAMA_INSTALL_URL)" -o "$$tmpdir/install.sh" \
-		&& test -s "$$tmpdir/install.sh" \
-		|| { echo "ollama: failed to fetch a non-empty install script from $(OLLAMA_INSTALL_URL)" >&2; exit 1; }; \
-	sh "$$tmpdir/install.sh"
-
 clean/versioned: FORCE
 	rm -f $(VERSIONED_TARGETS)
 
@@ -139,4 +123,4 @@ update/versioned: FORCE
 	$(MAKE) clean/versioned
 	$(MAKE) install/versioned
 
-.PHONY: install/versioned clean/versioned update/versioned install/ollama
+.PHONY: install/versioned clean/versioned update/versioned

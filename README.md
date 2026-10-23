@@ -20,7 +20,6 @@ Before you begin, ensure you have the following installed:
 *   `curl` and `jq`: Required for virtually **any** `make` invocation, not just `update/versioned` — the Makefile resolves `TMUX_VERSION` via the GitHub API (`curl` piped into `jq`) at parse time, before any target runs, unless you override it with `TMUX_VERSION=<version>`. They're also used to resolve and download release assets for other versioned tools (e.g. aws-vault).
 *   A C compiler and standard build tools (e.g., `build-essential` on Debian/Ubuntu): Necessary for compiling various tools and dependencies.
 *   tmux build dependencies (tmux is built from source via `autoreconf` + `./configure --enable-utf8proc`): on Debian/Ubuntu, `autoconf automake pkg-config libevent-dev libutf8proc-dev bison`; on macOS, `autoconf automake pkg-config libevent utf8proc`.
-*   `zstd`: Required by the ollama installer to unpack the current release bundle (`.tar.zst`). `install/ollama` checks for it on Linux first, so a missing `zstd` fails before the official installer removes the existing ollama libraries. (A failure later in the install still leaves ollama unusable; see Updating.)
 
 ## Installation
 
@@ -36,10 +35,9 @@ Before you begin, ensure you have the following installed:
 
 3.  **Install the dotfiles:**
 
-    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installers `install/fzf` and `install/ollama`, then downloads `VERSIONED_TARGETS` (`install/versioned`); a failure in either installer aborts the run before that download.
+    `make install` links `SOURCES` plus the AI targets into `$HOME` and runs the shared installer `install/fzf`, then downloads `VERSIONED_TARGETS` (`install/versioned`); a failure in the installer aborts the run before that download.
 
     *   **`install/fzf`** runs `~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc` after make has ensured `~/.fzf` and `~/.zshrc` exist — linked, except that an existing `~/.zshrc` newer than the tracked `zshrc` is left in place — so the installer always runs after them even under `make -j4`.
-    *   **`install/ollama`** downloads `https://ollama.com/install.sh` and runs it with `sh`; the script installs ollama system-wide and may require `sudo`, and it may prompt interactively.
     *   **`install/lang/*` and `install/docker`** are opt-in entry points: `make install` does not run them; `make update` does, before each corresponding `update/X` cleanup. To install them at setup time instead, name them explicitly, e.g. `make install/lang/golang install/lang/nodejs` (also `install/lang/python3`, `install/lang/rust`, `install/docker`).
     *   **`install/codex`, `install/grok`, `install/muse`, and `install/claude`** are also opt-in, and unlike `install/lang/*` and `install/docker`, `make update` does not run them either, so they must be run explicitly, e.g. `make install/codex`. Each one downloads that agent's official install script and runs it.
 
@@ -74,7 +72,7 @@ Before you begin, ensure you have the following installed:
 The `Makefile` includes a powerful `update` command designed to keep your environment current (in a serial run, in this order):
 
 *   Pulls the latest changes for all external dependencies under `_modules/` (e.g., `fzf`, `nvm`).
-*   Reinstalls the shared installers: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`) and `install/ollama` (re-runs the official install script, which is also ollama's documented update path).
+*   Reinstalls the shared installer: `install/fzf` (`~/.fzf/install --no-bash --no-fish --completion --key-bindings --update-rc`).
 *   Installs/updates language-specific tools and package managers for Go, Node.js, Python, and Rust (`install/lang/*`), then cleans their caches (`update/lang/*`, e.g. `go clean`, `npm cache clean`, `pnpm store prune`, `uv cache clean`, `pip cache purge`, the cargo registry cache).
 *   Pulls Docker images (`install/docker`), then prunes (`update/docker`: `docker system prune -f`, `docker volume prune -f`).
 *   Updates the Codex CLI via `codex update` when `codex` is on PATH, otherwise skip.
@@ -85,11 +83,10 @@ The `Makefile` includes a powerful `update` command designed to keep your enviro
 
 Reinstall-type tools keep their install recipe in `install/X`.
 
-*   **`make update` runs the install recipes first.** It lists `install/fzf` and `install/ollama` as prerequisites, and the language and Docker updates follow the same pattern with a cleanup step: `update/lang/*` lists `install/lang/*` as a prerequisite then cleans caches, and `update/docker` lists `install/docker` then prunes. `make install update` still runs each `install/X` exactly once.
-*   **`make update` alone links more than it updates.** It links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed), and `~/.gitconfig` as a prerequisite of each `_modules` pull. As with `make install`, `~/.zshrc` may be replaced by the symlink without a backup; if your existing file is newer than the tracked `zshrc` it is left in place, and the fzf installer appends its snippet to it. Because both installers are prerequisites, `make update` also needs `sudo` when the ollama installer does.
-*   **Failures abort before the later updates.** A failure in either installer (`sudo` unavailable) or in a `_modules` clone/pull (offline, a failed clone) aborts a serial run before the language, Docker, and agent updates (under `make -j` those installers may already be running, so the abort is not a rollback).
-*   **A failed `install/ollama` is not a no-op.** The script removes the existing `lib/ollama` before downloading the new bundle, so a failure after that point leaves ollama unusable until you re-run `make install` or `make update`.
-*   **The four agents keep both recipes.** `install/X` runs the official installer (`sh` for Codex, `bash` for Grok, Muse, and Claude) and `update/X` runs the tool's own update command; `make update` calls only `update/X`, so an agent that is not installed is skipped rather than installed. Like `install/ollama`, each agent installer is downloaded to a temporary directory first, so a failed or empty download aborts instead of running an empty script.
+*   **`make update` runs the install recipes first.** It lists `install/fzf` as a prerequisite, and the language and Docker updates follow the same pattern with a cleanup step: `update/lang/*` lists `install/lang/*` as a prerequisite then cleans caches, and `update/docker` lists `install/docker` then prunes. `make install update` still runs each `install/X` exactly once.
+*   **`make update` alone links more than it updates.** It links `~/.fzf` and `~/.zshrc` (cloning `_modules/github.com/junegunn/fzf` if needed), and `~/.gitconfig` as a prerequisite of each `_modules` pull. As with `make install`, `~/.zshrc` may be replaced by the symlink without a backup; if your existing file is newer than the tracked `zshrc` it is left in place, and the fzf installer appends its snippet to it.
+*   **Failures abort before the later updates.** A failure in the installer or in a `_modules` clone/pull (offline, a failed clone) aborts a serial run before the language, Docker, and agent updates (under `make -j` those installers may already be running, so the abort is not a rollback).
+*   **The four agents keep both recipes.** `install/X` runs the official installer (`sh` for Codex, `bash` for Grok, Muse, and Claude) and `update/X` runs the tool's own update command; `make update` calls only `update/X`, so an agent that is not installed is skipped rather than installed. Each agent installer is downloaded to a temporary directory first, so a failed or empty download aborts instead of running an empty script.
 *   **When `update/X` reports no new release, re-run `make install/X`.**
 
 To run the update:
@@ -109,7 +106,6 @@ make update/versioned
 *   **`make clean`**: This command removes the symlinks and generated AI instruction files created by `make install` from your home directory, effectively deactivating the dotfiles. It leaves in place:
     *   downloaded binaries (`VERSIONED_TARGETS`, e.g. tmux, aws-vault);
     *   files generated by `~/.fzf/install` (shell snippets outside `TARGETS`);
-    *   ollama: `install/ollama` installs it system-wide (outside `$HOME`, with a service unit), and `make clean` does not uninstall or stop it;
     *   the CLIs installed by `install/codex`, `install/grok`, `install/muse`, and `install/claude`, together with the state they keep under `$HOME`.
 *   **`make clean/versioned`**: Removes the downloaded binaries listed in `VERSIONED_TARGETS`.
 *   **`make realclean`**: Performs everything `make clean` does, and additionally removes the `_modules` directory, which contains the cloned external dependencies.
