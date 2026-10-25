@@ -54,8 +54,13 @@ Decide the tier first; the runtime then decides whether that tier turns into a m
 
 **Per runtime:**
 
-- **Claude Code**: never dispatch a worker on Fable. dude's `high` / `highest` workers run on Opus at most — pass `model: "opus"` for them; every other worker gets no `model` argument and keeps the default.
-- **Other runtimes**: a worker inherits the default model — how these runtimes specify a subagent model is unknown, so don't pick one, even for a `high` / `highest` worker.
+| agent       | dude:high-tier      | dude:highest-tier   |
+| ----------- | ------------------- | ------------------- |
+| Claude Code | opus                | opus                |
+| OpenCode    | opencode-go/glm-5.3 | opencode-go/glm-5.3 |
+| Others      | inherit default     | inherit default     |
+
+For a `high` / `highest` worker, pass the table's model explicitly as the `model` argument — the agent definition's own default can resolve to Fable. Never dispatch a worker on Fable. Any other worker gets no model argument and keeps the default.
 
 ## Git & PR workflow
 
