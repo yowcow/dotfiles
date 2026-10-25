@@ -5,6 +5,14 @@
     "auto": true,
     "keep": { "tokens": 15000 },
   },
+  "tool_output": {
+    "max_lines": 1000,
+    "max_bytes": 51200,
+  },
+  "agents": {
+    "general": { "steps": 100 },
+    "explore": { "steps": 100 },
+  },
   "experimental": {
     "background_compaction": true,
   },
