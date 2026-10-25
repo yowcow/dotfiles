@@ -60,7 +60,7 @@ Decide the tier first; the runtime then decides whether that tier turns into a m
 | OpenCode    | opencode-go/glm-5.3 | opencode-go/glm-5.3 |
 | Others      | inherit default     | inherit default     |
 
-Never dispatch a worker on Fable. Any worker not marked `high` / `highest` gets no model argument and keeps the default.
+For a `high` / `highest` worker, pass the table's model explicitly as the `model` argument — the agent definition's own default can resolve to Fable. Never dispatch a worker on Fable. Any other worker gets no model argument and keeps the default.
 
 ## Git & PR workflow
 
