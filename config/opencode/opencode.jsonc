@@ -16,9 +16,9 @@
     "explore": {
       "steps": 100,
     },
-    "title": { "model": "opencode-go/deepseek-v4.1-flash#low" },
-    "summary": { "model": "opencode-go/deepseek-v4.1-flash#low" },
-    "compaction": { "model": "opencode-go/deepseek-v4.1-flash#low" },
+    "title": { "model": "opencode-go/mimo-v2.6-flash" },
+    "summary": { "model": "opencode-go/mimo-v2.6-flash" },
+    "compaction": { "model": "opencode-go/mimo-v2.6-flash" },
   },
   "experimental": {
     "background_compaction": true,
