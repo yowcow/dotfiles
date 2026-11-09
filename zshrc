@@ -364,6 +364,13 @@ function ssh-agent-stop() {
     fi
 }
 
+function gpg-reload() {
+    # drop cached passphrases, then sign a dummy message to trigger pinentry again
+    gpg-connect-agent reloadagent /bye >/dev/null && \
+        echo | gpg --clearsign >/dev/null && \
+        echo "gpg: re-authenticated"
+}
+
 ssh-agent-start
 
 [ -f "$HOME/.local.zsh" ] && source "$HOME/.local.zsh"
