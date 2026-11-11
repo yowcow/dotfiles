@@ -4,6 +4,7 @@ tags
 .serena/
 .superpowers/
 .worktrees/
+.claude/worktrees/
 .env
 *.env
 *.env.*
