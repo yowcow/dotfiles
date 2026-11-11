@@ -115,9 +115,9 @@ make update/versioned
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), OpenCode (`opencode/opencode.jsonc`), and more.
 *   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`) and custom agent definitions.
     *   Skills are not here: they come from [`yowcow/dude`](https://github.com/yowcow/dude) through each agent's own plugin mechanism, with the install steps in that repository's README.
-    *   On install, the shared guideline is applied to Claude, Gemini, Codex, Grok, and OpenCode (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`, `~/.config/opencode/AGENTS.md`).
-    *   Targets symlink to the shared file by default, and can be generated with an agent-specific overlay when needed.
-    *   When both are plain symlinks to the same source, Grok typically loads only the native `~/.grok/AGENTS.md`; if an overlay makes the files differ and you see both in `grok inspect`, set `[compat.claude] agents = false` in `~/.grok/config.toml` (Claude Code itself is unaffected).
+    *   On install, the shared guideline is applied to Claude, Gemini, Codex, Grok, OpenCode, and Muse (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.muse/AGENTS.md`).
+    *   Every target is a symlink to the shared file.
+    *   Since both are symlinks to the same source, Grok typically loads only the native `~/.grok/AGENTS.md`.
     *   `ai/tools/` holds tooling for measuring how the assistants are used (e.g. `measure-claude-code.py`, which aggregates Claude Code session cost); it is not an install target, since it runs from this repository rather than being symlinked into `$HOME`.
 *   `local/bin/`: A dedicated location for your custom shell scripts and personal binaries, which are typically added to your system's PATH.
 *   `_modules/`: Contains third-party tools and plugins cloned via SSH by the Makefile (not Git submodules — there is no `.gitmodules`), such as `fzf` (a command-line fuzzy finder) and `nvm` (Node Version Manager).
