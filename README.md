@@ -113,7 +113,7 @@ make update/versioned
 ## Structure
 
 *   `config/`: Houses configuration files for a wide array of applications, including terminal emulators (`alacritty`, `wezterm`), text editors (`nvim`), window managers (`sway`), OpenCode (`opencode/opencode.jsonc`), and more.
-*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`) and custom agent definitions.
+*   `ai/`: Shared AI assistant guidelines (`GUIDELINES.md`).
     *   Skills are not here: they come from [`yowcow/dude`](https://github.com/yowcow/dude) through each agent's own plugin mechanism, with the install steps in that repository's README.
     *   On install, the shared guideline is applied to Claude, Gemini, Codex, Grok, OpenCode, and Muse (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, `~/.grok/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.muse/AGENTS.md`).
     *   Every target is a symlink to the shared file.
