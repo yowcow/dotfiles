@@ -56,7 +56,7 @@ AI_MUSE_TARGET     := $(HOME)/.muse/AGENTS.md
 AI_TARGETS         := $(AI_CLAUDE_TARGET) $(AI_GEMINI_TARGET) $(AI_CODEX_TARGET) $(AI_GROK_TARGET) $(AI_OPENCODE_TARGET) $(AI_MUSE_TARGET)
 AI_GUIDELINES_ABS  := $(abspath $(AI_GUIDELINES))
 
-# TARGETS is symlinks and generated files only. Downloaded binaries live in
+# TARGETS is symlinks only. Downloaded binaries live in
 # VERSIONED_TARGETS (mk/tools.mk) and are never removed by `clean`.
 TARGETS := $(addprefix $(HOME)/.,$(SOURCES)) $(AI_TARGETS)
 
