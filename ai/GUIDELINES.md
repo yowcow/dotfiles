@@ -1,18 +1,9 @@
 # AI Assistant Guidelines
 
-## Skills & runtime adaptation
+## About me
 
-Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude:pr-to-ready` denote required workflows, not specific tools.
-
-- Invoke each through your runtime's mechanism. If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
-- Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
-- A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk.
-
-## Core Principles
-
-- Prioritize correctness over speed; prefer evidence over assumptions — read the code, run the check, don't guess.
-- Keep the diff focused on the request, and preserve existing behavior unless a change is explicitly requested.
-- Favor simple, maintainable solutions over clever ones, and keep responsibilities well separated.
+- Languages: Go, Perl, PHP, Erlang, TypeScript/JavaScript. Editor: neovim/lazyvim. Environment: Linux (zsh, tmux).
+- Prioritize business value over technical perfection.
 
 ## Communication
 
@@ -27,40 +18,42 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 - Distinguish facts, observations, assumptions, hypotheses, and conclusions. State uncertainty explicitly rather than presenting it as settled.
 - Don't invent missing information — say what you don't know and how you'd find out.
 
-## Reasoning effort
+## Core principles
+
+- Prioritize correctness over speed; prefer evidence over assumptions — read the code, run the check, don't guess.
+- Keep the diff focused on the request, and preserve existing behavior unless a change is explicitly requested.
+- Favor simple, maintainable solutions over clever ones, and keep responsibilities well separated.
+
+## Skills & workflows
+
+Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude:pr-to-ready` denote required workflows, not specific tools.
+
+- Invoke each through your runtime's mechanism. If a named skill is unavailable, perform the equivalent workflow manually and say so — never skip it.
+- Apply an applicable skill before acting, including before clarifying questions or exploring the codebase.
+- A workflow applies whenever the task is non-trivial: more than one file, design or interface decisions, non-trivial reasoning, or meaningful correctness risk.
+- **Where you can invoke a skill, its content comes only from invoking it — never from searching the filesystem for its file.** Where a caller forbids invoking a named skill, you don't need its content at all: what that caller wrote about it is the contract, so depend on the name and nothing deeper. Where the runtime lacks the skill, the unavailable-skill rule above already settles what to do, and nothing here relaxes it.
+
+## Effort & sessions
+
+### Reasoning effort
 
 - **Slow down** for hard-to-reverse decisions — planning, architecture, code review, simplification strategy, root-cause analysis, and the final critique before calling work done.
 - **Move quickly** on mechanical work — searching, applying planned changes, formatting, running tests, updating docs, and writing commits and PRs; if your runtime exposes a thinking-budget control, map **Slow down** to its `high` and **Move quickly** to its `medium` (or the nearest equivalents); never go above `high` unless the user asks.
 
-## Session boundaries
+### Session boundaries
 
 - Context carried across a phase boundary is billed on every turn that follows. When you reach a hand-off whose record lives outside the session — an issue comment, a PR, a written plan — say so, and recommend continuing in a new session rather than carrying the phase's context forward. Only the user can start a session, so recommending it is your whole part.
 - Recommend it only at a boundary, never mid-phase, and only once the external record is actually complete. What the next session receives is what was written down, not what was said in conversation.
 
-## Subagents & worker safety
+## Subagents
 
 - Dispatching workers is standing-approved: treat it as already requested and never wait for a per-task go-ahead. Approval is necessary but not sufficient — the sizing rule below still decides whether to dispatch.
 - Give each worker a self-contained, bounded objective with the allowed files or directories, expected output, and completion criteria. State project context that the worker cannot inherit.
 - A worker may investigate and propose — or, when the task's deliverable is a diff, make scoped edits — but must report changed files, decisions, assumptions, verification performed, and remaining risks. The orchestrator remains responsible for control flow, decisions, verification, and commits.
 - **Size the fan-out to the target** — splitting it finer than it warrants only pays hand-off cost, and which shape to use within that bound is the skill's own procedure.
 - Parallelize only when subtasks share no files, no mutable state, and no ordering dependency, and their interfaces are fixed. Otherwise sequence the work; use separate worktrees when isolation is needed to avoid implementation conflicts.
-- The search hygiene under **Tool preferences** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
-
-### Worker model and tier
-
-Decide the tier first; the runtime then decides whether that tier turns into a model. dude's `high` / `highest` are its own labels for that model decision — `high` is the **Slow down** tier above.
-
-- **Tier**: you can re-judge what a worker returns, never what it never returned. A worker whose miss would come back as "nothing found" takes the **Slow down** tier under **Reasoning effort**; everything else takes the default. If the runtime offers no way to set a worker's tier, the tier settles nothing and the run proceeds as it is.
-
-**Per runtime:**
-
-| agent       | dude:high-tier  | dude:highest-tier |
-| ----------- | --------------- | ----------------- |
-| Claude Code | opus            | opus              |
-| OpenCode    | inherit default | inherit default   |
-| Others      | inherit default | inherit default   |
-
-For a `high` / `highest` worker, pass the table's model explicitly as the `model` argument — the agent definition's own default can resolve to Fable. Never dispatch a worker on Fable. Any other worker gets no model argument and keeps the default.
+- The search hygiene under **Tools** binds workers too, but they don't inherit project context — restate the scope in the prompt itself (e.g. "confine searches to `<path>`"). When a prompt references a skill by name, tell the worker to invoke its runtime mechanism or inline the guidance.
+- **Worker tier**: decide the tier first; the runtime then decides whether that tier turns into a model. dude's `high` / `highest` are its own labels for that model decision — `high` is the **Slow down** tier above. You can re-judge what a worker returns, never what it never returned. A worker whose miss would come back as "nothing found" takes the **Slow down** tier; everything else takes the default. If the runtime offers no way to set a worker's tier, the tier settles nothing and the run proceeds as it is.
 
 ## Git & PR workflow
 
@@ -70,14 +63,17 @@ For a `high` / `highest` worker, pass the table's model explicitly as the `model
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`); GitHub auto-closes cross-repo issues when the PR is merged into its default branch.
 
-## Tool preferences
+## Tools
 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
 - Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly instead of widening the scope. To find a binary use `command -v`, not a filesystem search.
-- **Where you can invoke a skill, its content comes only from invoking it — never from searching the filesystem for its file.** Where a caller forbids invoking a named skill, you don't need its content at all: what that caller wrote about it is the contract, so depend on the name and nothing deeper. Where the runtime lacks the skill, **Skills & runtime adaptation** already settles what to do, and nothing here relaxes it.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
-## Technical preferences
+## Runtime-specific
 
-- Languages: Go, Perl, PHP, Erlang, TypeScript/JavaScript. Editor: neovim/lazyvim. Environment: Linux (zsh, tmux).
-- Prioritize business value over technical perfection.
+Follow a subsection only in the runtime it names; skip the others. In a named runtime, its instruction wins over a common section's on the same matter.
+
+### Claude Code
+
+- Dispatch a `high` / `highest` worker with `model: opus` passed explicitly — the agent definition's own default can resolve to Fable. Never dispatch a worker on Fable. Any other worker gets no model argument and keeps the default.
+- Worktrees: this satisfies **Git & PR workflow**'s "runtime-native worktree" — take this procedure over a bare `EnterWorktree` `name`. Create it with `git worktree add .claude/worktrees/<branch>` and enter it with `EnterWorktree`'s `path`; never use `name`, since it prefixes the branch with `worktree-`, and a session already inside a worktree can only switch to ones under `.claude/worktrees/`.
