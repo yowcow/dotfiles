@@ -13,6 +13,7 @@ alias help="run-help"
 
 case "$(uname -s)" in
     "Darwin")
+        _dotfiles_path_prepend --move
         if [ -f "$(which gls)" ]; then
             alias ls="gls --color";
         else
@@ -45,13 +46,8 @@ setopt HIST_FIND_NO_DUPS
 setopt share_history
 setopt magic_equal_subst
 
-export EDITOR=nvim
-export VISUAL=nvim
-export PAGER=less
 export LC_ALL=en_US.UTF-8
-export LANG="en_US.UTF-8"
-export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/lib/cargo/bin:$PATH
-export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
+export LANG=en_US.UTF-8
 
 # .ssh/config to have `HashKnownHosts no` will help
 # Load up to 200 hosts for SSH tab-completion in a single awk pass
@@ -61,15 +57,7 @@ export RIPGREP_CONFIG_PATH=$HOME/.ripgreprc
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-export CARGO_NET_GIT_FETCH_WITH_CLI=true
-
-# brew install coreutils
-GNUBIN=/opt/homebrew/opt/coreutils/libexec/gnubin
-if [ -d $GNUBIN ]; then
-    PATH=$GNUBIN:$PATH;
-fi
-
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
+for src in .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
     [ -f "$HOME/$src" ] && source "$HOME/$src"
 done
 
@@ -82,13 +70,6 @@ which starship 1>/dev/null && eval "$(starship init zsh)"
 
 # enable direnv if available
 which direnv 1>/dev/null && eval "$(direnv hook zsh)"
-
-export AWS_REGION=ap-northeast-1
-export AWS_VAULT_BACKEND=pass
-export AWS_VAULT_PASS_PREFIX=aws-vault
-export AWS_SESSION_TOKEN_TTL=12h
-export AWS_ASSUME_ROLE_TTL=12h
-export AWS_FEDERATION_TOKEN_TTL=12h
 
 function colorlist() {
     for color in {000..015}; do
