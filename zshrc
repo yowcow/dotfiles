@@ -47,6 +47,7 @@ setopt share_history
 setopt magic_equal_subst
 
 export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # .ssh/config to have `HashKnownHosts no` will help
 # Load up to 200 hosts for SSH tab-completion in a single awk pass

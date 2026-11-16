@@ -9,7 +9,6 @@ skip_global_compinit=1
 export EDITOR="${EDITOR:-nvim}"
 export VISUAL="${VISUAL:-nvim}"
 export PAGER="${PAGER:-less}"
-export LANG="${LANG:-en_US.UTF-8}"
 export RIPGREP_CONFIG_PATH="${RIPGREP_CONFIG_PATH:-$HOME/.ripgreprc}"
 export CARGO_NET_GIT_FETCH_WITH_CLI="${CARGO_NET_GIT_FETCH_WITH_CLI:-true}"
 export AWS_REGION="${AWS_REGION:-ap-northeast-1}"
