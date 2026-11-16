@@ -371,6 +371,64 @@ function gpg-reload() {
         echo "gpg: re-authenticated"
 }
 
+# Run a command with secrets from pass exported only for its lifetime, in the
+# spirit of `aws-vault exec`. Each NAME's value is the first line of
+# `pass show env/NAME`. Values are exported only in a subshell (never to this
+# shell's environment or argv); any lookup failure, empty value, or special/typed
+# NAME aborts before the command runs.
+#
+# Usage: xs [NAME...] -- cmd [args...]    e.g. xs SPLUNK_TOKEN -- claude
+function xs() {
+    setopt local_options no_xtrace    # keep secrets out of `set -x` traces
+    # Validate argument syntax before decrypting anything.
+    local sep=${@[(i)--]}
+    if (( sep >= $# )); then
+        echo "usage: xs [NAME...] -- cmd [args...]" >&2
+        return 2
+    fi
+    local -a names=("${@[1,sep-1]}") kv
+    shift $sep
+    local name val
+    for name in "${names[@]}"; do
+        if [[ ! "$name" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]]; then
+            echo "xs: invalid variable name: $name" >&2
+            return 2
+        fi
+        # Special or typed parameters (USERNAME, SECONDS, integers, ...) would
+        # not pass the value through to the command unchanged.
+        if [[ ${(tP)name:-scalar} != (scalar|scalar-export) ]]; then
+            echo "xs: cannot export $name (zsh ${(tP)name} parameter)" >&2
+            return 2
+        fi
+    done
+    for name in "${names[@]}"; do
+        val=$(pass show "env/$name") || return
+        val=${val%%$'\n'*}
+        if [[ -z "$val" ]]; then
+            echo "xs: env/$name: first line is empty" >&2
+            return 1
+        fi
+        kv+=("$name=$val")
+    done
+    ( (( ${#kv} )) && export "${kv[@]}"; "$@" )
+}
+
+# Completion: names under pass env/ before `--`, a normal command line after it.
+function _xs() {
+    local i=${words[(i)--]}
+    if (( CURRENT > i )); then
+        shift i words
+        (( CURRENT -= i ))
+        _normal
+    else
+        local expl
+        local -a names=(${PASSWORD_STORE_DIR:-$HOME/.password-store}/env/*.gpg(N:t:r))
+        names=(${names:#(*[^A-Za-z0-9_]*|[0-9]*)})    # drop syntactically invalid names (xs still rejects special/typed ones)
+        _wanted names expl 'pass env/ name' compadd -a names
+    fi
+}
+(( $+functions[compdef] )) && compdef _xs xs
+
 ssh-agent-start
 
 [ -f "$HOME/.local.zsh" ] && source "$HOME/.local.zsh"
