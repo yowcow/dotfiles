@@ -13,6 +13,7 @@ alias help="run-help"
 
 case "$(uname -s)" in
     "Darwin")
+        _dotfiles_path_prepend --move
         if [ -f "$(which gls)" ]; then
             alias ls="gls --color";
         else
@@ -46,7 +47,6 @@ setopt share_history
 setopt magic_equal_subst
 
 export LC_ALL=en_US.UTF-8
-export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/lib/cargo/bin:$PATH
 
 # .ssh/config to have `HashKnownHosts no` will help
 # Load up to 200 hosts for SSH tab-completion in a single awk pass
@@ -57,13 +57,7 @@ export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/us
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
-# brew install coreutils
-GNUBIN=/opt/homebrew/opt/coreutils/libexec/gnubin
-if [ -d $GNUBIN ]; then
-    PATH=$GNUBIN:$PATH;
-fi
-
-for src in .cargo/env .rye/env .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
+for src in .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
     [ -f "$HOME/$src" ] && source "$HOME/$src"
 done
 

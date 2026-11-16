@@ -1,6 +1,5 @@
 unset GOROOT
 
-export PATH=$GOENV_ROOT/bin:$GOENV_ROOT/shims:$GOPATH/bin:$PATH
 #export GOPRIVATE=github.com/voyagegroup
 
 eval "$(goenv init -)"
