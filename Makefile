@@ -31,6 +31,7 @@ SOURCES := \
 	goenv.zsh \
 	ai-agents.zsh \
 	local/bin/btvol \
+	local/bin/osc52copy \
 	local/bin/update-env \
 	local/bin/vacuum \
 	luarocks.zsh \
