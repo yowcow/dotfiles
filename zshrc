@@ -332,7 +332,7 @@ function ssh-agent-start() {
         else
             # some environment ssh-agent starts automatically
             [ -z $SSH_AGENT_PID ] && \
-                export SSH_AGENT_PID=$(pgrep ssh-agent | head -n1);
+                export SSH_AGENT_PID=$(pgrep -U $(whoami) ssh-agent | head -n1);
             # find the path to sock and and restore the env
             # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard); absolutize
             # a relative target so SSH_AUTH_SOCK never ends up relative.
