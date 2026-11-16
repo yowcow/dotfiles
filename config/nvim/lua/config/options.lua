@@ -4,6 +4,28 @@
 
 vim.opt.backspace = "indent,start"
 vim.opt.clipboard = ""
+
+-- Over ssh (e.g. a Lima VM), copy "+ / "* to the local terminal's clipboard via OSC 52.
+-- "* is sent as the clipboard too, since macOS terminals drop OSC 52's primary selection.
+-- The terminal does not answer OSC 52 reads, so paste returns this nvim's last copy
+-- (from either register, as both share one clipboard) instead of hanging.
+if vim.env.SSH_TTY then
+  local send = require("vim.ui.clipboard.osc52").copy("+")
+  local last
+  local function copy(lines, regtype)
+    last = { lines, regtype }
+    send(lines, regtype)
+  end
+  local function paste()
+    return last or { {}, "v" }
+  end
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = { ["+"] = copy, ["*"] = copy },
+    paste = { ["+"] = paste, ["*"] = paste },
+  }
+end
+
 vim.opt.laststatus = 3
 vim.opt.listchars = "tab:>-,trail:^"
 vim.opt.mouse = ""
