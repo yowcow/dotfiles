@@ -295,13 +295,6 @@ function pin() {
     for pin in $(shuf --random-source=/dev/urandom -i0-9999 -n5); do printf '%04d\n' $pin; done
 }
 
-function lemonade-server-start() {
-    if [ "$(pgrep -x -U $(whoami) lemonade)" = "" ]; then
-        lemonade server &; disown;
-        echo "Lemonade PID: $(pgrep -x -U $(whoami) lemonade)";
-    fi
-}
-
 function ssh-agent-start() {
     local _sock
     if [ ! -z "$(which ssh-agent)" ]; then

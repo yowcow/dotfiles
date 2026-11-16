@@ -8,7 +8,6 @@ endif
 SOURCES := \
 	config/alacritty/alacritty.toml \
 	config/alacritty-theme \
-	config/lemonade.toml \
 	config/libskk \
 	config/kanshi/config \
 	config/muse/settings.json \
