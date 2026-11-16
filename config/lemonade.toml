@@ -1,5 +1,0 @@
-# lima host
-host = "192.168.5.2"
-log-level = 2
-# server only: Lima user-mode net (VM -> host 192.168.5.2) arrives as loopback on the host
-allow = "127.0.0.1/32,::1/128"
