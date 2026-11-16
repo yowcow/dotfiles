@@ -1,7 +1,6 @@
 install/lang/golang: GOTOOLS := \
 	github.com/bufbuild/buf/cmd/buf@latest \
 	github.com/google/yamlfmt/cmd/yamlfmt@latest \
-	github.com/lemonade-command/lemonade@latest \
 	github.com/suzuki-shunsuke/pinact/cmd/pinact@latest \
 	github.com/yowcow/ezserve@latest \
 	golang.org/x/tools/cmd/goimports@latest \
