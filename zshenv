@@ -5,7 +5,7 @@
 skip_global_compinit=1
 
 # Static defaults, so non-interactive shells see them too. ${X:-default} keeps
-# any value the caller already passed.
+# any non-empty value the caller already passed.
 export EDITOR="${EDITOR:-nvim}"
 export VISUAL="${VISUAL:-nvim}"
 export PAGER="${PAGER:-less}"
