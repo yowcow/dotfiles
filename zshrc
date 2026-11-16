@@ -316,9 +316,9 @@ function pin() {
 }
 
 function lemonade-server-start() {
-    if [ "$(pgrep lemonade)" = "" ]; then
+    if [ "$(pgrep -x -U $(whoami) lemonade)" = "" ]; then
         lemonade server &; disown;
-        echo "Lemonade PID: $(pgrep lemonade)";
+        echo "Lemonade PID: $(pgrep -x -U $(whoami) lemonade)";
     fi
 }
 
