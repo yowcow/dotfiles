@@ -336,12 +336,16 @@ function ssh-agent-start() {
             # find the path to sock and and restore the env
             # /tmp/ssh-auth.sock is a symlink here ([ -L ] guard); absolutize
             # a relative target so SSH_AUTH_SOCK never ends up relative.
-            # A dead link clears the var rather than leaving a stale export.
+            # Anything that fails (dead link, or a socket/dir not owned by this
+            # user) clears the var rather than leaving a stale export.
+            # /tmp is shared: resolve fully and require our ownership so another
+            # user can't swap the path after the check.
             if [ -L /tmp/ssh-auth.sock ]; then
                 _sock=$(readlink /tmp/ssh-auth.sock) && \
                 [ -n "$_sock" ] && \
                 case "$_sock" in /*) ;; *) _sock="/tmp/$_sock";; esac && \
-                [ -S "$_sock" ] && \
+                _sock=${_sock:A} && \
+                [ -S "$_sock" ] && [ -O "$_sock" ] && [ -O "${_sock:h}" ] && \
                 export SSH_AUTH_SOCK="$_sock" || unset SSH_AUTH_SOCK;
             fi; unset _sock;
         fi
