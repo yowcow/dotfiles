@@ -56,7 +56,6 @@ export LC_ALL=en_US.UTF-8
 # FZF specifically look for this line, so leaving it as it is
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-
 for src in .goenv.zsh .luarocks.zsh .nvm.zsh .pyenv.zsh .ai-agents.zsh; do
     [ -f "$HOME/$src" ] && source "$HOME/$src"
 done
@@ -70,7 +69,6 @@ which starship 1>/dev/null && eval "$(starship init zsh)"
 
 # enable direnv if available
 which direnv 1>/dev/null && eval "$(direnv hook zsh)"
-
 
 function colorlist() {
     for color in {000..015}; do
