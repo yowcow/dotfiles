@@ -42,6 +42,7 @@ SOURCES := \
 	pyenv.zsh \
 	ripgreprc \
 	tmux.conf \
+	zshenv \
 	zshrc
 
 # Shared AI assistant guidelines — one source file, multiple install targets.
