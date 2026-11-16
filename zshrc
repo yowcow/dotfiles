@@ -371,6 +371,75 @@ function gpg-reload() {
         echo "gpg: re-authenticated"
 }
 
+# Run a command with secrets from pass exported only for its lifetime, in the
+# spirit of `aws-vault exec`. Each NAME's value is the first line of
+# `pass show env/NAME`. Values are exported only in a subshell (never to this
+# shell's environment or argv); any lookup failure, empty value, or special/typed
+# NAME aborts before the command runs.
+#
+# Usage: xs [NAME...] -- cmd [args...]    e.g. xs SPLUNK_TOKEN -- claude
+# cmd may be a command or a shell function; aliases are not expanded.
+function xs() {
+    setopt local_options no_xtrace    # keep secrets out of `set -x` traces
+    # Validate argument syntax before decrypting anything. Locals are prefixed
+    # _xs_ so a NAME does not resolve to one of them via ${(P)...}.
+    local _xs_sep=${@[(i)--]}
+    if (( _xs_sep >= $# )); then
+        echo "usage: xs [NAME...] -- cmd [args...]" >&2
+        return 2
+    fi
+    local -a _xs_names=("${@[1,_xs_sep-1]}") _xs_kv
+    shift $_xs_sep
+    local _xs_name _xs_val
+    for _xs_name in "${_xs_names[@]}"; do
+        # Keep in sync with the name filter in _xs.
+        if [[ ! "$_xs_name" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]]; then
+            echo "xs: invalid variable name: $_xs_name" >&2
+            return 2
+        fi
+        # Special or typed parameters (USERNAME, SECONDS, integers, ...) would
+        # not pass the value through to the command unchanged.
+        if [[ ${(tP)_xs_name:-scalar} != (scalar|scalar-export) ]]; then
+            echo "xs: cannot export $_xs_name (zsh ${(tP)_xs_name} parameter)" >&2
+            return 2
+        fi
+    done
+    for _xs_name in "${_xs_names[@]}"; do
+        _xs_val=$(pass show "env/$_xs_name") || return
+        _xs_val=${_xs_val%%$'\n'*}
+        # pass lists a directory env/NAME/ (exit 0, first line "env/NAME")
+        # when env/NAME.gpg is absent.
+        if [[ "$_xs_val" == "env/$_xs_name" ]]; then
+            echo "xs: env/$_xs_name is a directory, not a secret" >&2
+            return 1
+        fi
+        if [[ -z "$_xs_val" ]]; then
+            echo "xs: env/$_xs_name: first line is empty" >&2
+            return 1
+        fi
+        _xs_kv+=("$_xs_name=$_xs_val")
+    done
+    ( (( ${#_xs_kv} )) && export "${_xs_kv[@]}"; "$@" )
+}
+
+# Completion: names under pass env/ before `--`, a normal command line after it.
+function _xs() {
+    local i=${words[(i)--]}
+    if (( CURRENT > i )); then
+        shift i words
+        (( CURRENT -= i ))
+        _normal
+    else
+        local expl
+        local -a names=(${PASSWORD_STORE_DIR:-$HOME/.password-store}/env/*.gpg(N:t:r))
+        # Same identifier rule as the regex in xs; keep the two in sync. xs still
+        # rejects special/typed names.
+        names=(${names:#(*[^A-Za-z0-9_]*|[0-9]*)})
+        _wanted names expl 'pass env/ name' compadd -a names
+    fi
+}
+(( $+functions[compdef] )) && compdef _xs xs
+
 ssh-agent-start
 
 [ -f "$HOME/.local.zsh" ] && source "$HOME/.local.zsh"
