@@ -380,43 +380,45 @@ function gpg-reload() {
 # Usage: xs [NAME...] -- cmd [args...]    e.g. xs SPLUNK_TOKEN -- claude
 function xs() {
     setopt local_options no_xtrace    # keep secrets out of `set -x` traces
-    # Validate argument syntax before decrypting anything.
-    local sep=${@[(i)--]}
-    if (( sep >= $# )); then
+    # Validate argument syntax before decrypting anything. Locals are prefixed
+    # _xs_ so a NAME does not resolve to one of them via ${(P)...}.
+    local _xs_sep=${@[(i)--]}
+    if (( _xs_sep >= $# )); then
         echo "usage: xs [NAME...] -- cmd [args...]" >&2
         return 2
     fi
-    local -a names=("${@[1,sep-1]}") kv
-    shift $sep
-    local name val
-    for name in "${names[@]}"; do
-        if [[ ! "$name" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]]; then
-            echo "xs: invalid variable name: $name" >&2
+    local -a _xs_names=("${@[1,_xs_sep-1]}") _xs_kv
+    shift $_xs_sep
+    local _xs_name _xs_val
+    for _xs_name in "${_xs_names[@]}"; do
+        # Keep in sync with the name filter in _xs.
+        if [[ ! "$_xs_name" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]]; then
+            echo "xs: invalid variable name: $_xs_name" >&2
             return 2
         fi
         # Special or typed parameters (USERNAME, SECONDS, integers, ...) would
         # not pass the value through to the command unchanged.
-        if [[ ${(tP)name:-scalar} != (scalar|scalar-export) ]]; then
-            echo "xs: cannot export $name (zsh ${(tP)name} parameter)" >&2
+        if [[ ${(tP)_xs_name:-scalar} != (scalar|scalar-export) ]]; then
+            echo "xs: cannot export $_xs_name (zsh ${(tP)_xs_name} parameter)" >&2
             return 2
         fi
     done
-    for name in "${names[@]}"; do
-        val=$(pass show "env/$name") || return
-        val=${val%%$'\n'*}
+    for _xs_name in "${_xs_names[@]}"; do
+        _xs_val=$(pass show "env/$_xs_name") || return
+        _xs_val=${_xs_val%%$'\n'*}
         # pass lists a directory env/NAME/ (exit 0, first line "env/NAME")
         # when env/NAME.gpg is absent.
-        if [[ "$val" == "env/$name" ]]; then
-            echo "xs: env/$name is a directory, not a secret" >&2
+        if [[ "$_xs_val" == "env/$_xs_name" ]]; then
+            echo "xs: env/$_xs_name is a directory, not a secret" >&2
             return 1
         fi
-        if [[ -z "$val" ]]; then
-            echo "xs: env/$name: first line is empty" >&2
+        if [[ -z "$_xs_val" ]]; then
+            echo "xs: env/$_xs_name: first line is empty" >&2
             return 1
         fi
-        kv+=("$name=$val")
+        _xs_kv+=("$_xs_name=$_xs_val")
     done
-    ( (( ${#kv} )) && export "${kv[@]}"; "$@" )
+    ( (( ${#_xs_kv} )) && export "${_xs_kv[@]}"; "$@" )
 }
 
 # Completion: names under pass env/ before `--`, a normal command line after it.
@@ -429,7 +431,9 @@ function _xs() {
     else
         local expl
         local -a names=(${PASSWORD_STORE_DIR:-$HOME/.password-store}/env/*.gpg(N:t:r))
-        names=(${names:#(*[^A-Za-z0-9_]*|[0-9]*)})    # drop syntactically invalid names (xs still rejects special/typed ones)
+        # Same identifier rule as the regex in xs; keep the two in sync. xs still
+        # rejects special/typed names.
+        names=(${names:#(*[^A-Za-z0-9_]*|[0-9]*)})
         _wanted names expl 'pass env/ name' compadd -a names
     fi
 }
