@@ -404,6 +404,12 @@ function xs() {
     for name in "${names[@]}"; do
         val=$(pass show "env/$name") || return
         val=${val%%$'\n'*}
+        # pass lists a directory env/NAME/ (exit 0, first line "env/NAME")
+        # when env/NAME.gpg is absent.
+        if [[ "$val" == "env/$name" ]]; then
+            echo "xs: env/$name is a directory, not a secret" >&2
+            return 1
+        fi
         if [[ -z "$val" ]]; then
             echo "xs: env/$name: first line is empty" >&2
             return 1
