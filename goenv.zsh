@@ -1,8 +1,5 @@
 unset GOROOT
-unset GOPATH
 
-export GOENV_ROOT=$HOME/.goenv
-export GOPATH=$HOME/go
 export PATH=$GOENV_ROOT/bin:$GOENV_ROOT/shims:$GOPATH/bin:$PATH
 #export GOPRIVATE=github.com/voyagegroup
 
