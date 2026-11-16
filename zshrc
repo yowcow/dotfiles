@@ -378,6 +378,7 @@ function gpg-reload() {
 # NAME aborts before the command runs.
 #
 # Usage: xs [NAME...] -- cmd [args...]    e.g. xs SPLUNK_TOKEN -- claude
+# cmd may be a command or a shell function; aliases are not expanded.
 function xs() {
     setopt local_options no_xtrace    # keep secrets out of `set -x` traces
     # Validate argument syntax before decrypting anything. Locals are prefixed
