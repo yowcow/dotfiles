@@ -29,6 +29,7 @@ install/lang/nodejs: PNPM_PKGS := \
 	@modelcontextprotocol/inspector \
 	@opencode/cli \
 	aws-cdk \
+	intelephense \
 	neovim \
 	npm-check-updates \
 	prettier \
