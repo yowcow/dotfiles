@@ -2,7 +2,7 @@
 #export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
 function claude-high() {
-    claude --model opus --effort high "$@"
+    claude --model fable --effort medium "$@"
 }
 
 function claude-mid() {
