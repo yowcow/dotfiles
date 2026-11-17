@@ -1,7 +1,8 @@
 #!/bin/sh
 # Copy stdin to the terminal's clipboard via OSC 52, e.g. `ip addr | osc52copy`.
 # Inside tmux, `set-clipboard on` forwards the sequence to the outer terminal.
+# One trailing newline is dropped, so `echo hoge | osc52copy` copies `hoge`.
 set -e
 
-data=$(base64 | tr -d '\n')
+data=$(perl -pe 'chomp if eof' | base64 | tr -d '\n')
 printf '\033]52;c;%s\a' "$data" > /dev/tty
