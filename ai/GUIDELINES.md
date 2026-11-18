@@ -62,6 +62,7 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 - When a branch will be pushed, choose its local name as the intended remote branch name and push it under that same name. Use a different remote name only with an explicit reason or user instruction.
 - Never force-push; fix un-pushed history locally with `git reset` and re-commit, and once commits are pushed add new commits (or `git revert`) rather than rewriting them.
 - Qualify cross-repo references: a bare `#NNN` resolves against the current repo, so write `owner/repo#NNN` when the target lives elsewhere (in PR/issue text and commit messages). Mark the target issue with a closing keyword (`fixes`/`closes`/`resolves`); GitHub auto-closes cross-repo issues when the PR is merged into its default branch.
+- In a public repository, keep references to private repositories and other private URLs (internal wikis, dashboards, chat threads) out of everything posted there — issue and PR titles, bodies, comments, commit messages, and committed files; this overrides the qualified reference above. Describe the context in words instead.
 
 ## Tools
 
