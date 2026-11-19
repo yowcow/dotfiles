@@ -68,6 +68,7 @@ Named workflows like `superpowers:brainstorming`, `dude:simplify-code`, or `dude
 
 - Prefer modern CLI tools (`rg`, `fd`, `gh`) and MCP tools for Git/GitHub operations, with Serena for codebase exploration.
 - Never search from `/` or unscoped — orchestrator and workers alike. Start at the project root or narrower, and exclude dependency, generated, vendored, and build directories (e.g. `node_modules`, `_build`) — unless a dependency's own source is the target: then search that package's directory directly instead of widening the scope. To find a binary use `command -v`, not a filesystem search.
+- The shell is zsh, which does not word-split an unquoted variable: `set -- $var` and `for x in $var` pass the whole value as one word. Take each value into its own variable, or split with `read -r a b <<<"$var"`.
 - Never bypass MFA or GPG passphrases — prompt the user to enter them and wait.
 
 ## Runtime-specific
