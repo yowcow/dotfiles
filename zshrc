@@ -192,14 +192,17 @@ function git-branch-clean() {
       --force|-f) apply=1 ;;
       --dry-run|-n) apply=0 ;;
       --fetch) fetch=1 ;;
-      --base=*) base="${1#--base=}" ;;
-      --base)
-        if (( $# < 2 )); then
+      --base|--base=*)
+        if [[ "$1" == --base=* ]]; then
+          base="${1#--base=}"
+        else
+          shift
+          base="${1:-}"
+        fi
+        if [[ -z "$base" ]]; then
           echo "Error: --base requires a branch name" >&2
           return 1
         fi
-        shift
-        base="$1"
         ;;
       -h|--help)
         cat <<'EOF'
@@ -269,7 +272,9 @@ EOF
     esac
   done < <(git worktree list --porcelain)
 
-  local merged_branch action_prefix status_output branch_held
+  # Mutating commands run against the main checkout: the current directory may
+  # be a linked worktree that gets removed below.
+  local merged_branch action_prefix status_output branch_held cwd_removed=0
   if [[ "$apply" -eq 1 ]]; then
     action_prefix="Removing"
   else
@@ -296,9 +301,11 @@ EOF
       else
         echo "$action_prefix worktree: $wt_path ($merged_branch)"
         if [[ "$apply" -eq 1 ]]; then
-          if ! git worktree remove --force --force "$wt_path"; then
+          if ! git -C "$main_wt" worktree remove --force --force "$wt_path"; then
             echo "Skip worktree (remove failed): $wt_path"
             branch_held=1
+          elif [[ "$PWD" == "$wt_path" || "$PWD" == "$wt_path"/* ]]; then
+            cwd_removed=1
           fi
         fi
       fi
@@ -309,12 +316,16 @@ EOF
     if [[ "$branch_held" -eq 0 ]]; then
       echo "$action_prefix branch: $merged_branch"
       if [[ "$apply" -eq 1 ]]; then
-        git branch -D "$merged_branch" || {
+        git -C "$main_wt" branch -D "$merged_branch" || {
           echo "Skip branch (delete failed): $merged_branch"
         }
       fi
     fi
-  done < <(git for-each-ref --merged "$base_ref" --format='%(refname:short)' refs/heads/)
+  done < <(git for-each-ref --merged "$base_ref" --format='%(refname:lstrip=2)' refs/heads/)
+
+  if [[ "$cwd_removed" -eq 1 ]]; then
+    echo "Note: the current directory was removed; cd \"$main_wt\""
+  fi
 }
 
 function pin() {
