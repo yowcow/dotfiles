@@ -183,69 +183,102 @@ function git-url() {
     esac
 }
 
-# Remove local branches already merged into the current HEAD branch, and any
-# clean linked worktrees checking them out. Local state only — no fetch, no
-# remotes. Intended after you have updated the integration branch yourself
-# (e.g. git pull). Squash-merged branches are not detected.
+# Remove local branches already merged into the integration (base) branch, and
+# any clean linked worktrees checking them out. The base defaults to the branch
+# origin/HEAD points at, so the result is the same from whichever branch or
+# worktree you run it. Never deletes the base, or a branch checked out in any
+# worktree other than a clean linked one it removes. The main checkout is never
+# removed. Squash-merged branches are not detected.
 #
-# Usage: git-branch-clean [--force|-f] [--dry-run|-n]
+# Usage: git-branch-clean [--force|-f] [--dry-run|-n] [--base <branch>] [--fetch]
 #   Default is dry-run; pass --force to actually delete.
-#   Run while checked out on the integration branch (master/main/…).
+#   Without --fetch: local only, judged against the local <base> branch.
+#   With --fetch: runs git fetch --prune origin, judged against origin/<base>.
 function git-branch-clean() {
-  local apply=0
-  local arg
-  for arg in "$@"; do
-    case "$arg" in
+  local apply=0 fetch=0 base=""
+  while (( $# > 0 )); do
+    case "$1" in
       --force|-f) apply=1 ;;
       --dry-run|-n) apply=0 ;;
+      --fetch) fetch=1 ;;
+      --base=*) base="${1#--base=}" ;;
+      --base)
+        if (( $# < 2 )); then
+          echo "Error: --base requires a branch name" >&2
+          return 1
+        fi
+        shift
+        base="$1"
+        ;;
       -h|--help)
         cat <<'EOF'
-Usage: git-branch-clean [--force|-f] [--dry-run|-n]
+Usage: git-branch-clean [--force|-f] [--dry-run|-n] [--base <branch>] [--fetch]
 
-Remove local branches merged into the currently checked-out branch, and
-their clean linked worktrees. Uses local repository state only (no fetch,
-no remotes). Does not detect squash merges.
+Remove local branches merged into the base branch, and their clean linked
+worktrees. The base defaults to the branch origin/HEAD points at; override it
+with --base. It errors out when no base can be determined. The candidates
+are the same from whichever branch or worktree you run it.
 
-Run on the integration branch after you have updated it (e.g. git pull).
+Never deleted: the base branch, and any branch checked out in a worktree
+(the main checkout included) other than a clean linked worktree removed here.
+The main checkout itself is never removed. Does not detect squash merges.
+
+Without --fetch, uses local state only and judges against the local <base>.
+With --fetch, runs git fetch --prune origin first and judges against
+origin/<base>.
+
 Default is dry-run; pass --force to delete.
 EOF
         return 0
         ;;
       *)
-        echo "Unknown option: $arg" >&2
+        echo "Unknown option: $1" >&2
         return 1
         ;;
     esac
+    shift
   done
 
-  local main_wt
-  main_wt="$(git rev-parse --show-toplevel)" || return 1
+  if [[ -z "$base" ]]; then
+    local origin_head
+    if ! origin_head="$(git symbolic-ref -q --short refs/remotes/origin/HEAD)"; then
+      echo "Error: origin/HEAD is not set; pass --base <branch>" >&2
+      echo "       (or run: git remote set-head origin --auto)" >&2
+      return 1
+    fi
+    base="${origin_head#origin/}"
+  fi
 
-  local base_branch
-  if ! base_branch="$(git symbolic-ref -q --short HEAD)"; then
-    echo "Error: detached HEAD; check out the integration branch first" >&2
+  local base_ref base_label
+  if [[ "$fetch" -eq 1 ]]; then
+    git fetch --prune origin || return 1
+    base_ref="refs/remotes/origin/$base" base_label="origin/$base (fetched)"
+  else
+    base_ref="refs/heads/$base" base_label="$base (local only)"
+  fi
+  if ! git show-ref --verify --quiet "$base_ref"; then
+    echo "Error: base ref not found: $base_ref" >&2
     return 1
   fi
-  echo "Base: $base_branch (current branch, local only)"
+  echo "Base: $base_label"
 
-  # branch -> worktree path (linked only; skip detached / main)
+  # branch -> worktree path for every worktree. git lists the main checkout
+  # first; its path is kept so it is never treated as a removable worktree.
   local -A wt_for_branch
-  local wt_path=""
+  local main_wt="" wt_path="" line
   while IFS= read -r line; do
     case "$line" in
       worktree\ *)
         wt_path="${line#worktree }"
+        [[ -z "$main_wt" ]] && main_wt="$wt_path"
         ;;
       branch\ refs/heads/*)
-        local wt_branch="${line#branch refs/heads/}"
-        if [[ -n "$wt_path" && "$wt_path" != "$main_wt" ]]; then
-          wt_for_branch[$wt_branch]="$wt_path"
-        fi
+        wt_for_branch[${line#branch refs/heads/}]="$wt_path"
         ;;
     esac
   done < <(git worktree list --porcelain)
 
-  local merged_branch action_prefix
+  local merged_branch action_prefix status_output branch_held
   if [[ "$apply" -eq 1 ]]; then
     action_prefix="Removing"
   else
@@ -253,17 +286,17 @@ EOF
   fi
 
   while IFS= read -r merged_branch; do
-    [[ -z "$merged_branch" ]] && continue
-    # Never delete the branch we are on
-    [[ "$merged_branch" == "$base_branch" ]] && continue
+    [[ -z "$merged_branch" || "$merged_branch" == "$base" ]] && continue
 
-    # Linked worktree on this branch: require a clean tree before remove.
-    # If it stays, the branch is still checked out and must not be deleted.
-    local branch_held=0
-    if [[ -n "${wt_for_branch[$merged_branch]:-}" ]]; then
-      wt_path="${wt_for_branch[$merged_branch]}"
-      local status_output
-      if ! status_output="$(git -C "$wt_path" status --porcelain --ignore-submodules=none)"; then
+    # Checked out somewhere: only a clean linked worktree may be removed, and
+    # only then is the branch free to delete.
+    branch_held=0
+    wt_path="${wt_for_branch[$merged_branch]:-}"
+    if [[ -n "$wt_path" ]]; then
+      if [[ "$wt_path" == "$main_wt" ]]; then
+        echo "Skip branch (checked out in main checkout): $merged_branch"
+        branch_held=1
+      elif ! status_output="$(git -C "$wt_path" status --porcelain --ignore-submodules=none)"; then
         echo "Skip worktree (cannot read status): $wt_path ($merged_branch)"
         branch_held=1
       elif [[ -n "$status_output" ]]; then
@@ -280,16 +313,17 @@ EOF
       fi
     fi
 
-    # -d re-checks merged-into-HEAD; safe now that base is the local HEAD.
-    if [[ "$branch_held" -eq 0 ]] && git show-ref --verify --quiet "refs/heads/${merged_branch}"; then
+    # -D, not -d: -d checks HEAD/upstream, not the base. Merged-into-base was
+    # already established by --merged above.
+    if [[ "$branch_held" -eq 0 ]]; then
       echo "$action_prefix branch: $merged_branch"
       if [[ "$apply" -eq 1 ]]; then
-        git branch -d "$merged_branch" || {
+        git branch -D "$merged_branch" || {
           echo "Skip branch (delete failed): $merged_branch"
         }
       fi
     fi
-  done < <(git branch --merged HEAD --format='%(refname:short)')
+  done < <(git for-each-ref --merged "$base_ref" --format='%(refname:short)' refs/heads/)
 }
 
 function pin() {
