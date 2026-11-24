@@ -275,7 +275,7 @@ EOF
   # Mutating commands run against the main checkout: the current directory may
   # be a linked worktree that gets removed below. Resolve it now, while it
   # still exists: git reports worktree paths with symlinks resolved.
-  local merged_branch action_prefix status_output branch_held cwd_removed=0
+  local merged_sha merged_branch action_prefix status_output branch_held cwd_removed=0
   local cwd="${PWD:A}"
   if [[ "$apply" -eq 1 ]]; then
     action_prefix="Removing"
@@ -283,7 +283,7 @@ EOF
     action_prefix="Would remove"
   fi
 
-  while IFS= read -r merged_branch; do
+  while read -r merged_sha merged_branch; do
     [[ "$merged_branch" == "$base" ]] && continue
 
     # Checked out somewhere: only a clean linked worktree may be removed, and
@@ -314,16 +314,18 @@ EOF
     fi
 
     # -D, not -d: -d checks HEAD/upstream, not the base. Merged-into-base was
-    # already established by --merged above.
+    # established by --merged above; skip a branch that moved since then.
     if [[ "$branch_held" -eq 0 ]]; then
       echo "$action_prefix branch: $merged_branch"
       if [[ "$apply" -eq 1 ]]; then
-        git -C "$main_wt" branch -D "$merged_branch" || {
+        if [[ "$(git -C "$main_wt" rev-parse -q --verify "refs/heads/$merged_branch")" != "$merged_sha" ]]; then
+          echo "Skip branch (moved since listing): $merged_branch"
+        elif ! git -C "$main_wt" branch -D "$merged_branch"; then
           echo "Skip branch (delete failed): $merged_branch"
-        }
+        fi
       fi
     fi
-  done < <(git for-each-ref --merged "$base_ref" --format='%(refname:lstrip=2)' refs/heads/)
+  done < <(git for-each-ref --merged "$base_ref" --format='%(objectname) %(refname:lstrip=2)' refs/heads/)
 
   if [[ "$cwd_removed" -eq 1 ]]; then
     echo "Note: the current directory was removed; cd \"$main_wt\""
