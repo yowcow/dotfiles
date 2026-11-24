@@ -183,17 +183,8 @@ function git-url() {
     esac
 }
 
-# Remove local branches already merged into the integration (base) branch, and
-# any clean linked worktrees checking them out. The base defaults to the branch
-# origin/HEAD points at, so the result is the same from whichever branch or
-# worktree you run it. Never deletes the base, or a branch checked out in any
-# worktree other than a clean linked one it removes. The main checkout is never
-# removed. Squash-merged branches are not detected.
-#
-# Usage: git-branch-clean [--force|-f] [--dry-run|-n] [--base <branch>] [--fetch]
-#   Default is dry-run; pass --force to actually delete.
-#   Without --fetch: local only, judged against the local <base> branch.
-#   With --fetch: runs git fetch --prune origin, judged against origin/<base>.
+# Remove local branches merged into the base branch (origin/HEAD by default),
+# and their clean linked worktrees. Dry-run unless --force; see --help.
 function git-branch-clean() {
   local apply=0 fetch=0 base=""
   while (( $# > 0 )); do
@@ -286,7 +277,7 @@ EOF
   fi
 
   while IFS= read -r merged_branch; do
-    [[ -z "$merged_branch" || "$merged_branch" == "$base" ]] && continue
+    [[ "$merged_branch" == "$base" ]] && continue
 
     # Checked out somewhere: only a clean linked worktree may be removed, and
     # only then is the branch free to delete.
