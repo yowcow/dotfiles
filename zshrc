@@ -235,12 +235,12 @@ EOF
 
   if [[ -z "$base" ]]; then
     local origin_head
-    if ! origin_head="$(git symbolic-ref -q --short refs/remotes/origin/HEAD)"; then
+    if ! origin_head="$(git symbolic-ref -q refs/remotes/origin/HEAD)"; then
       echo "Error: origin/HEAD is not set; pass --base <branch>" >&2
       echo "       (or run: git remote set-head origin --auto)" >&2
       return 1
     fi
-    base="${origin_head#origin/}"
+    base="${origin_head#refs/remotes/origin/}"
   fi
 
   local base_ref base_label
@@ -273,8 +273,10 @@ EOF
   done < <(git worktree list --porcelain)
 
   # Mutating commands run against the main checkout: the current directory may
-  # be a linked worktree that gets removed below.
+  # be a linked worktree that gets removed below. Resolve it now, while it
+  # still exists: git reports worktree paths with symlinks resolved.
   local merged_branch action_prefix status_output branch_held cwd_removed=0
+  local cwd="${PWD:A}"
   if [[ "$apply" -eq 1 ]]; then
     action_prefix="Removing"
   else
@@ -304,7 +306,7 @@ EOF
           if ! git -C "$main_wt" worktree remove --force --force "$wt_path"; then
             echo "Skip worktree (remove failed): $wt_path"
             branch_held=1
-          elif [[ "$PWD" == "$wt_path" || "$PWD" == "$wt_path"/* ]]; then
+          elif [[ "$cwd" == "$wt_path" || "$cwd" == "$wt_path"/* ]]; then
             cwd_removed=1
           fi
         fi
