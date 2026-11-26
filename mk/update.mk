@@ -35,7 +35,8 @@ install/lang/nodejs: PNPM_PKGS := \
 	prettier \
 	sql-formatter \
 	sql-formatter-cli \
-	typescript
+	typescript \
+	typescript-language-server
 # packages whose build scripts must be allowed (carried over from NPM_ALLOW_SCRIPTS, minus yarn)
 install/lang/nodejs: PNPM_ALLOW_BUILD := @opencode/cli @modelcontextprotocol/inspector @github/keytar node-pty
 # pinned MCP, keep out of unpinned PNPM_PKGS
